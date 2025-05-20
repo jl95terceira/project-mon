@@ -1,4 +1,4 @@
-package jl95.tbb.mon1;
+package jl95.tbb.mon;
 
 import jl95.lang.variadic.Function0;
 import jl95.tbb.PartyId;
@@ -15,17 +15,15 @@ public class Battle<
         Mon,
         InitialConditions,
         MonDecision,
-        LocalUpdate,
         GlobalUpdate
         > {
 
     public final jl95.tbb.Battle<
-            jl95.tbb.mon1.PartyEntry<Mon>,
+            PartyEntry<Mon>,
             InitialConditions,
-            jl95.tbb.mon1.LocalContext<Mon>,
-            jl95.tbb.mon1.GlobalContext<Mon>,
+            LocalContext<Mon>,
+            GlobalContext<Mon>,
             PartyDecision<MonDecision>,
-            LocalUpdate,
             GlobalUpdate
             > upcastBattle;
 
@@ -33,7 +31,6 @@ public class Battle<
             Mon,
             InitialConditions,
             MonDecision,
-            LocalUpdate,
             GlobalUpdate
             > ruleset) {
 
@@ -43,7 +40,7 @@ public class Battle<
     public Optional<PartyId> spawn(
             StrictMap<PartyId, PartyEntry<Mon>> parties,
             InitialConditions initialConditions,
-            StrictMap<PartyId, Function2<MonDecision, LocalContext<Mon>, MonId>> decisionFunctionsMap,
+            StrictMap<PartyId, Function2<MonDecision, LocalContext<Mon>, PartyMonId>> decisionFunctionsMap,
             jl95.tbb.Battle.Callbacks<LocalContext<Mon>, LocalUpdate> callbacks,
             Function0<Boolean> toInterrupt
     ) {

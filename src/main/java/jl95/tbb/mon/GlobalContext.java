@@ -1,4 +1,4 @@
-package jl95.tbb.mon1;
+package jl95.tbb.mon;
 
 import jl95.tbb.PartyId;
 import jl95.util.StrictMap;

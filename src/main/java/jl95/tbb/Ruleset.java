@@ -10,15 +10,14 @@ public interface Ruleset<
         LocalContext,
         GlobalContext,
         Decision,
-        LocalUpdate,
-        GlobalUpdate
+        Update
         > {
 
     GlobalContext
     init(StrictMap<PartyId, PartyEntry> parties,
          InitialConditions initialConditions);
 
-    Iterable<GlobalUpdate>
+    Iterable<Update>
     evalStart(GlobalContext context,
               InitialConditions initialConditions);
 
@@ -26,17 +25,13 @@ public interface Ruleset<
     detLocalContext(GlobalContext context,
                     PartyId partyId);
 
-    Iterable<GlobalUpdate>
+    Iterable<Update>
     evalDecisions(GlobalContext context,
                   StrictMap<PartyId, Decision> decisionsMap);
 
     void
     update(GlobalContext context,
-           GlobalUpdate update);
-
-    LocalUpdate
-    detLocalUpdate(GlobalUpdate context,
-                   PartyId partyId);
+           Update update);
 
     Optional<PartyId>
     evalVictory(GlobalContext context);

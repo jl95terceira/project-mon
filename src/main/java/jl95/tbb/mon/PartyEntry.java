@@ -1,4 +1,4 @@
-package jl95.tbb.mon1;
+package jl95.tbb.mon;
 
 import static jl95.lang.SuperPowers.*;
 

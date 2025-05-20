@@ -1,4 +1,4 @@
-package jl95.tbb.mon1;
+package jl95.tbb.mon;
 
 import jl95.util.StrictMap;
 
@@ -6,5 +6,5 @@ import static jl95.lang.SuperPowers.*;
 
 public class PartyDecision<MonDecision> {
 
-    public final StrictMap<MonId, MonDecision> monDecisions = strict(Map());
+    public final StrictMap<PartyMonId, MonDecision> monDecisions = strict(Map());
 }

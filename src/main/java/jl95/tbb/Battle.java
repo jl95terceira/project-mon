@@ -11,18 +11,18 @@ import static jl95.lang.SuperPowers.*;
 public class Battle<
         PartyEntry, InitialConditions,
         LocalContext, GlobalContext,
-        Decision, LocalUpdate, GlobalUpdate
+        Decision, Update
         > {
 
     public final Ruleset<
             PartyEntry, InitialConditions,
             LocalContext, GlobalContext,
-            Decision, LocalUpdate, GlobalUpdate> ruleset;
+            Decision, Update> ruleset;
 
     public Battle(Ruleset<
             PartyEntry, InitialConditions,
             LocalContext, GlobalContext,
-            Decision, LocalUpdate, GlobalUpdate
+            Decision, Update
             > ruleset) {
 
         this.ruleset = ruleset;
@@ -37,7 +37,7 @@ public class Battle<
     public Optional<PartyId> spawn(StrictMap<PartyId, PartyEntry> parties,
                                    InitialConditions initialConditions,
                                    StrictMap<PartyId, Function1<Decision, LocalContext>> decisionFunctionsMap,
-                                   Callbacks<LocalContext, LocalUpdate> callbacks,
+                                   Callbacks<LocalContext, Update> callbacks,
                                    Function0<Boolean> toInterrupt) {
 
         var shuttindDown = new Ref<>(false);
@@ -47,11 +47,8 @@ public class Battle<
         var localContextGetter = function(() -> strict(I.of(partyIds)
                                                         .toMap(id -> id,
                                                                id -> ruleset.detLocalContext(globalContext, id))));
-        var handleUpdates = method((Iterable<GlobalUpdate> updates) -> {
-            for (GlobalUpdate update: updates) {
-                for (var partyId: partyIds) {
-                    callbacks.onUpdate(partyId, ruleset.detLocalUpdate(update, partyId));
-                }
+        var handleUpdates = method((Iterable<Update> updates) -> {
+            for (Update update: updates) {
                 ruleset.update(globalContext, update);
                 var localContext = localContextGetter.apply();
                 for (var partyId: partyIds) {

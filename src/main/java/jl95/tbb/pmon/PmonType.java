@@ -6,14 +6,14 @@ import jl95.util.AutoHashcoded;
 
 import java.util.Set;
 
-public class PmonType extends AutoHashcoded {
+public abstract class PmonType extends AutoHashcoded {
 
     public final String name;
-    public final Set<PmonType> weakerTypes = Set();
-    public final Set<PmonType> strongerTypes = Set();
-    public final Set<PmonType> immuneTypes = Set();
-
     public PmonType(String name) {
         this.name = name;
     }
+
+    public abstract Boolean isSuperEffectiveAgainst(PmonType other);
+    public abstract Boolean isNotVeryEffectiveAgainst(PmonType other);
+    public abstract Boolean doesNotAffect(PmonType other);
 }

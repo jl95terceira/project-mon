@@ -1,4 +1,4 @@
-package jl95.tbb.mon1;
+package jl95.tbb.mon;
 
 import jl95.tbb.PartyId;
 import jl95.lang.I;
@@ -11,15 +11,14 @@ public interface Ruleset<
         Mon,
         InitialConditions,
         MonDecision,
-        LocalUpdate,
-        GlobalUpdate
+        Update
         > {
 
     GlobalContext<Mon>
     init(StrictMap<PartyId, PartyEntry<Mon>> parties,
          InitialConditions initialConditions);
 
-    Iterable<GlobalUpdate>
+    Iterable<Update>
     evalStart(GlobalContext<Mon> context,
               InitialConditions initialConditions);
 
@@ -29,29 +28,25 @@ public interface Ruleset<
 
     void
     update(GlobalContext<Mon> context,
-           GlobalUpdate update);
-
-    LocalUpdate
-    detLocalUpdate(GlobalUpdate context,
-                   PartyId partyId);
+           Update update);
 
     Optional<PartyId>
     evalVictory(GlobalContext<Mon> context);
 
-    Iterable<Tuple2<PartyId, MonId>>
+    Iterable<Tuple2<PartyId, PartyMonId>>
     prioritised(GlobalContext<Mon> context,
                 StrictMap<PartyId, PartyDecision<MonDecision>> decisionsMap);
 
-    Iterable<GlobalUpdate>
+    Iterable<Update>
     evalDecisionsPerMon(GlobalContext<Mon> context,
                         PartyId partyId,
-                        MonId monId,
+                        PartyMonId monId,
                         MonDecision monDecision);
 
     Boolean
     allowedToMove(GlobalContext<Mon> context,
                   PartyId partyId,
-                  MonId monId);
+                  PartyMonId monId);
 
     default jl95.tbb.Ruleset<
             PartyEntry<Mon>,
@@ -59,9 +54,9 @@ public interface Ruleset<
             LocalContext<Mon>,
             GlobalContext<Mon>,
             PartyDecision<MonDecision>,
-            LocalUpdate,
-            GlobalUpdate
+            Update
             > upcast() {
+
         return new jl95.tbb.Ruleset<>() {
 
             @Override
@@ -70,7 +65,7 @@ public interface Ruleset<
             }
 
             @Override
-            public Iterable<GlobalUpdate> evalStart(GlobalContext<Mon> monGlobalContext, InitialConditions initialConditions) {
+            public Iterable<Update> evalStart(GlobalContext<Mon> monGlobalContext, InitialConditions initialConditions) {
                 return Ruleset.this.evalStart(monGlobalContext, initialConditions);
             }
 
@@ -80,7 +75,7 @@ public interface Ruleset<
             }
 
             @Override
-            public Iterable<GlobalUpdate> evalDecisions(GlobalContext<Mon> monGlobalContext, StrictMap<PartyId, PartyDecision<MonDecision>> decisionsMap) {
+            public Iterable<Update> evalDecisions(GlobalContext<Mon> monGlobalContext, StrictMap<PartyId, PartyDecision<MonDecision>> decisionsMap) {
                 var monDecisionsPrioritised = prioritised(monGlobalContext, decisionsMap);
                 return I.of(monDecisionsPrioritised)
                         .filter(t -> {
@@ -99,13 +94,8 @@ public interface Ruleset<
             }
 
             @Override
-            public void update(GlobalContext<Mon> monGlobalContext, GlobalUpdate globalUpdate) {
-                Ruleset.this.update(monGlobalContext, globalUpdate);
-            }
-
-            @Override
-            public LocalUpdate detLocalUpdate(GlobalUpdate context, PartyId partyId) {
-                return Ruleset.this.detLocalUpdate(context, partyId);
+            public void update(GlobalContext<Mon> monGlobalContext, Update update) {
+                Ruleset.this.update(monGlobalContext, update);
             }
 
             @Override
@@ -114,5 +104,4 @@ public interface Ruleset<
             }
         };
     }
-
 }
