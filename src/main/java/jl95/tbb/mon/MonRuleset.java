@@ -8,7 +8,7 @@ import jl95.util.StrictMap;
 import java.util.Optional;
 
 public interface MonRuleset<
-        Mon,
+        Mon, FoeMonView,
         InitialConditions,
         MonDecision,
         GlobalUpdate, LocalUpdate
@@ -22,7 +22,7 @@ public interface MonRuleset<
     detInitialUpdates(MonGlobalContext<Mon> context,
                       InitialConditions initialConditions);
 
-    MonLocalContext<Mon>
+    MonLocalContext<Mon, FoeMonView>
     detLocalContext(MonGlobalContext<Mon> context,
                     PartyId partyId);
 
@@ -55,7 +55,7 @@ public interface MonRuleset<
     default jl95.tbb.Ruleset<
             MonPartyEntry<Mon>,
             InitialConditions,
-            MonLocalContext<Mon>,
+            MonLocalContext<Mon, FoeMonView>,
             MonGlobalContext<Mon>,
             MonPartyDecision<MonDecision>,
             GlobalUpdate, LocalUpdate
@@ -74,7 +74,7 @@ public interface MonRuleset<
             }
 
             @Override
-            public MonLocalContext<Mon> detLocalContext(MonGlobalContext<Mon> monGlobalContext, PartyId partyId) {
+            public MonLocalContext<Mon, FoeMonView> detLocalContext(MonGlobalContext<Mon> monGlobalContext, PartyId partyId) {
                 return MonRuleset.this.detLocalContext(monGlobalContext, partyId);
             }
 

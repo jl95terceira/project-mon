@@ -13,7 +13,7 @@ import java.util.Optional;
 import static jl95.lang.SuperPowers.*;
 
 public class MonBattle<
-        Mon,
+        Mon, FoeMonView,
         InitialConditions,
         MonDecision,
         GlobalUpdate, LocalUpdate
@@ -22,7 +22,7 @@ public class MonBattle<
     public final jl95.tbb.Battle<
             MonPartyEntry<Mon>,
             InitialConditions,
-            MonLocalContext<Mon>,
+            MonLocalContext<Mon, FoeMonView>,
             MonGlobalContext<Mon>,
             MonPartyDecision<MonDecision>,
             GlobalUpdate,
@@ -30,7 +30,7 @@ public class MonBattle<
             > upcastBattle;
 
     public MonBattle(MonRuleset<
-                Mon,
+                Mon, FoeMonView,
                 InitialConditions,
                 MonDecision,
                 GlobalUpdate, LocalUpdate
@@ -43,14 +43,14 @@ public class MonBattle<
             StrictMap<PartyId, MonPartyEntry<Mon>> parties,
             InitialConditions initialConditions,
             StrictMap<PartyId, Function1<MonDecision, MonPartyMonId>> decisionFunctionsMap,
-            jl95.tbb.Battle.Callbacks<LocalUpdate, MonLocalContext<Mon>> callbacks,
+            jl95.tbb.Battle.Callbacks<LocalUpdate, MonLocalContext<Mon, FoeMonView>> callbacks,
             Function0<Boolean> toInterrupt
     ) {
 
-        var localContextsMap = strict(new HashMap<PartyId, MonLocalContext<Mon>>());
-        var extendedCallbacks = new jl95.tbb.Battle.Callbacks<LocalUpdate, MonLocalContext<Mon>>() {
+        var localContextsMap = strict(new HashMap<PartyId, MonLocalContext<Mon, FoeMonView>>());
+        var extendedCallbacks = new jl95.tbb.Battle.Callbacks<LocalUpdate, MonLocalContext<Mon, FoeMonView>>() {
 
-            @Override public void onLocalContext(PartyId id, MonLocalContext<Mon> monLocalContext) {
+            @Override public void onLocalContext(PartyId id, MonLocalContext<Mon, FoeMonView> monLocalContext) {
                 localContextsMap.put(id, monLocalContext);
                 callbacks.onLocalContext(id, monLocalContext);
             }
