@@ -1,10 +1,6 @@
-package jl95.tbb.pmon;
-
-import static jl95.lang.SuperPowers.*;
+package jl95.tbb.pmon.attrs;
 
 import jl95.util.AutoHashcoded;
-
-import java.util.Set;
 
 public abstract class PmonType extends AutoHashcoded {
 

@@ -6,7 +6,7 @@ import jl95.util.StrictMap;
 import static jl95.lang.SuperPowers.Map;
 import static jl95.lang.SuperPowers.strict;
 
-public class GlobalContext<Mon> {
+public class MonGlobalContext<Mon> {
 
-    public final StrictMap<PartyId, Party<Mon>> parties = strict(Map());
+    public final StrictMap<PartyId, MonParty<Mon>> parties = strict(Map());
 }

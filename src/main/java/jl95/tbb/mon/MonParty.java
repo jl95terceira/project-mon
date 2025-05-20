@@ -6,13 +6,13 @@ import java.util.List;
 
 import static jl95.lang.SuperPowers.*;
 
-public class Party<Mon> {
+public class MonParty<Mon> {
 
-    public final StrictMap<PartyMonId, Mon> monsOnField = strict(Map());
+    public final StrictMap<MonPartyMonId, Mon> monsOnField = strict(Map());
     public final List<Mon> mons = List();
 
-    public static <Mon> Party<Mon> fromEntry(PartyEntry<Mon> entry) {
-        var party = new Party<Mon>();
+    public static <Mon> MonParty<Mon> fromEntry(MonPartyEntry<Mon> entry) {
+        var party = new MonParty<Mon>();
         party.mons.addAll(entry.mons);
         return party;
     }

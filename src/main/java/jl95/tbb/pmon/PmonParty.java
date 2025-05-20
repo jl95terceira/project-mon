@@ -1,6 +1,6 @@
 package jl95.tbb.pmon;
 
-import jl95.tbb.mon.Party;
+import jl95.tbb.mon.MonParty;
 
-public class PmonParty extends Party<Pmon> {
+public class PmonParty extends MonParty<Pmon> {
 }
