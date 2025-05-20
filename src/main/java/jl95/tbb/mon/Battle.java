@@ -41,7 +41,7 @@ public class Battle<
             StrictMap<PartyId, PartyEntry<Mon>> parties,
             InitialConditions initialConditions,
             StrictMap<PartyId, Function2<MonDecision, LocalContext<Mon>, PartyMonId>> decisionFunctionsMap,
-            jl95.tbb.Battle.Callbacks<LocalContext<Mon>, LocalUpdate> callbacks,
+            jl95.tbb.Battle.Callbacks<LocalContext<Mon>, GlobalUpdate> callbacks,
             Function0<Boolean> toInterrupt
     ) {
 
