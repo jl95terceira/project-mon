@@ -3,7 +3,6 @@ package jl95.tbb.pmon;
 import jl95.lang.SuperPowers;
 import jl95.tbb.pmon.attrs.*;
 
-import java.util.List;
 import java.util.Set;
 
 public class PmonFoeView {

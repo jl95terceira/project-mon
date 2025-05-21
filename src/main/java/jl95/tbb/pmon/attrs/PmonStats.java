@@ -1,6 +1,6 @@
 package jl95.tbb.pmon.attrs;
 
-public class PmonBaseStats {
+public class PmonStats {
 
     public Integer hp = 0;
     public Integer attack = 0;

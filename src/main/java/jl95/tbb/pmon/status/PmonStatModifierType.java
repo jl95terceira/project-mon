@@ -1,4 +1,4 @@
-package jl95.tbb.pmon.attrs;
+package jl95.tbb.pmon.status;
 
 public enum PmonStatModifierType {
     ATTACK,

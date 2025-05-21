@@ -34,6 +34,8 @@ public class Battle<
         void onLocalUpdate(PartyId id, LocalUpdate update);
     }
 
+    public static class InterruptedException extends RuntimeException {}
+
     public Optional<PartyId> spawn(StrictMap<PartyId, PartyEntry> parties,
                                    InitialConditions initialConditions,
                                    StrictMap<PartyId, Function0<Decision>> decisionFunctionsMap,
@@ -70,7 +72,7 @@ public class Battle<
         handleUpdates.accept(updatesAtStart);
         while (true) {
             if (shuttindDown.get() || toInterrupt.apply()) {
-                return Optional.empty();
+                throw new Battle.InterruptedException();
             }
             var victorOptional = ruleset.detVictory(globalContext);
             if (victorOptional.isPresent()) {

@@ -42,10 +42,10 @@ public interface MonRuleset<
                 StrictMap<PartyId, MonPartyDecision<MonDecision>> decisionsMap);
 
     Iterable<GlobalUpdate>
-    detDecisionsPerMon(MonGlobalContext<Mon> context,
-                       PartyId partyId,
-                       MonPartyMonId monId,
-                       MonDecision monDecision);
+    detUpdatesPerMon(MonGlobalContext<Mon> context,
+                     PartyId partyId,
+                     MonPartyMonId monId,
+                     MonDecision monDecision);
 
     Boolean
     allowedToMove(MonGlobalContext<Mon> context,
@@ -90,7 +90,7 @@ public interface MonRuleset<
                         .flatmap(t -> {
                             var partyId = t.a1;
                             var monId = t.a2;
-                            return detDecisionsPerMon(monGlobalContext,
+                            return detUpdatesPerMon(monGlobalContext,
                                     partyId,
                                     monId,
                                     decisionsMap.get(partyId).monDecisions.get(monId));

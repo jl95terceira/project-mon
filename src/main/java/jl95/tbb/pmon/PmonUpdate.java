@@ -13,7 +13,7 @@ public abstract class PmonUpdate {
 
     public final String id;
     public final Tuple2<PartyId, MonPartyMonId> source;
-    public final List<Tuple3<PartyId, MonPartyMonId, PmonSubUpdate>> targetUpdates;
+    public final List<Tuple3<PartyId, MonPartyMonId, PmonAtomicUpdate>> targetUpdates;
 
     public PmonUpdate(String typeIdentifier,
                       Tuple2<PartyId, MonPartyMonId> source) {
