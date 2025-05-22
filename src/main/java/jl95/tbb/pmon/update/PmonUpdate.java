@@ -9,7 +9,7 @@ import jl95.tbb.mon.MonPartyMonId;
 
 import java.util.List;
 
-public abstract class PmonUpdate {
+public class PmonUpdate {
 
     public final String id;
     public final Tuple2<PartyId, MonPartyMonId> source;
