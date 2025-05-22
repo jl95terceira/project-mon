@@ -21,7 +21,7 @@ public class PmonMoveAttributes {
     public StrictMap<PmonStatModifierType, Chanced<Integer>> statModifiers = strict(Map());
     public Integer priorityModifier = 0;
     public Boolean pursuit = false;
-    public List<Chanced<Function0<PmonStatusCondition>>> statusConditions = SuperPowers.List();
+    public List<Chanced<Function0<PmonStatusCondition>>> statusConditions = List();
     public Boolean disableLastMove = false;
     public Boolean exhaustLastMove = false;
 
