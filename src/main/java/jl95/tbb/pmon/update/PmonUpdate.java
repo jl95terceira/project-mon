@@ -1,4 +1,4 @@
-package jl95.tbb.pmon;
+package jl95.tbb.pmon.update;
 
 import static jl95.lang.SuperPowers.*;
 

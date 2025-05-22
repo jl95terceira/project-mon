@@ -1,5 +1,6 @@
 package jl95.tbb.mon;
 
+import jl95.lang.Ref;
 import jl95.lang.variadic.Function0;
 import jl95.lang.variadic.Function1;
 import jl95.tbb.PartyId;
@@ -19,6 +20,12 @@ public class MonBattle<
         GlobalUpdate, LocalUpdate
         > {
 
+    public final MonRuleset<
+            Mon, FoeMonView,
+            InitialConditions,
+            MonDecision,
+            GlobalUpdate, LocalUpdate
+            > ruleset;
     public final jl95.tbb.Battle<
             MonPartyEntry<Mon>,
             InitialConditions,
@@ -36,6 +43,7 @@ public class MonBattle<
                 GlobalUpdate, LocalUpdate
                 > ruleset) {
 
+        this.ruleset = ruleset;
         this.upcastBattle = new jl95.tbb.Battle<>(ruleset.upcast());
     }
 
@@ -43,12 +51,19 @@ public class MonBattle<
             StrictMap<PartyId, MonPartyEntry<Mon>> parties,
             InitialConditions initialConditions,
             StrictMap<PartyId, Function1<MonDecision, MonPartyMonId>> decisionFunctionsMap,
-            jl95.tbb.Battle.Callbacks<LocalUpdate, MonLocalContext<Mon, FoeMonView>> callbacks,
+            jl95.tbb.Battle.Callbacks<LocalUpdate, MonLocalContext<Mon, FoeMonView>, MonGlobalContext<Mon>> callbacks,
             Function0<Boolean> toInterrupt
     ) {
 
+        var globalContextRef = new Ref<MonGlobalContext<Mon>>();
         var localContextsMap = strict(new HashMap<PartyId, MonLocalContext<Mon, FoeMonView>>());
-        var extendedCallbacks = new jl95.tbb.Battle.Callbacks<LocalUpdate, MonLocalContext<Mon, FoeMonView>>() {
+        var extendedCallbacks = new jl95.tbb.Battle.Callbacks<LocalUpdate, MonLocalContext<Mon, FoeMonView>, MonGlobalContext<Mon>>() {
+
+            @Override
+            public void onGlobalContext(MonGlobalContext<Mon> globalContext) {
+                globalContextRef.set(globalContext);
+                callbacks.onGlobalContext(globalContext);
+            }
 
             @Override public void onLocalContext(PartyId id, MonLocalContext<Mon, FoeMonView> monLocalContext) {
                 localContextsMap.put(id, monLocalContext);
@@ -64,6 +79,9 @@ public class MonBattle<
             return () -> {
                 var partyDecision = new MonPartyDecision<MonDecision>();
                 for (var monId: localContextsMap.get(partyId).ownParty.monsOnField.keySet()) {
+                    if (!ruleset.allowedToMove(globalContextRef.get(), partyId, monId)) {
+                        continue;
+                    }
                     partyDecision.monDecisions.put(monId, monDecisionFunction.apply(monId));
                 }
                 return partyDecision;

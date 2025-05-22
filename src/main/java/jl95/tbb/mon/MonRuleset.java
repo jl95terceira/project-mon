@@ -1,8 +1,6 @@
 package jl95.tbb.mon;
 
 import jl95.tbb.PartyId;
-import jl95.lang.I;
-import jl95.lang.variadic.Tuple2;
 import jl95.util.StrictMap;
 
 import java.util.Optional;
@@ -26,6 +24,10 @@ public interface MonRuleset<
     detLocalContext(MonGlobalContext<Mon> context,
                     PartyId partyId);
 
+    Iterable<GlobalUpdate>
+    detUpdates(MonGlobalContext<Mon> monGlobalContext,
+               StrictMap<PartyId, MonPartyDecision<MonDecision>> decisionsMap);
+
     void
     update(MonGlobalContext<Mon> context,
            GlobalUpdate globalUpdate);
@@ -36,16 +38,6 @@ public interface MonRuleset<
 
     Optional<PartyId>
     detVictory(MonGlobalContext<Mon> context);
-
-    Iterable<Tuple2<PartyId, MonPartyMonId>>
-    prioritised(MonGlobalContext<Mon> context,
-                StrictMap<PartyId, MonPartyDecision<MonDecision>> decisionsMap);
-
-    Iterable<GlobalUpdate>
-    detUpdatesPerMon(MonGlobalContext<Mon> context,
-                     PartyId partyId,
-                     MonPartyMonId monId,
-                     MonDecision monDecision);
 
     Boolean
     allowedToMove(MonGlobalContext<Mon> context,
@@ -80,21 +72,7 @@ public interface MonRuleset<
 
             @Override
             public Iterable<GlobalUpdate> detUpdates(MonGlobalContext<Mon> monGlobalContext, StrictMap<PartyId, MonPartyDecision<MonDecision>> decisionsMap) {
-                var monDecisionsPrioritised = prioritised(monGlobalContext, decisionsMap);
-                return I.of(monDecisionsPrioritised)
-                        .filter(t -> {
-                            var partyId = t.a1;
-                            var monId = t.a2;
-                            return allowedToMove(monGlobalContext, partyId, monId);
-                        })
-                        .flatmap(t -> {
-                            var partyId = t.a1;
-                            var monId = t.a2;
-                            return detUpdatesPerMon(monGlobalContext,
-                                    partyId,
-                                    monId,
-                                    decisionsMap.get(partyId).monDecisions.get(monId));
-                        });
+                return MonRuleset.this.detUpdates(monGlobalContext, decisionsMap);
             }
 
             @Override
