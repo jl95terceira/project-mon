@@ -137,7 +137,7 @@ public class PmonRuleset implements MonRuleset<
     }
 
     private Integer speedDiffWithRng(Integer speedDiff) {
-        return ((int)(100 * rng() - 50)) + speedDiff;
+        return ((int)((2*constants.SPEED_RNG_BREADTH) * rng() - constants.SPEED_RNG_BREADTH)) + speedDiff;
     }
 
     @Override
