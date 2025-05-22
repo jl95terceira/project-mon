@@ -1,10 +1,9 @@
-package jl95.tbb.pmon;
+package jl95.tbb.pmon.attrs;
 
 import jl95.lang.SuperPowers;
 import jl95.lang.variadic.Function0;
 import jl95.lang.variadic.Tuple2;
-import jl95.tbb.pmon.attrs.PmonMovePriorityType;
-import jl95.tbb.pmon.attrs.PmonType;
+import jl95.tbb.pmon.Chanced;
 import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.status.PmonStatusCondition;
 import jl95.util.StrictMap;

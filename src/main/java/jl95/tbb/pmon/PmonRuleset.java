@@ -1,4 +1,4 @@
-package jl95.tbb.pmon.rules;
+package jl95.tbb.pmon;
 
 import static jl95.lang.SuperPowers.*;
 
@@ -6,10 +6,6 @@ import jl95.lang.I;
 import jl95.lang.variadic.Function0;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.*;
-import jl95.tbb.pmon.Pmon;
-import jl95.tbb.pmon.PmonDecision;
-import jl95.tbb.pmon.PmonFoeView;
-import jl95.tbb.pmon.PmonInitialConditions;
 import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.update.PmonUpdate;
 import jl95.util.StrictMap;

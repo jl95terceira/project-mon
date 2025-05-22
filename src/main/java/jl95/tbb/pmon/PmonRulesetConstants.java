@@ -1,4 +1,4 @@
-package jl95.tbb.pmon.rules;
+package jl95.tbb.pmon;
 
 import jl95.lang.variadic.Function2;
 import jl95.tbb.pmon.status.PmonStatModifierType;

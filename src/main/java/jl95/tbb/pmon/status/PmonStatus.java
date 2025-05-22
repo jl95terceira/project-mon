@@ -1,7 +1,5 @@
-package jl95.tbb.pmon;
+package jl95.tbb.pmon.status;
 
-import jl95.tbb.pmon.status.PmonStatModifierType;
-import jl95.tbb.pmon.status.PmonStatusCondition;
 import jl95.util.StrictMap;
 
 public class PmonStatus {

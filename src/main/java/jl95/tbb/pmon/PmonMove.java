@@ -1,6 +1,8 @@
 package jl95.tbb.pmon;
 
+import jl95.tbb.pmon.attrs.PmonMoveAttributes;
 import jl95.tbb.pmon.attrs.PmonType;
+import jl95.tbb.pmon.status.PmonMoveStatus;
 
 public class PmonMove {
 

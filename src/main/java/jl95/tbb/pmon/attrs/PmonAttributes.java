@@ -1,9 +1,6 @@
-package jl95.tbb.pmon;
+package jl95.tbb.pmon.attrs;
 
 import jl95.lang.SuperPowers;
-import jl95.tbb.pmon.attrs.PmonAbility;
-import jl95.tbb.pmon.attrs.PmonStats;
-import jl95.tbb.pmon.attrs.PmonType;
 
 import java.util.Set;
 
