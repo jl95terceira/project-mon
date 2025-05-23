@@ -32,9 +32,9 @@ public interface MonRuleset<
     update(MonGlobalContext<Mon> context,
            GlobalUpdate globalUpdate);
 
-    LocalUpdate
-    detLocalUpdate(GlobalUpdate globalUpdate,
-                   PartyId partyId);
+    Iterable<LocalUpdate>
+    detLocalUpdates(GlobalUpdate globalUpdate,
+                    PartyId partyId);
 
     Optional<PartyId>
     detVictory(MonGlobalContext<Mon> context);
@@ -76,8 +76,8 @@ public interface MonRuleset<
             }
 
             @Override
-            public LocalUpdate detLocalUpdate(GlobalUpdate globalUpdate, PartyId partyId) {
-                return MonRuleset.this.detLocalUpdate(globalUpdate, partyId);
+            public Iterable<LocalUpdate> detLocalUpdates(GlobalUpdate globalUpdate, PartyId partyId) {
+                return MonRuleset.this.detLocalUpdates(globalUpdate, partyId);
             }
 
             @Override

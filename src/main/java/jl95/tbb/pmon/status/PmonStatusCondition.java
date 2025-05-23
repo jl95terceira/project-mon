@@ -12,6 +12,7 @@ public class PmonStatusCondition {
 
     public final Id id;
     public StrictMap<PmonStatModifierType, Integer> statModifiers = strict(Map());
+    public Integer turnNr = 0;
 
 
     public PmonStatusCondition(Id id) {

@@ -59,7 +59,9 @@ public class Battle<
         });
         var tellLocalUpdates = method((GlobalUpdate globalUpdate_) -> {
             for (var partyId: partyIds) {
-                callbacks.onLocalUpdate(partyId, ruleset.detLocalUpdate(globalUpdate_, partyId));
+                for (var localUpdate: ruleset.detLocalUpdates(globalUpdate_, partyId)) {
+                    callbacks.onLocalUpdate(partyId, localUpdate);
+                }
             }
         });
         tellLocalContexts.accept();

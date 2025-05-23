@@ -30,9 +30,9 @@ public interface Ruleset<
     detUpdates(GlobalContext context,
                StrictMap<PartyId, Decision> decisionsMap);
 
-    LocalUpdate
-    detLocalUpdate(GlobalUpdate globalUpdate,
-                   PartyId partyId);
+    Iterable<LocalUpdate>
+    detLocalUpdates(GlobalUpdate globalUpdate,
+                    PartyId partyId);
 
     void
     update(GlobalContext context,

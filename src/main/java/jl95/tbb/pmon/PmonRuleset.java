@@ -144,7 +144,7 @@ public class PmonRuleset implements MonRuleset<
     }
 
     @Override
-    public PmonUpdate detLocalUpdate(PmonUpdate pmonUpdate, PartyId partyId) {
+    public PmonUpdate detLocalUpdates(PmonUpdate pmonUpdate, PartyId partyId) {
         return pmonUpdate;
     }
 
