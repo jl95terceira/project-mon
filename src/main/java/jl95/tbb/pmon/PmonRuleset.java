@@ -20,8 +20,8 @@ public class PmonRuleset implements MonRuleset<
         > {
 
     public static class DecisionSorting {
-        public record MoveInfo(PartyId partyId, MonPartyMonId monId, Integer speed, Integer priorityModifier, StrictMap<PartyId, ? extends Iterable<MonPartyMonId>> targets, Boolean pursuit) {}
-        public record SwitchInInfo(PartyId partyId, MonPartyMonId monId) {}
+        public record MoveInfo(PartyId partyId, MonParty.MonId monId, Integer speed, Integer priorityModifier, StrictMap<PartyId, ? extends Iterable<MonParty.MonId>> targets, Boolean pursuit) {}
+        public record SwitchInInfo(PartyId partyId, MonParty.MonId monId) {}
         public List<SwitchInInfo> switchInList    = List();
         public List<MoveInfo>     moveNormalList  = List();
         public List<MoveInfo>     movePursuitList = List();
@@ -87,7 +87,7 @@ public class PmonRuleset implements MonRuleset<
                         s.switchInList.add(new DecisionSorting.SwitchInInfo(partyId, monId));
                     }
                     @Override
-                    public void useMove(Integer moveIndex, StrictMap<PartyId, ? extends Iterable<MonPartyMonId>> targets) {
+                    public void useMove(Integer moveIndex, StrictMap<PartyId, ? extends Iterable<MonParty.MonId>> targets) {
                         var mon = context.parties.get(partyId).monsOnField.get(monId);
                         var monSpeed = mon.attrs.baseStats.speed;
                         var move = context.parties.get(partyId).monsOnField.get(monId).moves.get(moveIndex);
@@ -171,7 +171,12 @@ public class PmonRuleset implements MonRuleset<
     }
 
     @Override
-    public Boolean allowedToMove(MonGlobalContext<Pmon> context, PartyId partyId, MonPartyMonId monId) {
+    public Boolean allowedToMove(MonGlobalContext<Pmon> context, PartyId partyId, MonParty.MonId monId) {
+
+        var mon = context.parties.get(partyId).monsOnField.get(monId);
+        for (var condition: mon.status.statusProblems.values()) {
+
+        }
         throw new UnsupportedOperationException(); //TODO
     }
 }

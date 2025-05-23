@@ -42,7 +42,7 @@ public interface MonRuleset<
     Boolean
     allowedToMove(MonGlobalContext<Mon> context,
                   PartyId partyId,
-                  MonPartyMonId monId);
+                  MonParty.MonId monId);
 
     default jl95.tbb.Ruleset<
             MonPartyEntry<Mon>,

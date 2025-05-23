@@ -6,5 +6,5 @@ import static jl95.lang.SuperPowers.*;
 
 public class MonPartyDecision<MonDecision> {
 
-    public final StrictMap<MonPartyMonId, MonDecision> monDecisions = strict(Map());
+    public final StrictMap<MonParty.MonId, MonDecision> monDecisions = strict(Map());
 }

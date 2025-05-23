@@ -6,6 +6,7 @@ import jl95.lang.variadic.Function1;
 import jl95.tbb.PartyId;
 import jl95.lang.I;
 import jl95.util.StrictMap;
+import jl95.util.StrictSet;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -50,7 +51,7 @@ public class MonBattle<
     public Optional<PartyId> spawn(
             StrictMap<PartyId, MonPartyEntry<Mon>> parties,
             InitialConditions initialConditions,
-            StrictMap<PartyId, Function1<MonDecision, MonPartyMonId>> decisionFunctionsMap,
+            StrictMap<PartyId, Function1<StrictMap<MonParty.MonId, MonDecision>, StrictSet<MonParty.MonId>>> decisionFunctionsMap,
             jl95.tbb.Battle.Callbacks<LocalUpdate, MonLocalContext<Mon, FoeMonView>, MonGlobalContext<Mon>> callbacks,
             Function0<Boolean> toInterrupt
     ) {
@@ -78,12 +79,10 @@ public class MonBattle<
             var monDecisionFunction = e.getValue();
             return () -> {
                 var partyDecision = new MonPartyDecision<MonDecision>();
-                for (var monId: localContextsMap.get(partyId).ownParty.monsOnField.keySet()) {
-                    if (!ruleset.allowedToMove(globalContextRef.get(), partyId, monId)) {
-                        continue;
-                    }
-                    partyDecision.monDecisions.put(monId, monDecisionFunction.apply(monId));
-                }
+                var monDecisions = monDecisionFunction.apply(strict(I.of(globalContextRef.get().parties.get(partyId).monsOnField.keySet())
+                        .filter(monId -> ruleset.allowedToMove(globalContextRef.get(), partyId, monId))
+                        .toSet()));
+                partyDecision.monDecisions.putAll(monDecisions);
                 return partyDecision;
             };
         })), extendedCallbacks, toInterrupt);

@@ -13,6 +13,7 @@ public class PmonStatusCondition {
     public final Id id;
     public StrictMap<PmonStatModifierType, Integer> statModifiers = strict(Map());
 
+
     public PmonStatusCondition(Id id) {
         this.id = id;
     }
