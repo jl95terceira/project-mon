@@ -8,6 +8,7 @@ import jl95.tbb.PartyId;
 import jl95.tbb.mon.*;
 import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.update.PmonUpdate;
+import jl95.tbb.pmon.update.PmonUpdateByMove;
 import jl95.util.StrictMap;
 
 import java.util.*;
@@ -70,6 +71,7 @@ public class PmonRuleset implements MonRuleset<
 
     @Override
     public Iterable<PmonUpdate> detUpdates(MonGlobalContext<Pmon> context, StrictMap<PartyId, MonPartyDecision<PmonDecision>> decisionsMap) {
+        // group decisions and calculate speeds + priorities
         var s = new DecisionSorting();
         List<DecisionSorting.MoveInfo> moveList = List();
         for (var e: decisionsMap.entrySet()) {
@@ -77,7 +79,7 @@ public class PmonRuleset implements MonRuleset<
             var partyDecision = e.getValue();
             for (var f: partyDecision.monDecisions.entrySet()) {
                 var monId = f.getKey();
-                if (!allowedToMove(context, partyId, monId)) {
+                if (!allowDecide(context, partyId, monId)) {
                     continue;
                 }
                 var monDecision = f.getValue();
@@ -125,12 +127,30 @@ public class PmonRuleset implements MonRuleset<
         for (var move: moveList) {
             sortMove.accept(move);
         }
+        // sort decisions
         for (var list: I(s.moveNormalList, s.movePursuitList)) {
             list.sort((m1, m2) -> m1.priorityModifier > m2.priorityModifier? 1
                                 : m1.priorityModifier < m2.priorityModifier? -1
                                 : speedDiffWithRng(m1.speed - m2.speed));
         }
-
+        // evaluate decisions into updates - where THE GOOD STUFF happens
+        List<PmonUpdate> updates = List();
+        // pursuit-switch-in moves
+        // switch-in moves
+        // normal moves
+        for (var moveInfo: s.moveNormalList) {
+            var updateByMove = new PmonUpdateByMove();
+            var monDecision = decisionsMap.get(moveInfo.partyId()).monDecisions.get(moveInfo.monId());
+            monDecision.call(new PmonDecision.Callbacks() {
+                @Override
+                public void switchIn(Integer monSwitchInIndex) {throw new AssertionError();}
+                @Override
+                public void useMove(Integer moveIndex, StrictMap<PartyId, ? extends Iterable<MonParty.MonId>> targets) {
+                    var mon = context.parties.get(moveInfo.partyId()).monsOnField.get(moveInfo.monId());
+                    var move = mon.moves.get(moveIndex);
+                }
+            });
+        }
         throw new UnsupportedOperationException(); //TODO
     }
 
@@ -171,7 +191,7 @@ public class PmonRuleset implements MonRuleset<
     }
 
     @Override
-    public Boolean allowedToMove(MonGlobalContext<Pmon> context, PartyId partyId, MonParty.MonId monId) {
+    public Boolean allowDecide(MonGlobalContext<Pmon> context, PartyId partyId, MonParty.MonId monId) {
 
         var mon = context.parties.get(partyId).monsOnField.get(monId);
         for (var condition: mon.status.statusProblems.values()) {

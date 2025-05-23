@@ -40,9 +40,9 @@ public interface MonRuleset<
     detVictory(MonGlobalContext<Mon> context);
 
     Boolean
-    allowedToMove(MonGlobalContext<Mon> context,
-                  PartyId partyId,
-                  MonParty.MonId monId);
+    allowDecide(MonGlobalContext<Mon> context,
+                PartyId partyId,
+                MonParty.MonId monId);
 
     default jl95.tbb.Ruleset<
             MonPartyEntry<Mon>,

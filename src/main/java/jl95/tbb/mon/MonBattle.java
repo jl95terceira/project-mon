@@ -80,7 +80,7 @@ public class MonBattle<
             return () -> {
                 var partyDecision = new MonPartyDecision<MonDecision>();
                 var monDecisions = monDecisionFunction.apply(strict(I.of(globalContextRef.get().parties.get(partyId).monsOnField.keySet())
-                        .filter(monId -> ruleset.allowedToMove(globalContextRef.get(), partyId, monId))
+                        .filter(monId -> ruleset.allowDecide(globalContextRef.get(), partyId, monId))
                         .toSet()));
                 partyDecision.monDecisions.putAll(monDecisions);
                 return partyDecision;

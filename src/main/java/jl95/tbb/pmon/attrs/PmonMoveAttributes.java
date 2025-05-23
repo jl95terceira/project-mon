@@ -14,6 +14,7 @@ import static jl95.lang.SuperPowers.*;
 
 public class PmonMoveAttributes {
 
+    public PmonMoveTargettingType targetType = PmonMoveTargettingType.FOE_SINGLE_MON;
     public PmonType pmonType;
     public Integer damage = 0;
     public Tuple2<Integer, Integer> damageNrTimesRange = tuple(1,1);

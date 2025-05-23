@@ -4,8 +4,8 @@ import java.util.List;
 
 import static jl95.lang.SuperPowers.strict;
 
-public class PmonAtomicUpdateBySwitchIn {
+public class PmonUpdateBySwitchIn {
 
         public Integer monToSwitchinInIndex = 0;
-        public List<PmonAtomicUpdateByMove> updateByPursuitMove = null;
+        public List<PmonUpdateByMove> updateByPursuitMove = null;
 }

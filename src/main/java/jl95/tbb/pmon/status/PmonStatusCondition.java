@@ -1,5 +1,6 @@
 package jl95.tbb.pmon.status;
 
+import jl95.lang.variadic.Function1;
 import jl95.util.AutoHashcoded;
 import jl95.util.StrictMap;
 
@@ -13,6 +14,9 @@ public class PmonStatusCondition {
     public final Id id;
     public StrictMap<PmonStatModifierType, Integer> statModifiers = strict(Map());
     public Integer turnNr = 0;
+    public Function1<Double, Integer> cureChanceByTurn = turnNr_ -> 0.0;
+    public Function1<Double, Integer> immobiliseChanceByTurn = turnNr_ -> 0.0;
+    public Boolean allowDecide = true;
 
 
     public PmonStatusCondition(Id id) {
