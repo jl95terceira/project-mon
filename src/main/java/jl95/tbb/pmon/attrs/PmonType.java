@@ -2,11 +2,13 @@ package jl95.tbb.pmon.attrs;
 
 import jl95.util.AutoHashcoded;
 
-public abstract class PmonType extends AutoHashcoded {
+public abstract class PmonType {
 
-    public final String name;
-    public PmonType(String name) {
-        this.name = name;
+    public static class Id extends AutoHashcoded {}
+
+    public final Id id;
+    public PmonType(Id id) {
+        this.id = id;
     }
 
     public abstract Boolean isSuperEffectiveAgainst(PmonType other);

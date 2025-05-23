@@ -2,11 +2,13 @@ package jl95.tbb.pmon.attrs;
 
 import jl95.util.AutoHashcoded;
 
-public class PmonAbility extends AutoHashcoded {
+public class PmonAbility {
 
-    public final String id;
+    public static class Id extends AutoHashcoded {}
 
-    public PmonAbility(String name) {
-        this.id = name;
+    public final Id id;
+
+    public PmonAbility(Id id) {
+        this.id = id;
     }
 }
