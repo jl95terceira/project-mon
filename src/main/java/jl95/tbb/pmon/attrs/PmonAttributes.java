@@ -1,11 +1,8 @@
 package jl95.tbb.pmon.attrs;
 
 import jl95.util.StrictMap;
-import jl95.util.StrictSet;
 
 import static jl95.lang.SuperPowers.*;
-
-import java.util.Set;
 
 public class PmonAttributes {
 
