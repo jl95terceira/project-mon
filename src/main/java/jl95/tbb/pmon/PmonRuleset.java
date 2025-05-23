@@ -144,8 +144,8 @@ public class PmonRuleset implements MonRuleset<
     }
 
     @Override
-    public PmonUpdate detLocalUpdates(PmonUpdate pmonUpdate, PartyId partyId) {
-        return pmonUpdate;
+    public Iterable<PmonUpdate> detLocalUpdates(PmonUpdate pmonUpdate, PartyId partyId) {
+        return List.of(pmonUpdate);
     }
 
     @Override
