@@ -114,7 +114,7 @@ public class PmonRuleset implements MonRuleset<
                 var targetPartyId = targetMons.getKey();
                 for (var targetMonId: targetMons.getValue()) {
                     var targetMonAbsId = new DecisionSorting.SwitchInInfo(targetPartyId, targetMonId);
-                    if (!s.switchInMap.containsKey(targetMonAbsId)) {
+                    if (!move.pursuit || !s.switchInMap.containsKey(targetMonAbsId)) {
                         s.moveNormalList.add(move);
                     }
                     else {
