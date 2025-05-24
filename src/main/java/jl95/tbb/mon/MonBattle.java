@@ -55,26 +55,26 @@ public class MonBattle<
             StrictMap<PartyId, MonPartyEntry<Mon>> parties,
             InitialConditions initialConditions,
             StrictMap<PartyId, Function1<StrictMap<MonParty.MonId, MonDecision>, StrictSet<MonParty.MonId>>> decisionFunctionsMap,
-            Battle.Handlers<LocalUpdate, MonLocalContext<Mon, FoeMonView>, MonGlobalContext<Mon>> handlers,
+            Battle.Listeners<LocalUpdate, MonLocalContext<Mon, FoeMonView>, MonGlobalContext<Mon>> listeners,
             Function0<Boolean> toInterrupt
     ) {
 
         var globalContextRef = new Ref<GlobalContext>();
         var localContextsMap = strict(new HashMap<PartyId, LocalContext>());
-        var extendedCallbacks = new Battle.Handlers<LocalUpdate, LocalContext, GlobalContext>() {
+        var extendedCallbacks = new Battle.Listeners<LocalUpdate, LocalContext, GlobalContext>() {
 
             @Override
             public void onGlobalContext(GlobalContext globalContext) {
                 globalContextRef.set(globalContext);
-                handlers.onGlobalContext(globalContext);
+                listeners.onGlobalContext(globalContext);
             }
 
             @Override public void onLocalContext(PartyId id, LocalContext monLocalContext) {
                 localContextsMap.put(id, monLocalContext);
-                handlers.onLocalContext(id, monLocalContext);
+                listeners.onLocalContext(id, monLocalContext);
             }
             @Override public void onLocalUpdate(PartyId id, LocalUpdate localUpdate) {
-                handlers.onLocalUpdate(id, localUpdate);
+                listeners.onLocalUpdate(id, localUpdate);
             }
         };
         return this.upcastBattle.spawn(parties, initialConditions, strict(I.of(decisionFunctionsMap.entrySet()).toMap(Map.Entry::getKey, e -> {

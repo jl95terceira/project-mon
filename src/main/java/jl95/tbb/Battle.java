@@ -28,7 +28,7 @@ public class Battle<
         this.ruleset = ruleset;
     }
 
-    public interface Handlers<LocalUpdate, LocalContext, GlobalContext> {
+    public interface Listeners<LocalUpdate, LocalContext, GlobalContext> {
 
         void onGlobalContext(GlobalContext context);
         void onLocalContext(PartyId id, LocalContext context);
@@ -40,27 +40,27 @@ public class Battle<
     public Optional<PartyId> spawn(StrictMap<PartyId, PartyEntry> parties,
                                    InitialConditions initialConditions,
                                    StrictMap<PartyId, Function0<Decision>> decisionFunctionsMap,
-                                   Handlers<LocalUpdate, LocalContext, GlobalContext> handlers,
+                                   Listeners<LocalUpdate, LocalContext, GlobalContext> listeners,
                                    Function0<Boolean> toInterrupt) {
 
         var shuttindDown = new Ref<>(false);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> shuttindDown.set(true)));
         var partyIds = strict(parties.keySet()).iter();
         var globalContext = ruleset.init(parties, initialConditions);
-        handlers.onGlobalContext(globalContext);
+        listeners.onGlobalContext(globalContext);
         var localContextGetter = function(() -> strict(I.of(partyIds)
                                                         .toMap(id -> id,
                                                                id -> ruleset.detLocalContext(globalContext, id))));
         var tellLocalContexts = method(() -> {
             var localContext = localContextGetter.apply();
             for (var partyId: partyIds) {
-                handlers.onLocalContext(partyId, localContext.get(partyId));
+                listeners.onLocalContext(partyId, localContext.get(partyId));
             }
         });
         var tellLocalUpdates = method((GlobalUpdate globalUpdate_) -> {
             for (var partyId: partyIds) {
                 for (var localUpdate: ruleset.detLocalUpdates(globalUpdate_, partyId)) {
-                    handlers.onLocalUpdate(partyId, localUpdate);
+                    listeners.onLocalUpdate(partyId, localUpdate);
                 }
             }
         });
@@ -69,7 +69,7 @@ public class Battle<
             for (GlobalUpdate globalUpdate: updates) {
                 tellLocalUpdates.accept(globalUpdate);
                 ruleset.update(globalContext, globalUpdate);
-                handlers.onGlobalContext(globalContext);
+                listeners.onGlobalContext(globalContext);
                 tellLocalContexts.accept();
             }
         });
@@ -85,7 +85,7 @@ public class Battle<
             }
             var localContextsMap = localContextGetter.apply();
             for (var e: localContextsMap.entrySet()) {
-                handlers.onLocalContext(e.getKey(), e.getValue());
+                listeners.onLocalContext(e.getKey(), e.getValue());
             }
             var decisionsMap = strict(I.of(partyIds)
                                        .toMap(id -> id,
