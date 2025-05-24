@@ -2,10 +2,8 @@ package jl95.tbb.pmon.rules;
 
 import jl95.lang.I;
 import jl95.tbb.PartyId;
-import jl95.tbb.mon.MonGlobalContext;
 import jl95.tbb.mon.MonParty;
 import jl95.tbb.mon.MonPartyDecision;
-import jl95.tbb.pmon.Pmon;
 import jl95.tbb.pmon.PmonDecision;
 import jl95.tbb.pmon.PmonGlobalContext;
 import jl95.tbb.pmon.PmonRuleset;
@@ -46,7 +44,7 @@ public class PmonUpdateDetRule {
                         continue;
                     }
                     var monDecision = f.getValue();
-                    monDecision.call(new PmonDecision.Callbacks() {
+                    monDecision.call(new PmonDecision.Handlers() {
                         @Override
                         public void pass() {
                             // pass the turn - ignore
@@ -108,7 +106,7 @@ public class PmonUpdateDetRule {
             for (var moveInfo: s.moveNormalList) {
                 var updateByMove = new PmonUpdateByDamage();
                 var monDecision = decisionsMap.get(moveInfo.partyId()).monDecisions.get(moveInfo.monId());
-                monDecision.call(new PmonDecision.Callbacks() {
+                monDecision.call(new PmonDecision.Handlers() {
                     @Override
                     public void pass() {throw new AssertionError();}
                     @Override

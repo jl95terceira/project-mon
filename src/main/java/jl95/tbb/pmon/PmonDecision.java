@@ -6,9 +6,9 @@ import jl95.util.StrictMap;
 
 public interface PmonDecision {
 
-    void call(Callbacks decisions);
+    void call(Handlers handlers);
 
-    interface Callbacks {
+    interface Handlers {
 
         void pass();
         void switchIn(Integer monSwitchInIndex);

@@ -1,18 +1,11 @@
 package jl95.tbb.pmon.rules;
 
-import jl95.lang.I;
-import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonGlobalContext;
 import jl95.tbb.mon.MonParty;
-import jl95.tbb.mon.MonPartyDecision;
 import jl95.tbb.pmon.Pmon;
-import jl95.tbb.pmon.PmonDecision;
 import jl95.tbb.pmon.PmonRuleset;
 import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.update.*;
-import jl95.util.StrictMap;
-
-import java.util.List;
 
 import static jl95.lang.SuperPowers.*;
 
@@ -23,7 +16,7 @@ public class PmonContextUpdateRule {
     public PmonContextUpdateRule(PmonRuleset ruleset) {this.ruleset = ruleset;}
 
     public void update(MonGlobalContext<Pmon> context, PmonUpdate pmonUpdate) {
-        pmonUpdate.call(new PmonUpdate.Callbacks() {
+        pmonUpdate.call(new PmonUpdate.Handlers() {
             @Override
             public void damage(PmonUpdateByDamage update) {
                 for (var t: update.updatesOnTargets) {

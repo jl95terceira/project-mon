@@ -1,24 +1,12 @@
 package jl95.tbb.pmon.rules;
 
-import jl95.lang.I;
 import jl95.lang.Ref;
-import jl95.tbb.PartyId;
-import jl95.tbb.mon.MonGlobalContext;
-import jl95.tbb.mon.MonParty;
-import jl95.tbb.mon.MonPartyDecision;
 import jl95.tbb.pmon.Pmon;
-import jl95.tbb.pmon.PmonDecision;
 import jl95.tbb.pmon.PmonMove;
 import jl95.tbb.pmon.PmonRuleset;
 import jl95.tbb.pmon.attrs.PmonMovePower;
 import jl95.tbb.pmon.attrs.PmonMoveType;
 import jl95.tbb.pmon.attrs.PmonStats;
-import jl95.tbb.pmon.status.PmonStatModifierType;
-import jl95.tbb.pmon.update.PmonUpdate;
-import jl95.tbb.pmon.update.PmonUpdateByDamage;
-import jl95.util.StrictMap;
-
-import java.util.List;
 
 import static jl95.lang.SuperPowers.*;
 
@@ -31,7 +19,7 @@ public class PmonDamageDetRule {
     public Integer detDamage(Pmon mon, PmonMove move, Pmon targetMon) {
 
         var v = new Ref<>(0);
-        move.attrs.power.call(new PmonMovePower.Callbacks() {
+        move.attrs.power.call(new PmonMovePower.Handlers() {
             @Override
             public void typed(Integer power) {
                 var sourceAttack = function((PmonStats stats) -> move.attrs.type == PmonMoveType.NORMAL

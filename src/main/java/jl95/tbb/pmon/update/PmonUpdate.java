@@ -2,9 +2,9 @@ package jl95.tbb.pmon.update;
 
 public interface PmonUpdate {
 
-    void call(Callbacks callbacks);
+    void call(Handlers handlers);
 
-    interface Callbacks {
+    interface Handlers {
 
         void switchIn(PmonUpdateBySwitchIn update);
         void damage(PmonUpdateByDamage update);

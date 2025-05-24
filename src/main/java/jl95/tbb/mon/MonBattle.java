@@ -3,6 +3,7 @@ package jl95.tbb.mon;
 import jl95.lang.Ref;
 import jl95.lang.variadic.Function0;
 import jl95.lang.variadic.Function1;
+import jl95.tbb.Battle;
 import jl95.tbb.PartyId;
 import jl95.lang.I;
 import jl95.util.StrictMap;
@@ -54,26 +55,26 @@ public class MonBattle<
             StrictMap<PartyId, MonPartyEntry<Mon>> parties,
             InitialConditions initialConditions,
             StrictMap<PartyId, Function1<StrictMap<MonParty.MonId, MonDecision>, StrictSet<MonParty.MonId>>> decisionFunctionsMap,
-            jl95.tbb.Battle.Callbacks<LocalUpdate, MonLocalContext<Mon, FoeMonView>, MonGlobalContext<Mon>> callbacks,
+            Battle.Handlers<LocalUpdate, MonLocalContext<Mon, FoeMonView>, MonGlobalContext<Mon>> handlers,
             Function0<Boolean> toInterrupt
     ) {
 
         var globalContextRef = new Ref<GlobalContext>();
         var localContextsMap = strict(new HashMap<PartyId, LocalContext>());
-        var extendedCallbacks = new jl95.tbb.Battle.Callbacks<LocalUpdate, LocalContext, GlobalContext>() {
+        var extendedCallbacks = new Battle.Handlers<LocalUpdate, LocalContext, GlobalContext>() {
 
             @Override
             public void onGlobalContext(GlobalContext globalContext) {
                 globalContextRef.set(globalContext);
-                callbacks.onGlobalContext(globalContext);
+                handlers.onGlobalContext(globalContext);
             }
 
             @Override public void onLocalContext(PartyId id, LocalContext monLocalContext) {
                 localContextsMap.put(id, monLocalContext);
-                callbacks.onLocalContext(id, monLocalContext);
+                handlers.onLocalContext(id, monLocalContext);
             }
             @Override public void onLocalUpdate(PartyId id, LocalUpdate localUpdate) {
-                callbacks.onLocalUpdate(id, localUpdate);
+                handlers.onLocalUpdate(id, localUpdate);
             }
         };
         return this.upcastBattle.spawn(parties, initialConditions, strict(I.of(decisionFunctionsMap.entrySet()).toMap(Map.Entry::getKey, e -> {

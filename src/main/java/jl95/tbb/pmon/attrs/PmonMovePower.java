@@ -2,7 +2,7 @@ package jl95.tbb.pmon.attrs;
 
 public interface PmonMovePower {
 
-    interface Callbacks {
+    interface Handlers {
 
         void typed(Integer power);
         void constant(Integer damage);
@@ -10,7 +10,7 @@ public interface PmonMovePower {
         void byMaxHp(Double percent);
     }
 
-    void call(Callbacks cbs);
+    void call(Handlers handlers);
 
     static PmonMovePower typed(Integer power) { return cb -> cb.typed(power); }
     static PmonMovePower constant(Integer damage) { return cb -> cb.constant(damage); }
