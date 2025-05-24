@@ -17,6 +17,7 @@ import static jl95.lang.SuperPowers.*;
 public class MonBattle<
         Mon, FoeMonView,
         InitialConditions,
+        LocalContext extends MonLocalContext<Mon, FoeMonView>, GlobalContext extends MonGlobalContext<Mon>,
         MonDecision,
         GlobalUpdate, LocalUpdate
         > {
@@ -24,14 +25,14 @@ public class MonBattle<
     public final MonRuleset<
             Mon, FoeMonView,
             InitialConditions,
+            LocalContext, GlobalContext,
             MonDecision,
             GlobalUpdate, LocalUpdate
             > ruleset;
     public final jl95.tbb.Battle<
             MonPartyEntry<Mon>,
             InitialConditions,
-            MonLocalContext<Mon, FoeMonView>,
-            MonGlobalContext<Mon>,
+            LocalContext, GlobalContext,
             MonPartyDecision<MonDecision>,
             GlobalUpdate,
             LocalUpdate
@@ -40,6 +41,7 @@ public class MonBattle<
     public MonBattle(MonRuleset<
                 Mon, FoeMonView,
                 InitialConditions,
+                LocalContext, GlobalContext,
                 MonDecision,
                 GlobalUpdate, LocalUpdate
                 > ruleset) {
@@ -56,17 +58,17 @@ public class MonBattle<
             Function0<Boolean> toInterrupt
     ) {
 
-        var globalContextRef = new Ref<MonGlobalContext<Mon>>();
-        var localContextsMap = strict(new HashMap<PartyId, MonLocalContext<Mon, FoeMonView>>());
-        var extendedCallbacks = new jl95.tbb.Battle.Callbacks<LocalUpdate, MonLocalContext<Mon, FoeMonView>, MonGlobalContext<Mon>>() {
+        var globalContextRef = new Ref<GlobalContext>();
+        var localContextsMap = strict(new HashMap<PartyId, LocalContext>());
+        var extendedCallbacks = new jl95.tbb.Battle.Callbacks<LocalUpdate, LocalContext, GlobalContext>() {
 
             @Override
-            public void onGlobalContext(MonGlobalContext<Mon> globalContext) {
+            public void onGlobalContext(GlobalContext globalContext) {
                 globalContextRef.set(globalContext);
                 callbacks.onGlobalContext(globalContext);
             }
 
-            @Override public void onLocalContext(PartyId id, MonLocalContext<Mon, FoeMonView> monLocalContext) {
+            @Override public void onLocalContext(PartyId id, LocalContext monLocalContext) {
                 localContextsMap.put(id, monLocalContext);
                 callbacks.onLocalContext(id, monLocalContext);
             }
@@ -77,14 +79,14 @@ public class MonBattle<
         return this.upcastBattle.spawn(parties, initialConditions, strict(I.of(decisionFunctionsMap.entrySet()).toMap(Map.Entry::getKey, e -> {
             var partyId = e.getKey();
             var monDecisionFunction = e.getValue();
-            return () -> {
+            return function(() -> {
                 var partyDecision = new MonPartyDecision<MonDecision>();
                 var monDecisions = monDecisionFunction.apply(strict(I.of(globalContextRef.get().parties.get(partyId).monsOnField.keySet())
                         .filter(monId -> ruleset.allowDecide(globalContextRef.get(), partyId, monId))
                         .toSet()));
                 partyDecision.monDecisions.putAll(monDecisions);
                 return partyDecision;
-            };
+            });
         })), extendedCallbacks, toInterrupt);
     }
 }

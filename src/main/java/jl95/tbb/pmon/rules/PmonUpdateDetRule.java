@@ -7,6 +7,7 @@ import jl95.tbb.mon.MonParty;
 import jl95.tbb.mon.MonPartyDecision;
 import jl95.tbb.pmon.Pmon;
 import jl95.tbb.pmon.PmonDecision;
+import jl95.tbb.pmon.PmonGlobalContext;
 import jl95.tbb.pmon.PmonRuleset;
 import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.update.PmonUpdate;
@@ -32,7 +33,7 @@ public class PmonUpdateDetRule {
 
     public PmonUpdateDetRule(PmonRuleset ruleset) {this.ruleset = ruleset;}
 
-    public Iterable<PmonUpdate> detUpdates(MonGlobalContext<Pmon> context, StrictMap<PartyId, MonPartyDecision<PmonDecision>> decisionsMap) {
+    public Iterable<PmonUpdate> detUpdates(PmonGlobalContext context, StrictMap<PartyId, MonPartyDecision<PmonDecision>> decisionsMap) {
             // group decisions and calculate speeds + priorities
             var s = new DecisionSorting();
             List<DecisionSorting.MoveInfo> moveList = List();

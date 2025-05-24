@@ -8,28 +8,30 @@ import java.util.Optional;
 public interface MonRuleset<
         Mon, FoeMonView,
         InitialConditions,
+        LocalContext extends MonLocalContext<Mon, FoeMonView>,
+        GlobalContext extends MonGlobalContext<Mon>,
         MonDecision,
         GlobalUpdate, LocalUpdate
         > {
 
-    MonGlobalContext<Mon>
+    GlobalContext
     init(StrictMap<PartyId, MonPartyEntry<Mon>> parties,
          InitialConditions initialConditions);
 
     Iterable<GlobalUpdate>
-    detInitialUpdates(MonGlobalContext<Mon> context,
+    detInitialUpdates(GlobalContext context,
                       InitialConditions initialConditions);
 
-    MonLocalContext<Mon, FoeMonView>
-    detLocalContext(MonGlobalContext<Mon> context,
+    LocalContext
+    detLocalContext(GlobalContext context,
                     PartyId partyId);
 
     Iterable<GlobalUpdate>
-    detUpdates(MonGlobalContext<Mon> monGlobalContext,
+    detUpdates(GlobalContext monGlobalContext,
                StrictMap<PartyId, MonPartyDecision<MonDecision>> decisionsMap);
 
     void
-    update(MonGlobalContext<Mon> context,
+    update(GlobalContext context,
            GlobalUpdate globalUpdate);
 
     Iterable<LocalUpdate>
@@ -37,18 +39,18 @@ public interface MonRuleset<
                     PartyId partyId);
 
     Optional<PartyId>
-    detVictory(MonGlobalContext<Mon> context);
+    detVictory(GlobalContext context);
 
     Boolean
-    allowDecide(MonGlobalContext<Mon> context,
+    allowDecide(GlobalContext context,
                 PartyId partyId,
                 MonParty.MonId monId);
 
     default jl95.tbb.Ruleset<
             MonPartyEntry<Mon>,
             InitialConditions,
-            MonLocalContext<Mon, FoeMonView>,
-            MonGlobalContext<Mon>,
+            LocalContext,
+            GlobalContext,
             MonPartyDecision<MonDecision>,
             GlobalUpdate, LocalUpdate
             > upcast() {
@@ -56,22 +58,22 @@ public interface MonRuleset<
         return new jl95.tbb.Ruleset<>() {
 
             @Override
-            public MonGlobalContext<Mon> init(StrictMap<PartyId, MonPartyEntry<Mon>> parties, InitialConditions initialConditions) {
+            public GlobalContext init(StrictMap<PartyId, MonPartyEntry<Mon>> parties, InitialConditions initialConditions) {
                 return MonRuleset.this.init(parties, initialConditions);
             }
 
             @Override
-            public Iterable<GlobalUpdate> detInitialUpdates(MonGlobalContext<Mon> monGlobalContext, InitialConditions initialConditions) {
+            public Iterable<GlobalUpdate> detInitialUpdates(GlobalContext monGlobalContext, InitialConditions initialConditions) {
                 return MonRuleset.this.detInitialUpdates(monGlobalContext, initialConditions);
             }
 
             @Override
-            public MonLocalContext<Mon, FoeMonView> detLocalContext(MonGlobalContext<Mon> monGlobalContext, PartyId partyId) {
+            public LocalContext detLocalContext(GlobalContext monGlobalContext, PartyId partyId) {
                 return MonRuleset.this.detLocalContext(monGlobalContext, partyId);
             }
 
             @Override
-            public Iterable<GlobalUpdate> detUpdates(MonGlobalContext<Mon> monGlobalContext, StrictMap<PartyId, MonPartyDecision<MonDecision>> decisionsMap) {
+            public Iterable<GlobalUpdate> detUpdates(GlobalContext monGlobalContext, StrictMap<PartyId, MonPartyDecision<MonDecision>> decisionsMap) {
                 return MonRuleset.this.detUpdates(monGlobalContext, decisionsMap);
             }
 
@@ -81,12 +83,12 @@ public interface MonRuleset<
             }
 
             @Override
-            public void update(MonGlobalContext<Mon> monGlobalContext, GlobalUpdate globalUpdate) {
+            public void update(GlobalContext monGlobalContext, GlobalUpdate globalUpdate) {
                 MonRuleset.this.update(monGlobalContext, globalUpdate);
             }
 
             @Override
-            public Optional<PartyId> detVictory(MonGlobalContext<Mon> monGlobalContext) {
+            public Optional<PartyId> detVictory(GlobalContext monGlobalContext) {
                 return MonRuleset.this.detVictory(monGlobalContext);
             }
         };

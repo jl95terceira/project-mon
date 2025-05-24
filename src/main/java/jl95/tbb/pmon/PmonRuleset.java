@@ -10,8 +10,7 @@ import jl95.tbb.mon.*;
 import jl95.tbb.pmon.attrs.PmonMovePower;
 import jl95.tbb.pmon.attrs.PmonMoveType;
 import jl95.tbb.pmon.attrs.PmonStats;
-import jl95.tbb.pmon.rules.PmonContextUpdateRule;
-import jl95.tbb.pmon.rules.PmonUpdateDetRule;
+import jl95.tbb.pmon.rules.*;
 import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.update.*;
 import jl95.util.StrictMap;
@@ -21,6 +20,8 @@ import java.util.*;
 public class PmonRuleset implements MonRuleset<
         Pmon, PmonFoeView,
         PmonInitialConditions,
+        PmonLocalContext,
+        PmonGlobalContext,
         PmonDecision,
         PmonUpdate, PmonUpdate
         > {
@@ -30,36 +31,20 @@ public class PmonRuleset implements MonRuleset<
     public final PmonRulesetConstants constants = new PmonRulesetConstants();
     public Function0<Double> rng = new Random()::nextDouble;
 
-    public Double rng() { return rng.apply(); }
+    public Double rng() { 
+        
+        return rng.apply(); 
+    }
 
     public Integer detDamage(Pmon mon, PmonMove move, Pmon targetMon) {
 
-        var v = new Ref<>(0);
-        move.attrs.power.call(new PmonMovePower.Callbacks() {
-            @Override
-            public void typed(Integer power) {
-                var sourceAttack = function((PmonStats stats) -> move.attrs.type == PmonMoveType.NORMAL
-                        ? stats.attack
-                        : stats.specialAttack).apply(mon.attrs.baseStats);
-                var targetDefense = function((PmonStats stats) -> move.attrs.type == PmonMoveType.NORMAL
-                        ? stats.defense
-                        : stats.specialDefense).apply(targetMon.attrs.baseStats);
-            }
-            @Override
-            public void constant(Integer damage) { v.set(damage); }
-            @Override
-            public void byHp(Double percent) {
-                v.set((int) (percent * targetMon.status.hp));
-            }
-            @Override
-            public void byMaxHp(Double percent) { v.set((int) (percent * targetMon.attrs.baseStats.hp)); }
-        });
-        return 10; //TODO: actually calculate the damage; consider abilities, status conditions, etc.
+        return new PmonDamageDetRule(this).detDamage(mon, move, targetMon);
     }
 
     @Override
-    public MonGlobalContext<Pmon> init(StrictMap<PartyId, MonPartyEntry<Pmon>> parties, PmonInitialConditions pmonInitialConditions) {
-        var context = new MonGlobalContext<Pmon>();
+    public PmonGlobalContext init(StrictMap<PartyId, MonPartyEntry<Pmon>> parties, PmonInitialConditions pmonInitialConditions) {
+        
+        var context = new PmonGlobalContext();
         for (var e: parties.entrySet()) {
             var partyId = e.getKey();
             var partyEntry = e.getValue();
@@ -69,46 +54,38 @@ public class PmonRuleset implements MonRuleset<
     }
 
     @Override
-    public Iterable<PmonUpdate> detInitialUpdates(MonGlobalContext<Pmon> context, PmonInitialConditions pmonInitialConditions) {
+    public Iterable<PmonUpdate> detInitialUpdates(PmonGlobalContext context, PmonInitialConditions pmonInitialConditions) {
+        
         return I();
     }
 
     @Override
-    public MonLocalContext<Pmon, PmonFoeView> detLocalContext(MonGlobalContext<Pmon> context, PartyId ownPartyId) {
-        var foePartiesView = strict(I
-            .of(context.parties.keySet())
-            .filter(id -> !id.equals(ownPartyId))
-            .toMap(id -> id, id -> strict(I
-                .of(context.parties.get(id).monsOnField.entrySet())
-                .toMap(Map.Entry::getKey, e -> {
-                    var foeMon = e.getValue();
-                    var foeMonView = new PmonFoeView(foeMon.id);
-                    foeMonView.types = foeMon.attrs.types;
-                    foeMonView.status = foeMon.status;
-                    return foeMonView;
-                }))));
-        return new MonLocalContext<>(context.parties.get(ownPartyId), foePartiesView);
+    public PmonLocalContext detLocalContext(PmonGlobalContext context, PartyId ownPartyId) {
+        
+        return new PmonLocalContextDetRule(this).detLocalContext(context, ownPartyId);
     }
 
     @Override
-    public Iterable<PmonUpdate> detUpdates(MonGlobalContext<Pmon> context, StrictMap<PartyId, MonPartyDecision<PmonDecision>> decisionsMap) {
+    public Iterable<PmonUpdate> detUpdates(PmonGlobalContext context, StrictMap<PartyId, MonPartyDecision<PmonDecision>> decisionsMap) {
 
         return new PmonUpdateDetRule(this).detUpdates(context, decisionsMap);
     }
 
     @Override
-    public void update(MonGlobalContext<Pmon> context, PmonUpdate pmonUpdate) {
+    public void update(PmonGlobalContext context, PmonUpdate pmonUpdate) {
 
         new PmonContextUpdateRule(this).update(context, pmonUpdate);
     }
 
     @Override
     public Iterable<PmonUpdate> detLocalUpdates(PmonUpdate pmonUpdate, PartyId partyId) {
+        
         return List.of(pmonUpdate);
     }
 
     @Override
-    public Optional<PartyId> detVictory(MonGlobalContext<Pmon> context) {
+    public Optional<PartyId> detVictory(PmonGlobalContext context) {
+        
         Set<PartyId> partiesRemaining = Set();
         for (var e: context.parties.entrySet()) {
             var partyId = e.getKey();
@@ -130,9 +107,8 @@ public class PmonRuleset implements MonRuleset<
     }
 
     @Override
-    public Boolean allowDecide(MonGlobalContext<Pmon> context, PartyId partyId, MonParty.MonId monId) {
+    public Boolean allowDecide(PmonGlobalContext context, PartyId partyId, MonParty.MonId monId) {
 
-        var mon = context.parties.get(partyId).monsOnField.get(monId);
-        return true; //TODO: should be based on move lock-in, charging / recharging, etc
+        return new PmonDecisionAllowanceRule(this).allowDecide(context, partyId, monId);
     }
 }
