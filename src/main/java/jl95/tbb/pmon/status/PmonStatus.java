@@ -5,6 +5,7 @@ import jl95.util.StrictMap;
 public class PmonStatus {
 
     public Integer hp = 0;
+    public Integer lastMoveUsedIndex = null;
     public StrictMap<PmonStatModifierType, Integer> statModifiers;
     public StrictMap<PmonStatusCondition.Id, PmonStatusCondition> statusConditions;
 }
