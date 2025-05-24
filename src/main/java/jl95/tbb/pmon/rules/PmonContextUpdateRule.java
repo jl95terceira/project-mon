@@ -25,7 +25,7 @@ public class PmonContextUpdateRule {
     public void update(MonGlobalContext<Pmon> context, PmonUpdate pmonUpdate) {
         pmonUpdate.call(new PmonUpdate.Callbacks() {
             @Override
-            public void move(PmonUpdateByDamage update) {
+            public void damage(PmonUpdateByDamage update) {
                 for (var t: update.updatesOnTargets) {
                     var mon = context.parties.get(t.a1).monsOnField.get(t.a2);
                     var u = t.a3;

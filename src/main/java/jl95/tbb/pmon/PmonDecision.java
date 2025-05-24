@@ -15,7 +15,9 @@ public interface PmonDecision {
         void useMove(Integer moveIndex, StrictMap<PartyId, ? extends Iterable<MonParty.MonId>> targets);
     }
 
-    static PmonDecision pass() { return Callbacks::pass; }
+    static PmonDecision pass() {
+        return cb -> cb.pass();
+    }
     static PmonDecision switchIn(Integer monSwitchInIndex) {
         return cb -> cb.switchIn(monSwitchInIndex);
     }
