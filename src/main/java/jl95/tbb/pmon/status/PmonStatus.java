@@ -6,5 +6,5 @@ public class PmonStatus {
 
     public Integer hp = 0;
     public StrictMap<PmonStatModifierType, Integer> statModifiers;
-    public StrictMap<PmonStatusCondition.Id, PmonStatusCondition> statusProblems;
+    public StrictMap<PmonStatusCondition.Id, PmonStatusCondition> statusConditions;
 }

@@ -18,4 +18,10 @@ public class PmonRulesetConstants {
     public final Integer
             SPEED_RNG_BREADTH
             = 20;
+    public final Double
+            POWER_FACTOR_OF_TYPE_SUPER_EFFECTIVE = 2.0;
+    public final Double
+            POWER_FACTOR_OF_TYPE_NOT_VERY_EFFECTIVE = 0.5;
+    public final Double
+            POWER_FACTOR_OF_TYPE_DOES_NOT_AFFECT = 0.0;
 }

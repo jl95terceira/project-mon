@@ -10,14 +10,16 @@ public interface PmonDecision {
 
     interface Callbacks {
 
+        void pass();
         void switchIn(Integer monSwitchInIndex);
         void useMove(Integer moveIndex, StrictMap<PartyId, ? extends Iterable<MonParty.MonId>> targets);
     }
 
-    public static PmonDecision switchIn(Integer monSwitchInIndex) {
+    static PmonDecision pass() { return Callbacks::pass; }
+    static PmonDecision switchIn(Integer monSwitchInIndex) {
         return cb -> cb.switchIn(monSwitchInIndex);
     }
-    public static PmonDecision move(Integer moveIndex, StrictMap<PartyId, ? extends Iterable<MonParty.MonId>> targets) {
+    static PmonDecision move(Integer moveIndex, StrictMap<PartyId, ? extends Iterable<MonParty.MonId>> targets) {
         return cb -> cb.useMove(moveIndex, targets);
     }
 }

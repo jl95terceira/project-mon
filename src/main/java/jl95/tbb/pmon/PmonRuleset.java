@@ -3,12 +3,15 @@ package jl95.tbb.pmon;
 import static jl95.lang.SuperPowers.*;
 
 import jl95.lang.I;
+import jl95.lang.Ref;
 import jl95.lang.variadic.Function0;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.*;
+import jl95.tbb.pmon.attrs.PmonMovePower;
+import jl95.tbb.pmon.attrs.PmonMoveType;
+import jl95.tbb.pmon.attrs.PmonStats;
 import jl95.tbb.pmon.status.PmonStatModifierType;
-import jl95.tbb.pmon.update.PmonUpdate;
-import jl95.tbb.pmon.update.PmonUpdateByMove;
+import jl95.tbb.pmon.update.*;
 import jl95.util.StrictMap;
 
 import java.util.*;
@@ -35,6 +38,31 @@ public class PmonRuleset implements MonRuleset<
     public Function0<Double> rng = new Random()::nextDouble;
 
     private Double rng() { return rng.apply(); }
+
+    public Integer detDamage(Pmon mon, PmonMove move, Pmon targetMon) {
+
+        var v = new Ref<>(0);
+        move.attrs.power.call(new PmonMovePower.Callbacks() {
+            @Override
+            public void typed(Integer power) {
+                var sourceAttack = function((PmonStats stats) -> move.attrs.type == PmonMoveType.NORMAL
+                        ? stats.attack
+                        : stats.specialAttack).apply(mon.attrs.baseStats);
+                var targetDefense = function((PmonStats stats) -> move.attrs.type == PmonMoveType.NORMAL
+                        ? stats.defense
+                        : stats.specialDefense).apply(targetMon.attrs.baseStats);
+            }
+            @Override
+            public void constant(Integer damage) { v.set(damage); }
+            @Override
+            public void byHp(Double percent) {
+                v.set((int) (percent * targetMon.status.hp));
+            }
+            @Override
+            public void byMaxHp(Double percent) { v.set((int) (percent * targetMon.attrs.baseStats.hp)); }
+        });
+        return 10; //TODO: actually calculate the damage; consider abilities, status conditions, etc.
+    }
 
     @Override
     public MonGlobalContext<Pmon> init(StrictMap<PartyId, MonPartyEntry<Pmon>> parties, PmonInitialConditions pmonInitialConditions) {
@@ -85,6 +113,10 @@ public class PmonRuleset implements MonRuleset<
                 var monDecision = f.getValue();
                 monDecision.call(new PmonDecision.Callbacks() {
                     @Override
+                    public void pass() {
+                        // pass the turn - ignore
+                    }
+                    @Override
                     public void switchIn(Integer monSwitchInIndex) {
                         s.switchInList.add(new DecisionSorting.SwitchInInfo(partyId, monId));
                     }
@@ -97,7 +129,7 @@ public class PmonRuleset implements MonRuleset<
                         if (mon.status.statModifiers.containsKey(PmonStatModifierType.SPEED)) {
                             speedModifiers.add(mon.status.statModifiers.get(PmonStatModifierType.SPEED));
                         }
-                        for (var statusProblem: mon.status.statusProblems.values()) {
+                        for (var statusProblem: mon.status.statusConditions.values()) {
                             if (statusProblem.statModifiers.containsKey(PmonStatModifierType.SPEED)) {
                                 speedModifiers.add(statusProblem.statModifiers.get(PmonStatModifierType.SPEED));
                             }
@@ -139,19 +171,31 @@ public class PmonRuleset implements MonRuleset<
         // switch-in moves
         // normal moves
         for (var moveInfo: s.moveNormalList) {
-            var updateByMove = new PmonUpdateByMove();
+            var updateByMove = new PmonUpdateByDamage();
             var monDecision = decisionsMap.get(moveInfo.partyId()).monDecisions.get(moveInfo.monId());
             monDecision.call(new PmonDecision.Callbacks() {
+                @Override
+                public void pass() {throw new AssertionError();}
                 @Override
                 public void switchIn(Integer monSwitchInIndex) {throw new AssertionError();}
                 @Override
                 public void useMove(Integer moveIndex, StrictMap<PartyId, ? extends Iterable<MonParty.MonId>> targets) {
                     var mon = context.parties.get(moveInfo.partyId()).monsOnField.get(moveInfo.monId());
                     var move = mon.moves.get(moveIndex);
+                    for (var x: moveInfo.targets().entrySet()) {
+                        var targetPartyId = x.getKey();
+                        for (var targetMonId: x.getValue()) {
+                            var targetMon = context.parties.get(targetPartyId).monsOnField.get(targetMonId);
+                            var updateOnTarget = new PmonUpdateByDamage.UpdateOnTarget();
+                            updateByMove.updatesOnTargets.add(tuple(targetPartyId, targetMonId, updateOnTarget));
+                            updateOnTarget.damage = detDamage(mon, move, targetMon);
+                            //TODO: the rest - calculate updates of all applicable types, according to move effects
+                        }
+                    }
                 }
             });
         }
-        throw new UnsupportedOperationException(); //TODO
+        return updates;
     }
 
     private Integer speedDiffWithRng(Integer speedDiff) {
@@ -160,7 +204,55 @@ public class PmonRuleset implements MonRuleset<
 
     @Override
     public void update(MonGlobalContext<Pmon> context, PmonUpdate pmonUpdate) {
-        throw new UnsupportedOperationException(); //TODO
+        pmonUpdate.call(new PmonUpdate.Callbacks() {
+            @Override
+            public void move(PmonUpdateByDamage update) {
+                for (var t: update.updatesOnTargets) {
+                    var mon = context.parties.get(t.a1).monsOnField.get(t.a2);
+                    var u = t.a3;
+                    mon.status.hp = function((Integer hpRemaining) -> hpRemaining > 0? hpRemaining: 0).apply(mon.status.hp - u.damage);
+                }
+            }
+            @Override
+            public void statModify(PmonUpdateByStatModify update) {
+                for (var t: update.updatesOnTargets) {
+                    var mon = context.parties.get(t.a1).monsOnField.get(t.a2);
+                    var u = t.a3;
+                    for (var t2: I(
+                            tuple(u.statRaises, function(Integer::sum)),
+                            tuple(u.statFalls , function((Integer a, Integer b) -> (a - b))))) {
+
+                        for (var e: t2.a1.entrySet()) {
+                            PmonStatModifierType type = e.getKey();
+                            Integer stages = e.getValue();
+                            if (mon.status.statModifiers.containsKey(type)) {
+                                mon.status.statModifiers.put(type, t2.a2.apply(mon.status.statModifiers.get(type), stages));
+                            }
+                        }
+                    }
+                }
+            }
+            @Override
+            public void statusCondition(PmonUpdateByStatusCondition update) {
+                for (var t: update.updatesOnTargets) {
+                    var mon = context.parties.get(t.a1).monsOnField.get(t.a2);
+                    var u = t.a3;
+                    for (var condition: u.statusConditions) {
+                        if (mon.status.statusConditions.containsKey(condition.id)) {
+                            continue;
+                        }
+                        mon.status.statusConditions.put(condition.id, condition);
+                        //TODO: there may be exclusive status conditions (where, if one already is in place, the incoming condition is discarded), etc
+                    }
+                }
+            }
+            @Override
+            public void switchIn(PmonUpdateBySwitchIn update) {
+                var party = context.parties.get(update.partyId);
+                party.monsOnField.remove(update.monId);
+                party.monsOnField.put(new MonParty.MonId(), party.mons.get(update.monToSwitchInIndex));
+            }
+        });
     }
 
     @Override
@@ -194,9 +286,6 @@ public class PmonRuleset implements MonRuleset<
     public Boolean allowDecide(MonGlobalContext<Pmon> context, PartyId partyId, MonParty.MonId monId) {
 
         var mon = context.parties.get(partyId).monsOnField.get(monId);
-        for (var condition: mon.status.statusProblems.values()) {
-
-        }
-        throw new UnsupportedOperationException(); //TODO
+        return true; //TODO: should be based on move lock-in, charging / recharging, etc
     }
 }

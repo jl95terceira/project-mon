@@ -1,11 +1,16 @@
 package jl95.tbb.pmon.update;
 
-import java.util.List;
-
-import static jl95.lang.SuperPowers.strict;
+import jl95.tbb.PartyId;
+import jl95.tbb.mon.MonParty;
 
 public class PmonUpdateBySwitchIn {
 
-        public Integer monToSwitchinInIndex = 0;
-        public List<PmonUpdateByMove> updateByPursuitMove = null;
+        public PartyId partyId;
+        public MonParty.MonId monId;
+        public Integer monToSwitchInIndex = 0;
+
+        public PmonUpdateBySwitchIn(PartyId partyId, MonParty.MonId monId) {
+                this.partyId = partyId;
+                this.monId = monId;
+        }
 }
