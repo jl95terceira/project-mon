@@ -10,11 +10,11 @@ import jl95.tbb.pmon.attrs.PmonStats;
 
 import static jl95.lang.SuperPowers.*;
 
-public class PmonDamageDetRule {
+public class PmonRuleToDetermineDamage {
 
     public final PmonRuleset ruleset;
 
-    public PmonDamageDetRule(PmonRuleset ruleset) {this.ruleset = ruleset;}
+    public PmonRuleToDetermineDamage(PmonRuleset ruleset) {this.ruleset = ruleset;}
 
     public Integer detDamage(Pmon mon, PmonMove move, Pmon targetMon) {
 

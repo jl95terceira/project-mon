@@ -9,11 +9,11 @@ import jl95.tbb.pmon.update.*;
 
 import static jl95.lang.SuperPowers.*;
 
-public class PmonContextUpdateRule {
+public class PmonRuleToUpdateContext {
 
     public final PmonRuleset ruleset;
 
-    public PmonContextUpdateRule(PmonRuleset ruleset) {this.ruleset = ruleset;}
+    public PmonRuleToUpdateContext(PmonRuleset ruleset) {this.ruleset = ruleset;}
 
     public void update(MonGlobalContext<Pmon> context, PmonUpdate pmonUpdate) {
         pmonUpdate.call(new PmonUpdate.Handlers() {

@@ -3,7 +3,6 @@ package jl95.tbb.pmon.rules;
 import jl95.lang.I;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonGlobalContext;
-import jl95.tbb.mon.MonLocalContext;
 import jl95.tbb.pmon.Pmon;
 import jl95.tbb.pmon.PmonFoeView;
 import jl95.tbb.pmon.PmonLocalContext;
@@ -13,11 +12,11 @@ import java.util.Map;
 
 import static jl95.lang.SuperPowers.strict;
 
-public class PmonLocalContextDetRule {
+public class PmonRuleToDetermineLocalContext {
 
     public final PmonRuleset ruleset;
 
-    public PmonLocalContextDetRule(PmonRuleset ruleset) {this.ruleset = ruleset;}
+    public PmonRuleToDetermineLocalContext(PmonRuleset ruleset) {this.ruleset = ruleset;}
 
     public PmonLocalContext detLocalContext(MonGlobalContext<Pmon> context, PartyId ownPartyId) {
 

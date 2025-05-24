@@ -2,16 +2,10 @@ package jl95.tbb.pmon;
 
 import static jl95.lang.SuperPowers.*;
 
-import jl95.lang.I;
-import jl95.lang.Ref;
 import jl95.lang.variadic.Function0;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.*;
-import jl95.tbb.pmon.attrs.PmonMovePower;
-import jl95.tbb.pmon.attrs.PmonMoveType;
-import jl95.tbb.pmon.attrs.PmonStats;
 import jl95.tbb.pmon.rules.*;
-import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.update.*;
 import jl95.util.StrictMap;
 
@@ -38,7 +32,7 @@ public class PmonRuleset implements MonRuleset<
 
     public Integer detDamage(Pmon mon, PmonMove move, Pmon targetMon) {
 
-        return new PmonDamageDetRule(this).detDamage(mon, move, targetMon);
+        return new PmonRuleToDetermineDamage(this).detDamage(mon, move, targetMon);
     }
 
     @Override
@@ -62,19 +56,19 @@ public class PmonRuleset implements MonRuleset<
     @Override
     public PmonLocalContext detLocalContext(PmonGlobalContext context, PartyId ownPartyId) {
         
-        return new PmonLocalContextDetRule(this).detLocalContext(context, ownPartyId);
+        return new PmonRuleToDetermineLocalContext(this).detLocalContext(context, ownPartyId);
     }
 
     @Override
     public Iterable<PmonUpdate> detUpdates(PmonGlobalContext context, StrictMap<PartyId, MonPartyDecision<PmonDecision>> decisionsMap) {
 
-        return new PmonUpdateDetRule(this).detUpdates(context, decisionsMap);
+        return new PmonRuleToDetermineUpdates(this).detUpdates(context, decisionsMap);
     }
 
     @Override
     public void update(PmonGlobalContext context, PmonUpdate pmonUpdate) {
 
-        new PmonContextUpdateRule(this).update(context, pmonUpdate);
+        new PmonRuleToUpdateContext(this).update(context, pmonUpdate);
     }
 
     @Override
@@ -109,6 +103,6 @@ public class PmonRuleset implements MonRuleset<
     @Override
     public Boolean allowDecide(PmonGlobalContext context, PartyId partyId, MonParty.MonId monId) {
 
-        return new PmonDecisionAllowanceRule(this).allowDecide(context, partyId, monId);
+        return new PmoRuleToAllowDecision(this).allowDecide(context, partyId, monId);
     }
 }

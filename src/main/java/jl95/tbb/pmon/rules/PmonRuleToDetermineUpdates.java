@@ -16,7 +16,7 @@ import java.util.List;
 
 import static jl95.lang.SuperPowers.*;
 
-public class PmonUpdateDetRule {
+public class PmonRuleToDetermineUpdates {
 
     public static class DecisionSorting {
         public record MoveInfo(PartyId partyId, MonParty.MonId monId, Integer speed, Integer priorityModifier, StrictMap<PartyId, ? extends Iterable<MonParty.MonId>> targets, Boolean pursuit) {}
@@ -29,7 +29,7 @@ public class PmonUpdateDetRule {
 
     public final PmonRuleset ruleset;
 
-    public PmonUpdateDetRule(PmonRuleset ruleset) {this.ruleset = ruleset;}
+    public PmonRuleToDetermineUpdates(PmonRuleset ruleset) {this.ruleset = ruleset;}
 
     public Iterable<PmonUpdate> detUpdates(PmonGlobalContext context, StrictMap<PartyId, MonPartyDecision<PmonDecision>> decisionsMap) {
             // group decisions and calculate speeds + priorities
