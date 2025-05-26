@@ -60,6 +60,7 @@ public class PmonRuleToUpdateContext {
                             }
                             var updateByStatusCondition = hit.updatesByStatusCondition;
                             if (updateByStatusCondition != null) {
+                                // status conditions
                                 for (var condition: updateByStatusCondition.statusConditions) {
 
                                     if (mon.status.statusConditions.containsKey(condition.id)) {
@@ -69,7 +70,6 @@ public class PmonRuleToUpdateContext {
                                     //TODO: there may be exclusive status conditions (where, if one already is in place, the incoming condition is discarded), etc
                                 }
                             }
-                            // status conditions
                         }
                     });
                 }
