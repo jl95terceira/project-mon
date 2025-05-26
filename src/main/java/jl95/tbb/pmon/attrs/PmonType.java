@@ -11,7 +11,5 @@ public abstract class PmonType {
         this.id = id;
     }
 
-    public abstract Boolean isSuperEffectiveAgainst(PmonType other);
-    public abstract Boolean isNotVeryEffectiveAgainst(PmonType other);
-    public abstract Boolean doesNotAffect(PmonType other);
+    public abstract PmonMoveEffectivenessType effectivenessAgainst(PmonType other);
 }

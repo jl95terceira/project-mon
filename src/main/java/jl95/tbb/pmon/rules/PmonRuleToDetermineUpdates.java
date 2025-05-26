@@ -7,9 +7,11 @@ import jl95.tbb.mon.MonPartyDecision;
 import jl95.tbb.pmon.PmonDecision;
 import jl95.tbb.pmon.PmonGlobalContext;
 import jl95.tbb.pmon.PmonRuleset;
+import jl95.tbb.pmon.attrs.PmonMovePower;
 import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.update.PmonUpdate;
-import jl95.tbb.pmon.update.PmonUpdateByDamage;
+import jl95.tbb.pmon.update.PmonUpdateByMove;
+import jl95.tbb.pmon.update.PmonUpdateByMoveDamage;
 import jl95.util.StrictMap;
 
 import java.util.List;
@@ -36,38 +38,48 @@ public class PmonRuleToDetermineUpdates {
             var s = new DecisionSorting();
             List<DecisionSorting.MoveInfo> moveList = List();
             for (var e: decisionsMap.entrySet()) {
+
                 var partyId = e.getKey();
                 var partyDecision = e.getValue();
                 for (var f: partyDecision.monDecisions.entrySet()) {
+
                     var monId = f.getKey();
                     if (!ruleset.allowDecide(context, partyId, monId)) {
+
                         continue;
                     }
                     var monDecision = f.getValue();
                     monDecision.call(new PmonDecision.Handlers() {
+
                         @Override
                         public void pass() {
                             // pass the turn - ignore
                         }
                         @Override
                         public void switchIn(Integer monSwitchInIndex) {
+
                             s.switchInList.add(new DecisionSorting.SwitchInInfo(partyId, monId));
                         }
                         @Override
                         public void useMove(Integer moveIndex, StrictMap<PartyId, ? extends Iterable<MonParty.MonId>> targets) {
+
                             var mon = context.parties.get(partyId).monsOnField.get(monId);
                             var monSpeed = mon.attrs.baseStats.speed;
                             var move = context.parties.get(partyId).monsOnField.get(monId).moves.get(moveIndex);
                             List<Integer> speedModifiers = List();
                             if (mon.status.statModifiers.containsKey(PmonStatModifierType.SPEED)) {
+
                                 speedModifiers.add(mon.status.statModifiers.get(PmonStatModifierType.SPEED));
                             }
                             for (var statusProblem: mon.status.statusConditions.values()) {
+
                                 if (statusProblem.statModifiers.containsKey(PmonStatModifierType.SPEED)) {
+
                                     speedModifiers.add(statusProblem.statModifiers.get(PmonStatModifierType.SPEED));
                                 }
                             }
                             for (var speedModifier: speedModifiers) {
+
                                 monSpeed = (int) (monSpeed * ruleset.constants.STAT_MODIFIER_MULTIPLIER.apply(PmonStatModifierType.SPEED, speedModifier));
                             }
                             moveList.add(new DecisionSorting.MoveInfo(partyId, monId, monSpeed, move.attrs.priorityModifier, targets, move.attrs.pursuit));
@@ -77,11 +89,15 @@ public class PmonRuleToDetermineUpdates {
             }
             s.switchInMap = strict(I.of(s.switchInList).enumer(0).toMap(t -> t.a2, t -> t.a1));
             var sortMove = method((DecisionSorting.MoveInfo move) -> {
+
                 for (var targetMons: move.targets.entrySet()) {
+
                     var targetPartyId = targetMons.getKey();
                     for (var targetMonId: targetMons.getValue()) {
+
                         var targetMonAbsId = new DecisionSorting.SwitchInInfo(targetPartyId, targetMonId);
                         if (move.pursuit && s.switchInMap.containsKey(targetMonAbsId)) {
+
                             s.movePursuitList.add(move);
                             return;
                         }
@@ -90,39 +106,63 @@ public class PmonRuleToDetermineUpdates {
                 s.moveNormalList.add(move);
             });
             for (var move: moveList) {
+
                 sortMove.accept(move);
             }
             // sort decisions
             for (var list: I(s.moveNormalList, s.movePursuitList)) {
-                list.sort((m1, m2) -> m1.priorityModifier > m2.priorityModifier? 1
-                        : m1.priorityModifier < m2.priorityModifier? -1
-                        : speedDiffWithRng(m1.speed - m2.speed));
+
+                list.sort((m1, m2) -> m1.priorityModifier > m2.priorityModifier?  1
+                                    : m1.priorityModifier < m2.priorityModifier? -1
+                                    : speedDiffWithRng(m1.speed - m2.speed));
             }
             // evaluate decisions into updates - where THE GOOD STUFF happens
             List<PmonUpdate> updates = List();
             // pursuit-switch-in moves
+            //TODO: the above
+
             // switch-in moves
+            //TODO: the above
+
             // normal moves
             for (var moveInfo: s.moveNormalList) {
-                var updateByMove = new PmonUpdateByDamage();
+
+                var updateByMove = new PmonUpdateByMove();
                 var monDecision = decisionsMap.get(moveInfo.partyId()).monDecisions.get(moveInfo.monId());
                 monDecision.call(new PmonDecision.Handlers() {
+
                     @Override
                     public void pass() {throw new AssertionError();}
                     @Override
                     public void switchIn(Integer monSwitchInIndex) {throw new AssertionError();}
                     @Override
                     public void useMove(Integer moveIndex, StrictMap<PartyId, ? extends Iterable<MonParty.MonId>> targets) {
+
                         var mon = context.parties.get(moveInfo.partyId()).monsOnField.get(moveInfo.monId());
                         var move = mon.moves.get(moveIndex);
                         for (var x: moveInfo.targets().entrySet()) {
+
                             var targetPartyId = x.getKey();
                             for (var targetMonId: x.getValue()) {
+
                                 var targetMon = context.parties.get(targetPartyId).monsOnField.get(targetMonId);
-                                var updateOnTarget = new PmonUpdateByDamage.UpdateOnTarget();
+                                var r = (int)(100 * ruleset.rng());
+                                PmonUpdateByMove.UpdateOnTarget updateOnTarget;
+                                if (move.attrs.accuracy >= r) {
+
+                                    var hit = new PmonUpdateByMove.UpdateOnTarget.Hit();
+                                    hit.updateByDamage = new PmonUpdateByMoveDamage();
+                                    hit.updateByDamage = ruleset.detDamage(mon, move, targetMon);
+
+                                    //TODO: the rest - calculate updates of all applicable types, according to move effects
+
+                                    updateOnTarget = PmonUpdateByMove.UpdateOnTarget.hit(hit);
+                                }
+                                else {
+
+                                    updateOnTarget = PmonUpdateByMove.UpdateOnTarget.miss();
+                                }
                                 updateByMove.updatesOnTargets.add(tuple(targetPartyId, targetMonId, updateOnTarget));
-                                updateOnTarget.damage = ruleset.detDamage(mon, move, targetMon);
-                                //TODO: the rest - calculate updates of all applicable types, according to move effects
                             }
                         }
                     }
@@ -132,6 +172,7 @@ public class PmonRuleToDetermineUpdates {
         }
 
     public Integer speedDiffWithRng(Integer speedDiff) {
+
         return ((int)((2*ruleset.constants.SPEED_RNG_BREADTH) * ruleset.rng() - ruleset.constants.SPEED_RNG_BREADTH)) + speedDiff;
     }
 }

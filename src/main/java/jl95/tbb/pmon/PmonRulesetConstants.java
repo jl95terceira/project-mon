@@ -1,9 +1,11 @@
 package jl95.tbb.pmon;
 
 import jl95.lang.variadic.Function2;
+import jl95.tbb.pmon.attrs.PmonMoveEffectivenessType;
 import jl95.tbb.pmon.status.PmonStatModifierType;
+import jl95.util.StrictMap;
 
-import static jl95.lang.SuperPowers.function;
+import static jl95.lang.SuperPowers.*;
 
 public class PmonRulesetConstants {
 
@@ -24,4 +26,10 @@ public class PmonRulesetConstants {
             POWER_FACTOR_OF_TYPE_NOT_VERY_EFFECTIVE = 0.5;
     public final Double
             POWER_FACTOR_OF_TYPE_DOES_NOT_AFFECT = 0.0;
+    public final StrictMap<PmonMoveEffectivenessType, Double>
+            POWER_FACTOR_MAP = strict(Map(
+                tuple(PmonMoveEffectivenessType.SUPER_EFFECTIVE   , POWER_FACTOR_OF_TYPE_SUPER_EFFECTIVE),
+                tuple(PmonMoveEffectivenessType.NOT_VERY_EFFECTIVE, POWER_FACTOR_OF_TYPE_NOT_VERY_EFFECTIVE),
+                tuple(PmonMoveEffectivenessType.DOES_NOT_AFFECT   , POWER_FACTOR_OF_TYPE_DOES_NOT_AFFECT)
+    ));
 }

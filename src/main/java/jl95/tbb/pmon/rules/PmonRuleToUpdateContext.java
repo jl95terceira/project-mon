@@ -18,18 +18,13 @@ public class PmonRuleToUpdateContext {
     public void update(MonGlobalContext<Pmon> context, PmonUpdate pmonUpdate) {
         pmonUpdate.call(new PmonUpdate.Handlers() {
             @Override
-            public void damage(PmonUpdateByDamage update) {
+            public void move(PmonUpdateByMoveDamage update) {
                 for (var t: update.updatesOnTargets) {
                     var mon = context.parties.get(t.a1).monsOnField.get(t.a2);
                     var u = t.a3;
+                    // damage
                     mon.status.hp = function((Integer hpRemaining) -> hpRemaining > 0? hpRemaining: 0).apply(mon.status.hp - u.damage);
-                }
-            }
-            @Override
-            public void statModify(PmonUpdateByStatModify update) {
-                for (var t: update.updatesOnTargets) {
-                    var mon = context.parties.get(t.a1).monsOnField.get(t.a2);
-                    var u = t.a3;
+                    // stat modifiers
                     for (var t2: I(
                             tuple(u.statRaises, function(Integer::sum)),
                             tuple(u.statFalls , function((Integer a, Integer b) -> (a - b))))) {
@@ -42,13 +37,7 @@ public class PmonRuleToUpdateContext {
                             }
                         }
                     }
-                }
-            }
-            @Override
-            public void statusCondition(PmonUpdateByStatusCondition update) {
-                for (var t: update.updatesOnTargets) {
-                    var mon = context.parties.get(t.a1).monsOnField.get(t.a2);
-                    var u = t.a3;
+                    // status conditions
                     for (var condition: u.statusConditions) {
                         if (mon.status.statusConditions.containsKey(condition.id)) {
                             continue;

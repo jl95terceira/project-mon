@@ -3,8 +3,10 @@ package jl95.tbb.pmon;
 import static jl95.lang.SuperPowers.*;
 
 import jl95.lang.variadic.Function0;
+import jl95.lang.variadic.Tuple2;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.*;
+import jl95.tbb.pmon.attrs.PmonMoveEffectivenessType;
 import jl95.tbb.pmon.rules.*;
 import jl95.tbb.pmon.update.*;
 import jl95.util.StrictMap;
@@ -30,7 +32,7 @@ public class PmonRuleset implements MonRuleset<
         return rng.apply(); 
     }
 
-    public Integer detDamage(Pmon mon, PmonMove move, Pmon targetMon) {
+    public PmonUpdateByMoveDamage detDamage(Pmon mon, PmonMove move, Pmon targetMon) {
 
         return new PmonRuleToDetermineDamage(this).detDamage(mon, move, targetMon);
     }
