@@ -3,7 +3,6 @@ package jl95.tbb.pmon.update;
 import jl95.lang.variadic.Tuple3;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonParty;
-import jl95.tbb.pmon.attrs.PmonMoveEffectivenessType;
 
 import java.util.List;
 
@@ -23,7 +22,7 @@ public class PmonUpdateByMove {
         class Hit {
             public PmonUpdateByMoveDamage updateByDamage = null;
             public PmonUpdateByMoveStatModifier updateByStatModifier = null;
-            public List<PmonUpdateByMoveStatusCondition> updateByStatusCondition = null;
+            public PmonUpdateByMoveStatusCondition updatesByStatusCondition = null;
         }
 
         static UpdateOnTarget miss() { return cb -> cb.miss(); }

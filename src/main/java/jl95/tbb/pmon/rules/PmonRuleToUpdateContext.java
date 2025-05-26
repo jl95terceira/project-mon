@@ -16,39 +16,74 @@ public class PmonRuleToUpdateContext {
     public PmonRuleToUpdateContext(PmonRuleset ruleset) {this.ruleset = ruleset;}
 
     public void update(MonGlobalContext<Pmon> context, PmonUpdate pmonUpdate) {
+
         pmonUpdate.call(new PmonUpdate.Handlers() {
+
             @Override
-            public void move(PmonUpdateByMoveDamage update) {
+            public void move(PmonUpdateByMove update) {
+
                 for (var t: update.updatesOnTargets) {
+
                     var mon = context.parties.get(t.a1).monsOnField.get(t.a2);
                     var u = t.a3;
                     // damage
-                    mon.status.hp = function((Integer hpRemaining) -> hpRemaining > 0? hpRemaining: 0).apply(mon.status.hp - u.damage);
-                    // stat modifiers
-                    for (var t2: I(
-                            tuple(u.statRaises, function(Integer::sum)),
-                            tuple(u.statFalls , function((Integer a, Integer b) -> (a - b))))) {
+                    u.call(new PmonUpdateByMove.UpdateOnTarget.Handlers() {
+                        @Override
+                        public void miss() {
+                            /* Haw Haw! */
+                        }
 
-                        for (var e: t2.a1.entrySet()) {
-                            PmonStatModifierType type = e.getKey();
-                            Integer stages = e.getValue();
-                            if (mon.status.statModifiers.containsKey(type)) {
-                                mon.status.statModifiers.put(type, t2.a2.apply(mon.status.statModifiers.get(type), stages));
+                        @Override
+                        public void hit(PmonUpdateByMove.UpdateOnTarget.Hit hit) {
+                            var updateByDamage = hit.updateByDamage;
+                            if (updateByDamage != null) {
+                                // damage
+                                mon.status.hp = function((Integer hpRemaining) -> hpRemaining > 0 ? hpRemaining : 0).apply(mon.status.hp - updateByDamage.damage);
                             }
+                            var updateByStat = hit.updateByStatModifier;
+                            if (updateByStat != null) {
+                                // stat modifiers
+                                for (var t2: I(
+                                        tuple(updateByStat.statRaises, function(Integer::sum)),
+                                        tuple(updateByStat.statFalls , function((Integer a, Integer b) -> (a - b))))) {
+
+                                    for (var e: t2.a1.entrySet()) {
+
+                                        PmonStatModifierType type = e.getKey();
+                                        Integer stages = e.getValue();
+                                        if (mon.status.statModifiers.containsKey(type)) {
+
+                                            mon.status.statModifiers.put(type, t2.a2.apply(mon.status.statModifiers.get(type), stages));
+                                        }
+                                    }
+                                }
+                            }
+                            var updateByStatusCondition = hit.updatesByStatusCondition;
+                            if (updateByStatusCondition != null) {
+                                for (var condition: updateByStatusCondition.statusConditions) {
+
+                                    if (mon.status.statusConditions.containsKey(condition.id)) {
+                                        continue;
+                                    }
+                                    mon.status.statusConditions.put(condition.id, condition);
+                                    //TODO: there may be exclusive status conditions (where, if one already is in place, the incoming condition is discarded), etc
+                                }
+                            }
+                            // status conditions
                         }
-                    }
-                    // status conditions
-                    for (var condition: u.statusConditions) {
-                        if (mon.status.statusConditions.containsKey(condition.id)) {
-                            continue;
-                        }
-                        mon.status.statusConditions.put(condition.id, condition);
-                        //TODO: there may be exclusive status conditions (where, if one already is in place, the incoming condition is discarded), etc
-                    }
+                    });
                 }
             }
+
+            @Override
+            public void notify(PmonNotification update) {
+
+                /* no need to update - notifications are meant to give information to players only */
+            }
+
             @Override
             public void switchIn(PmonUpdateBySwitchIn update) {
+
                 var party = context.parties.get(update.partyId);
                 party.monsOnField.remove(update.monId);
                 party.monsOnField.put(new MonParty.MonId(), party.mons.get(update.monToSwitchInIndex));
