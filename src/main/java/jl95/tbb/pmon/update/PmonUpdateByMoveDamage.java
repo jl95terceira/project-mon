@@ -12,5 +12,6 @@ import static jl95.lang.SuperPowers.*;
 public class PmonUpdateByMoveDamage {
 
     public Integer damage = null;
-    public Double effectivenessFactor = 1.0;
+    public Double effectivenessFactor = 1.0; // facultative
+    public Boolean criticalHit = false; // facultative
 }

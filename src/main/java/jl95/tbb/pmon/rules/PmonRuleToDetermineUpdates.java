@@ -146,13 +146,12 @@ public class PmonRuleToDetermineUpdates {
                             for (var targetMonId: x.getValue()) {
 
                                 var targetMon = context.parties.get(targetPartyId).monsOnField.get(targetMonId);
-                                var r = (int)(100 * ruleset.rng());
                                 PmonUpdateByMove.UpdateOnTarget updateOnTarget;
-                                if (move.attrs.accuracy >= r) {
+                                if (move.attrs.accuracy >= (100 * ruleset.rng())) {
 
                                     var hit = new PmonUpdateByMove.UpdateOnTarget.Hit();
                                     hit.updateByDamage = new PmonUpdateByMoveDamage();
-                                    hit.updateByDamage = ruleset.detDamage(mon, move, targetMon);
+                                    hit.updateByDamage = ruleset.detDamage(mon, move, ruleset.constants.CRITICAL_HIT_CHANCE >= ruleset.rng(), targetMon);
 
                                     //TODO: the rest - calculate updates of all applicable types, according to move effects
 

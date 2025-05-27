@@ -25,16 +25,16 @@ public class PmonRuleset implements MonRuleset<
     public static PartyId NO_VICTOR = new PartyId();
 
     public final PmonRulesetConstants constants = new PmonRulesetConstants();
-    public Function0<Double> rng = new Random()::nextDouble;
+    public Function0<Double> rng = new Random()::nextDouble; // to return a number between 0 and 1
 
     public Double rng() { 
         
         return rng.apply(); 
     }
 
-    public PmonUpdateByMoveDamage detDamage(Pmon mon, PmonMove move, Pmon targetMon) {
+    public PmonUpdateByMoveDamage detDamage(Pmon mon, PmonMove move, Boolean critical, Pmon targetMon) {
 
-        return new PmonRuleToDetermineDamage(this).detDamage(mon, move, targetMon);
+        return new PmonRuleToDetermineDamage(this).detDamage(mon, move, critical, targetMon);
     }
 
     @Override

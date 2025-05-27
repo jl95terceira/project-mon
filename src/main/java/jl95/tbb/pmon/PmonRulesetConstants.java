@@ -32,4 +32,10 @@ public class PmonRulesetConstants {
                 tuple(PmonMoveEffectivenessType.NOT_VERY_EFFECTIVE, POWER_FACTOR_OF_TYPE_NOT_VERY_EFFECTIVE),
                 tuple(PmonMoveEffectivenessType.DOES_NOT_AFFECT   , POWER_FACTOR_OF_TYPE_DOES_NOT_AFFECT)
     ));
+    public final Double
+            CRITICAL_HIT_CHANCE = 0.05;
+    public final Double
+            CRITICAL_HIT_POWER_FACTOR = 1.5;
+    public final Double
+            STAB_FACTOR = 1.5;
 }

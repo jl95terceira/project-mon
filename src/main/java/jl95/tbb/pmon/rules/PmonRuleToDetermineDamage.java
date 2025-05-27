@@ -19,7 +19,7 @@ public class PmonRuleToDetermineDamage {
 
     public PmonRuleToDetermineDamage(PmonRuleset ruleset) {this.ruleset = ruleset;}
 
-    public PmonUpdateByMoveDamage detDamage(Pmon mon, PmonMove move, Pmon targetMon) {
+    public PmonUpdateByMoveDamage detDamage(Pmon mon, PmonMove move, Boolean critical, Pmon targetMon) {
 
         var v = new PmonUpdateByMoveDamage();
         move.attrs.power.call(new PmonMovePower.Handlers() {
@@ -34,17 +34,30 @@ public class PmonRuleToDetermineDamage {
                 for (var targetMonType: targetMon.attrs.types.values()) {
                     v.effectivenessFactor *= ruleset.constants.POWER_FACTOR_MAP.get(move.attrs.pmonType.effectivenessAgainst(targetMonType));
                 }
-                //TODO: consider abilities, status conditions, etc.
-                v.damage = 10;
+                v.damage = (int)(0.44
+                               * power
+                               * sourceAttack / targetDefense
+                               * (mon.attrs.types.containsKey(move.attrs.pmonType.id)? ruleset.constants.STAB_FACTOR: 1.0)
+                               * (critical? ruleset.constants.CRITICAL_HIT_POWER_FACTOR: 1.0));
+
+                //TODO: consider abilities, status conditions, screen effects, etc.
+
             }
             @Override
-            public void constant(Integer damage) { v.damage = damage; }
+            public void constant(Integer damage) {
+
+                v.damage = damage;
+            }
             @Override
             public void byHp(Double percent) {
+
                 v.damage = (int) (percent * targetMon.status.hp);
             }
             @Override
-            public void byMaxHp(Double percent) { v.damage = (int) (percent * targetMon.attrs.baseStats.hp); }
+            public void byMaxHp(Double percent) {
+
+                v.damage = (int) (percent * targetMon.attrs.baseStats.hp);
+            }
         });
         return v;
     }
