@@ -2,6 +2,9 @@ package jl95.tbb.pmon;
 
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonParty;
+import jl95.tbb.pmon.decision.PmonDecisionByUseMove;
+import jl95.tbb.pmon.decision.PmonDecisionByPass;
+import jl95.tbb.pmon.decision.PmonDecisionBySwitchIn;
 import jl95.util.StrictMap;
 
 public interface PmonDecision {
@@ -10,18 +13,18 @@ public interface PmonDecision {
 
     interface Handlers {
 
-        void pass();
-        void switchIn(Integer monSwitchInIndex);
-        void useMove(Integer moveIndex, StrictMap<PartyId, ? extends Iterable<MonParty.MonId>> targets);
+        void pass(PmonDecisionByPass decision);
+        void switchIn(PmonDecisionBySwitchIn decision);
+        void useMove(PmonDecisionByUseMove decision);
     }
 
-    static PmonDecision pass() {
-        return cb -> cb.pass();
+    static PmonDecision by(PmonDecisionByPass decision) {
+        return cb -> cb.pass(decision);
     }
-    static PmonDecision switchIn(Integer monSwitchInIndex) {
-        return cb -> cb.switchIn(monSwitchInIndex);
+    static PmonDecision by(PmonDecisionBySwitchIn decision) {
+        return cb -> cb.switchIn(decision);
     }
-    static PmonDecision move(Integer moveIndex, StrictMap<PartyId, ? extends Iterable<MonParty.MonId>> targets) {
-        return cb -> cb.useMove(moveIndex, targets);
+    static PmonDecision by(PmonDecisionByUseMove decision) {
+        return cb -> cb.useMove(decision);
     }
 }

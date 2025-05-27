@@ -9,6 +9,9 @@ import jl95.tbb.pmon.Chanced;
 import jl95.tbb.pmon.PmonDecision;
 import jl95.tbb.pmon.PmonGlobalContext;
 import jl95.tbb.pmon.PmonRuleset;
+import jl95.tbb.pmon.decision.PmonDecisionByPass;
+import jl95.tbb.pmon.decision.PmonDecisionBySwitchIn;
+import jl95.tbb.pmon.decision.PmonDecisionByUseMove;
 import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.update.PmonUpdate;
 import jl95.tbb.pmon.update.PmonUpdateByMove;
@@ -58,20 +61,20 @@ public class PmonRuleToDetermineUpdates {
                     monDecision.call(new PmonDecision.Handlers() {
 
                         @Override
-                        public void pass() {
+                        public void pass(PmonDecisionByPass passDecision) {
                             // pass the turn - ignore
                         }
                         @Override
-                        public void switchIn(Integer monSwitchInIndex) {
+                        public void switchIn(PmonDecisionBySwitchIn switchInDecision) {
 
-                            s.switchInList.add(new DecisionSorting.SwitchInInfo(partyId, monId, monSwitchInIndex));
+                            s.switchInList.add(new DecisionSorting.SwitchInInfo(partyId, monId, switchInDecision.monSwitchInIndex));
                         }
                         @Override
-                        public void useMove(Integer moveIndex, StrictMap<PartyId, ? extends Iterable<MonParty.MonId>> targets) {
+                        public void useMove(PmonDecisionByUseMove useMoveDecision) {
 
                             var mon = context.parties.get(partyId).monsOnField.get(monId);
                             var monSpeed = mon.attrs.baseStats.speed;
-                            var move = context.parties.get(partyId).monsOnField.get(monId).moves.get(moveIndex);
+                            var move = context.parties.get(partyId).monsOnField.get(monId).moves.get(useMoveDecision.moveIndex);
                             List<Integer> speedModifiers = List();
                             if (mon.status.statModifiers.containsKey(PmonStatModifierType.SPEED)) {
 
@@ -88,7 +91,7 @@ public class PmonRuleToDetermineUpdates {
 
                                 monSpeed = (int) (monSpeed * ruleset.constants.STAT_MODIFIER_FACTOR.apply(PmonStatModifierType.SPEED, speedModifier));
                             }
-                            moveList.add(new DecisionSorting.MoveInfo(partyId, monId, monSpeed, move.attrs.priorityModifier, targets, move.attrs.pursuit));
+                            moveList.add(new DecisionSorting.MoveInfo(partyId, monId, monSpeed, move.attrs.priorityModifier, useMoveDecision.targets, move.attrs.pursuit));
                         }
                     });
                 }
@@ -131,14 +134,14 @@ public class PmonRuleToDetermineUpdates {
                 monDecision.call(new PmonDecision.Handlers() {
 
                     @Override
-                    public void pass() {throw new AssertionError();}
+                    public void pass(PmonDecisionByPass passDecision) {throw new AssertionError();}
                     @Override
-                    public void switchIn(Integer monSwitchInIndex) {throw new AssertionError();}
+                    public void switchIn(PmonDecisionBySwitchIn switchInDecision) {throw new AssertionError();}
                     @Override
-                    public void useMove(Integer moveIndex, StrictMap<PartyId, ? extends Iterable<MonParty.MonId>> targets) {
+                    public void useMove(PmonDecisionByUseMove useMoveDecision) {
 
                         var mon = context.parties.get(moveInfo.partyId()).monsOnField.get(moveInfo.monId());
-                        var move = mon.moves.get(moveIndex);
+                        var move = mon.moves.get(useMoveDecision.moveIndex);
                         var nrTargets = I.of(moveInfo.targets.values()).flatmap(x -> x).reduce(0, (a,b) -> (a+1));
                         for (var x: moveInfo.targets().entrySet()) {
 
@@ -154,7 +157,7 @@ public class PmonRuleToDetermineUpdates {
 
                                         // damage
                                         var damageUpdate = new PmonAtomicEffectByDamage();
-                                        var damageAndEffectiveness = ruleset.detDamage(mon, moveIndex, ruleset.constants.CRITICAL_HIT_CHANCE >= ruleset.rng(), targetMon);
+                                        var damageAndEffectiveness = ruleset.detDamage(mon, useMoveDecision.moveIndex, ruleset.constants.CRITICAL_HIT_CHANCE >= ruleset.rng(), targetMon);
                                         damageUpdate.damage = (int) floor(move.attrs.powerReductionFactorByNrTargets.apply(nrTargets) * damageAndEffectiveness.a1);
                                         damageUpdate.effectivenessFactor = damageAndEffectiveness.a2;
                                         atomicEffects.add(PmonAtomicEffect.by(damageUpdate));
