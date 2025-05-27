@@ -4,6 +4,7 @@ import jl95.lang.Ref;
 import jl95.lang.variadic.Tuple2;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonParty;
+import jl95.tbb.pmon.Pmon;
 import jl95.tbb.pmon.PmonGlobalContext;
 import jl95.tbb.pmon.PmonRuleset;
 import jl95.tbb.pmon.attrs.PmonMovePower;
@@ -18,17 +19,12 @@ public class PmonRuleToDetermineDamage {
 
     public PmonRuleToDetermineDamage(PmonRuleset ruleset) {this.ruleset = ruleset;}
 
-    public Tuple2<Integer, Double> detDamage(PmonGlobalContext context,
-                                             PartyId partyId,
-                                             MonParty.MonId monId,
+    public Tuple2<Integer, Double> detDamage(Pmon mon,
                                              Integer moveIndex,
                                              Boolean critical,
-                                             PartyId targetPartyId,
-                                             MonParty.MonId targetMonId) {
+                                             Pmon targetMon) {
 
-        var mon = context.parties.get(partyId).monsOnField.get(monId);
         var move = mon.moves.get(moveIndex);
-        var targetMon = context.parties.get(targetPartyId).monsOnField.get(targetMonId);
         var damageR = new Ref<>(0);
         var effectivenessFactorR = new Ref<>(1.0);
         move.attrs.power.call(new PmonMovePower.Handlers() {

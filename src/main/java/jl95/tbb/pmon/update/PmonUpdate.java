@@ -7,16 +7,16 @@ public interface PmonUpdate {
     interface Handlers {
 
         void switchIn(PmonUpdateBySwitchIn update);
-        void move(PmonUpdateByMove update);
-        void notify(PmonNotification update);
+        void move    (PmonUpdateByMove update);
+        void notify  (PmonNotification update);
         // TODO: Are there other "types" of updates? Do we create a class for each possible "type" of update?
     }
 
-    static PmonUpdate bySwitchIn(PmonUpdateBySwitchIn update) {
+    static PmonUpdate by(PmonUpdateBySwitchIn update) {
         return cb -> cb.switchIn(update);
     }
-    static PmonUpdate byMove(PmonUpdateByMove update) {
+    static PmonUpdate by(PmonUpdateByMove update) {
         return cb -> cb.move(update);
     }
-    static PmonUpdate byNotify(PmonNotification update) {return cb -> cb.notify(update); }
+    static PmonUpdate by(PmonNotification update) {return cb -> cb.notify(update); }
 }

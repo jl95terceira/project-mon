@@ -1,17 +1,22 @@
 package jl95.tbb.pmon.rules;
 
 import jl95.lang.I;
+import jl95.lang.variadic.Tuple2;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonParty;
 import jl95.tbb.mon.MonPartyDecision;
+import jl95.tbb.pmon.Chanced;
 import jl95.tbb.pmon.PmonDecision;
 import jl95.tbb.pmon.PmonGlobalContext;
 import jl95.tbb.pmon.PmonRuleset;
 import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.update.PmonUpdate;
 import jl95.tbb.pmon.update.PmonUpdateByMove;
+import jl95.tbb.pmon.update.PmonUpdateBySwitchIn;
 import jl95.tbb.pmon.update.atomic.PmonAtomicEffect;
 import jl95.tbb.pmon.update.atomic.PmonAtomicEffectByDamage;
+import jl95.tbb.pmon.update.atomic.PmonAtomicEffectByStatModifier;
+import jl95.tbb.pmon.update.atomic.PmonAtomicEffectByStatusCondition;
 import jl95.util.StrictMap;
 
 import java.util.List;
@@ -23,11 +28,11 @@ public class PmonRuleToDetermineUpdates {
 
     public static class DecisionSorting {
         public record MoveInfo(PartyId partyId, MonParty.MonId monId, Integer speed, Integer priorityModifier, StrictMap<PartyId, ? extends Iterable<MonParty.MonId>> targets, Boolean pursuit) {}
-        public record SwitchInInfo(PartyId partyId, MonParty.MonId monId) {}
+        public record SwitchInInfo(PartyId partyId, MonParty.MonId monId, Integer monSwitchInIndex) {}
         public List<DecisionSorting.SwitchInInfo> switchInList    = List();
         public List<DecisionSorting.MoveInfo>     moveNormalList  = List();
         public List<DecisionSorting.MoveInfo>     movePursuitList = List();
-        public StrictMap<DecisionSorting.SwitchInInfo, Integer> switchInMap = strict(Map());
+        public StrictMap<Tuple2<PartyId, MonParty.MonId>, Integer> switchInMap = strict(Map());
     }
 
     public final PmonRuleset ruleset;
@@ -59,7 +64,7 @@ public class PmonRuleToDetermineUpdates {
                         @Override
                         public void switchIn(Integer monSwitchInIndex) {
 
-                            s.switchInList.add(new DecisionSorting.SwitchInInfo(partyId, monId));
+                            s.switchInList.add(new DecisionSorting.SwitchInInfo(partyId, monId, monSwitchInIndex));
                         }
                         @Override
                         public void useMove(Integer moveIndex, StrictMap<PartyId, ? extends Iterable<MonParty.MonId>> targets) {
@@ -81,14 +86,14 @@ public class PmonRuleToDetermineUpdates {
                             }
                             for (var speedModifier: speedModifiers) {
 
-                                monSpeed = (int) (monSpeed * ruleset.constants.STAT_MODIFIER_MULTIPLIER.apply(PmonStatModifierType.SPEED, speedModifier));
+                                monSpeed = (int) (monSpeed * ruleset.constants.STAT_MODIFIER_FACTOR.apply(PmonStatModifierType.SPEED, speedModifier));
                             }
                             moveList.add(new DecisionSorting.MoveInfo(partyId, monId, monSpeed, move.attrs.priorityModifier, targets, move.attrs.pursuit));
                         }
                     });
                 }
             }
-            s.switchInMap = strict(I.of(s.switchInList).enumer(0).toMap(t -> t.a2, t -> t.a1));
+            s.switchInMap = strict(I.of(s.switchInList).enumer(0).toMap(t -> tuple(t.a2.partyId(), t.a2.monId()), t -> t.a1));
             var sortMove = method((DecisionSorting.MoveInfo move) -> {
 
                 for (var targetMons: move.targets.entrySet()) {
@@ -96,7 +101,7 @@ public class PmonRuleToDetermineUpdates {
                     var targetPartyId = targetMons.getKey();
                     for (var targetMonId: targetMons.getValue()) {
 
-                        var targetMonAbsId = new DecisionSorting.SwitchInInfo(targetPartyId, targetMonId);
+                        var targetMonAbsId = tuple(targetPartyId, targetMonId);
                         if (move.pursuit && s.switchInMap.containsKey(targetMonAbsId)) {
 
                             s.movePursuitList.add(move);
@@ -119,14 +124,7 @@ public class PmonRuleToDetermineUpdates {
             }
             // evaluate decisions into updates - where THE GOOD STUFF happens
             List<PmonUpdate> updates = List();
-            // pursuit-switch-in moves
-            //TODO: the above
-
-            // switch-in moves
-            //TODO: the above
-
-            // normal moves
-            for (var moveInfo: s.moveNormalList) {
+            var moveInfoToUpdate = method((DecisionSorting.MoveInfo moveInfo) -> {
 
                 var updateByMove = new PmonUpdateByMove();
                 var monDecision = decisionsMap.get(moveInfo.partyId()).monDecisions.get(moveInfo.monId());
@@ -149,21 +147,42 @@ public class PmonRuleToDetermineUpdates {
 
                                 var targetMon = context.parties.get(targetPartyId).monsOnField.get(targetMonId);
                                 PmonUpdateByMove.UpdateOnTarget updateOnTarget;
-                                if (move.attrs.accuracy >= (100 * ruleset.rng())) {
+                                if (ruleset.roll100(move.attrs.accuracy)) {
 
-                                    List<PmonAtomicEffectByDamage> damageUpdates = List();
-                                    for (var n: I.range((int) floor(ruleset.rng() * (move.attrs.hitNrTimesRange.a2 - move.attrs.hitNrTimesRange.a1 + 1)) + move.attrs.hitNrTimesRange.a1)) {
+                                    List<PmonAtomicEffect> atomicEffects = List();
+                                    for (var n: I.range(ruleset.rngBetweenInclusive(move.attrs.hitNrTimesRange))) {
 
+                                        // damage
                                         var damageUpdate = new PmonAtomicEffectByDamage();
-                                        var damageAndEffectiveness = ruleset.detDamage(context, moveInfo.partyId(), moveInfo.monId(), moveIndex, ruleset.constants.CRITICAL_HIT_CHANCE >= ruleset.rng(), targetPartyId, targetMonId);
+                                        var damageAndEffectiveness = ruleset.detDamage(mon, moveIndex, ruleset.constants.CRITICAL_HIT_CHANCE >= ruleset.rng(), targetMon);
                                         damageUpdate.damage = (int) floor(move.attrs.powerReductionFactorByNrTargets.apply(nrTargets) * damageAndEffectiveness.a1);
                                         damageUpdate.effectivenessFactor = damageAndEffectiveness.a2;
-                                        damageUpdates.add(damageUpdate);
+                                        atomicEffects.add(PmonAtomicEffect.by(damageUpdate));
+                                        // stat modify
+                                        var statUpdate = new PmonAtomicEffectByStatModifier();
+                                        for (var e: move.attrs.statModifiers.entrySet()) {
+                                            PmonStatModifierType type = e.getKey();
+                                            Chanced<Integer> chancedStatModify = e.getValue();
+                                            if (ruleset.roll100(chancedStatModify.chance)) {
+                                                if (chancedStatModify.value > 0) {
+                                                    statUpdate.statRaises.put(type, chancedStatModify.value);
+                                                }
+                                                else if (chancedStatModify.value < 0) {
+                                                    statUpdate.statFalls.put(type, chancedStatModify.value);
+                                                }
+                                            }
+                                        }
+                                        atomicEffects.add(PmonAtomicEffect.by(statUpdate));
+                                        // status conditions
+                                        var conditionUpdate = new PmonAtomicEffectByStatusCondition();
+                                        for (var chancedStatusConditionSupplier: move.attrs.statusConditions) {
+                                            if (ruleset.roll100(chancedStatusConditionSupplier.chance)) {
+                                                conditionUpdate.statusConditionsApply.add(chancedStatusConditionSupplier.value.apply());
+                                            }
+                                        }
+                                        atomicEffects.add(PmonAtomicEffect.by(conditionUpdate));
                                     }
-                                    updateOnTarget = PmonUpdateByMove.UpdateOnTarget.hit(I.of(damageUpdates).map(PmonAtomicEffect::by));
-
-                                    //TODO: the rest - calculate updates of all applicable types (stat modifiers, status conditions, etc), according to move effects
-
+                                    updateOnTarget = PmonUpdateByMove.UpdateOnTarget.hit(atomicEffects);
                                 }
                                 else {
 
@@ -174,6 +193,26 @@ public class PmonRuleToDetermineUpdates {
                         }
                     }
                 });
+                updates.add(PmonUpdate.by(updateByMove));
+            });
+
+            // pursuit-switch-in moves
+            for (var moveInfo: s.movePursuitList) {
+                moveInfoToUpdate.accept(moveInfo);
+            }
+
+            // switch-in moves
+            for (var switchInInfo: s.switchInList) {
+                var switchInUpdate = new PmonUpdateBySwitchIn();
+                switchInUpdate.partyId = switchInInfo.partyId();
+                switchInUpdate.monId = switchInInfo.monId();
+                switchInUpdate.monToSwitchInIndex = switchInInfo.monSwitchInIndex();
+                updates.add(PmonUpdate.by(switchInUpdate));
+            }
+
+            // normal moves
+            for (var moveInfo: s.moveNormalList) {
+                moveInfoToUpdate.accept(moveInfo);
             }
             return updates;
         }

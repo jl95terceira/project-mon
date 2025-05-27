@@ -1,12 +1,12 @@
 package jl95.tbb.pmon;
 
+import static java.lang.Math.floor;
 import static jl95.lang.SuperPowers.*;
 
 import jl95.lang.variadic.Function0;
 import jl95.lang.variadic.Tuple2;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.*;
-import jl95.tbb.pmon.attrs.PmonMoveEffectivenessType;
 import jl95.tbb.pmon.rules.*;
 import jl95.tbb.pmon.update.*;
 import jl95.util.StrictMap;
@@ -27,20 +27,32 @@ public class PmonRuleset implements MonRuleset<
     public final PmonRulesetConstants constants = new PmonRulesetConstants();
     public Function0<Double> rng = new Random()::nextDouble; // to return a number between 0 and 1
 
-    public Double rng() { 
+    public Double rng() {
         
         return rng.apply(); 
     }
+    public Integer rngBetween(Integer a, Integer b) {
+        return (int) floor(rng()*(a - b) + b);
+    }
+    public Integer rngBetween(Tuple2<Integer, Integer> ab) {
+        return rngBetween(ab.a1, ab.a2);
+    }
+    public Integer rngBetweenInclusive(Tuple2<Integer, Integer> ab) {
+        return rngBetween(ab.a1, ab.a2 + 1);
+    }
+    public Boolean roll(Double chance) {
+        return chance >= rng();
+    }
+    public Boolean roll100(Integer chance) {
+        return chance >= (100 * rng());
+    }
 
-    public Tuple2<Integer, Double> detDamage(PmonGlobalContext context,
-                                             PartyId partyId,
-                                             MonParty.MonId monId,
+    public Tuple2<Integer, Double> detDamage(Pmon mon,
                                              Integer moveIndex,
                                              Boolean critical,
-                                             PartyId targetPartyId,
-                                             MonParty.MonId targetMonId) {
+                                             Pmon targetMon) {
 
-        return new PmonRuleToDetermineDamage(this).detDamage(context, partyId, monId, moveIndex, critical, targetPartyId, targetMonId);
+        return new PmonRuleToDetermineDamage(this).detDamage(mon, moveIndex, critical, targetMon);
     }
 
     @Override

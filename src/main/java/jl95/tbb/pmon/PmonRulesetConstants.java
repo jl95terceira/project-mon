@@ -4,19 +4,29 @@ import jl95.lang.variadic.Function2;
 import jl95.tbb.pmon.attrs.PmonMoveEffectivenessType;
 import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.util.StrictMap;
+import jl95.util.StrictSet;
 
 import static jl95.lang.SuperPowers.*;
 
 public class PmonRulesetConstants {
 
     public final Double
-            STAT_MODIFIER_FACTOR
-            = 1.0;
+            STAT_MODIFIER_PARAMETER_1
+            = 0.5;
+    public final Double
+            STAT_MODIFIER_PARAMETER_2
+            = 1.0 / 3;
+    public final StrictSet<PmonStatModifierType>
+            STAT_TYPES_AFFECTED_BY_PARAMETER_2
+            = strict(Set(PmonStatModifierType.ACCURACY, PmonStatModifierType.EVASION));
     public final Function2<Double, PmonStatModifierType, Integer>
-            STAT_MODIFIER_MULTIPLIER
-            = (smt, stage) -> function((Double f) -> stage > 0
-                            ?      (1 + stage * f)
-                            : (1 / (1 - stage * f))).apply(STAT_MODIFIER_FACTOR / 2.0);
+            STAT_MODIFIER_FACTOR
+            = (smt, stages) ->
+                function((Double f) -> stages > 0
+                           ?      (1 + stages * f)
+                           : (1 / (1 - stages * f))).apply(!STAT_TYPES_AFFECTED_BY_PARAMETER_2.contains(smt)
+                                                          ? STAT_MODIFIER_PARAMETER_1
+                                                          : STAT_MODIFIER_PARAMETER_2);
     public final Integer
             SPEED_RNG_BREADTH
             = 20;

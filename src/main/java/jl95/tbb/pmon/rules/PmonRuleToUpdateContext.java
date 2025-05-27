@@ -21,9 +21,10 @@ public class PmonRuleToUpdateContext {
         pmonUpdate.call(new PmonUpdate.Handlers() {
 
             @Override
-            public void move(PmonUpdateByMove update) {
+            public void move(PmonUpdateByMove moveUpdate) {
 
-                for (var t: update.updatesOnTargets) {
+
+                for (var t: moveUpdate.updatesOnTargets) {
 
                     var mon = context.parties.get(t.a1).monsOnField.get(t.a2);
                     var u = t.a3;
@@ -42,18 +43,6 @@ public class PmonRuleToUpdateContext {
                                     public void damage(PmonAtomicEffectByDamage damageUpdate) {
                                         // damage
                                         mon.status.hp = function((Integer hpRemaining) -> hpRemaining > 0 ? hpRemaining : 0).apply(mon.status.hp - damageUpdate.damage);
-                                        var updateByStatusCondition = hit.updatesByStatusCondition;
-                                        if (updateByStatusCondition != null) {
-                                            // status conditions
-                                            for (var condition: updateByStatusCondition.statusConditions) {
-
-                                                if (mon.status.statusConditions.containsKey(condition.id)) {
-                                                    continue;
-                                                }
-                                                mon.status.statusConditions.put(condition.id, condition);
-                                                //TODO: there may be exclusive status conditions (where, if one already is in place, the incoming condition is discarded), etc
-                                            }
-                                        }
                                     }
 
                                     @Override
@@ -76,8 +65,16 @@ public class PmonRuleToUpdateContext {
                                     }
 
                                     @Override
-                                    public void statusCondition(PmonAtomicEffectByStatusCondition update) {
+                                    public void statusCondition(PmonAtomicEffectByStatusCondition conditionUpdate) {
+                                        // status conditions
+                                        for (var condition: conditionUpdate.statusConditionsApply) {
 
+                                            if (mon.status.statusConditions.containsKey(condition.id)) {
+                                                continue;
+                                            }
+                                            mon.status.statusConditions.put(condition.id, condition);
+                                            //TODO: there may be exclusive status conditions (where, if one already is in place, the incoming condition is discarded), etc
+                                        }
                                     }
 
                                     @Override
