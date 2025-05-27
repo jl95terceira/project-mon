@@ -7,15 +7,16 @@ import jl95.tbb.mon.MonPartyDecision;
 import jl95.tbb.pmon.PmonDecision;
 import jl95.tbb.pmon.PmonGlobalContext;
 import jl95.tbb.pmon.PmonRuleset;
-import jl95.tbb.pmon.attrs.PmonMovePower;
 import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.update.PmonUpdate;
 import jl95.tbb.pmon.update.PmonUpdateByMove;
-import jl95.tbb.pmon.update.PmonUpdateByMoveDamage;
+import jl95.tbb.pmon.update.atomic.PmonAtomicEffect;
+import jl95.tbb.pmon.update.atomic.PmonAtomicEffectByDamage;
 import jl95.util.StrictMap;
 
 import java.util.List;
 
+import static java.lang.Math.floor;
 import static jl95.lang.SuperPowers.*;
 
 public class PmonRuleToDetermineUpdates {
@@ -140,6 +141,7 @@ public class PmonRuleToDetermineUpdates {
 
                         var mon = context.parties.get(moveInfo.partyId()).monsOnField.get(moveInfo.monId());
                         var move = mon.moves.get(moveIndex);
+                        var nrTargets = I.of(moveInfo.targets.values()).flatmap(x -> x).reduce(0, (a,b) -> (a+1));
                         for (var x: moveInfo.targets().entrySet()) {
 
                             var targetPartyId = x.getKey();
@@ -149,13 +151,19 @@ public class PmonRuleToDetermineUpdates {
                                 PmonUpdateByMove.UpdateOnTarget updateOnTarget;
                                 if (move.attrs.accuracy >= (100 * ruleset.rng())) {
 
-                                    var hit = new PmonUpdateByMove.UpdateOnTarget.Hit();
-                                    hit.updateByDamage = new PmonUpdateByMoveDamage();
-                                    hit.updateByDamage = ruleset.detDamage(mon, move, ruleset.constants.CRITICAL_HIT_CHANCE >= ruleset.rng(), targetMon);
+                                    List<PmonAtomicEffectByDamage> damageUpdates = List();
+                                    for (var n: I.range((int) floor(ruleset.rng() * (move.attrs.hitNrTimesRange.a2 - move.attrs.hitNrTimesRange.a1 + 1)) + move.attrs.hitNrTimesRange.a1)) {
 
-                                    //TODO: the rest - calculate updates of all applicable types, according to move effects
+                                        var damageUpdate = new PmonAtomicEffectByDamage();
+                                        var damageAndEffectiveness = ruleset.detDamage(context, moveInfo.partyId(), moveInfo.monId(), moveIndex, ruleset.constants.CRITICAL_HIT_CHANCE >= ruleset.rng(), targetPartyId, targetMonId);
+                                        damageUpdate.damage = (int) floor(move.attrs.powerReductionFactorByNrTargets.apply(nrTargets) * damageAndEffectiveness.a1);
+                                        damageUpdate.effectivenessFactor = damageAndEffectiveness.a2;
+                                        damageUpdates.add(damageUpdate);
+                                    }
+                                    updateOnTarget = PmonUpdateByMove.UpdateOnTarget.hit(I.of(damageUpdates).map(PmonAtomicEffect::by));
 
-                                    updateOnTarget = PmonUpdateByMove.UpdateOnTarget.hit(hit);
+                                    //TODO: the rest - calculate updates of all applicable types (stat modifiers, status conditions, etc), according to move effects
+
                                 }
                                 else {
 

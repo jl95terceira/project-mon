@@ -32,9 +32,15 @@ public class PmonRuleset implements MonRuleset<
         return rng.apply(); 
     }
 
-    public PmonUpdateByMoveDamage detDamage(Pmon mon, PmonMove move, Boolean critical, Pmon targetMon) {
+    public Tuple2<Integer, Double> detDamage(PmonGlobalContext context,
+                                             PartyId partyId,
+                                             MonParty.MonId monId,
+                                             Integer moveIndex,
+                                             Boolean critical,
+                                             PartyId targetPartyId,
+                                             MonParty.MonId targetMonId) {
 
-        return new PmonRuleToDetermineDamage(this).detDamage(mon, move, critical, targetMon);
+        return new PmonRuleToDetermineDamage(this).detDamage(context, partyId, monId, moveIndex, critical, targetPartyId, targetMonId);
     }
 
     @Override

@@ -6,6 +6,7 @@ import jl95.tbb.pmon.Pmon;
 import jl95.tbb.pmon.PmonRuleset;
 import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.update.*;
+import jl95.tbb.pmon.update.atomic.*;
 
 import static jl95.lang.SuperPowers.*;
 
@@ -34,41 +35,56 @@ public class PmonRuleToUpdateContext {
                         }
 
                         @Override
-                        public void hit(PmonUpdateByMove.UpdateOnTarget.Hit hit) {
-                            var updateByDamage = hit.updateByDamage;
-                            if (updateByDamage != null) {
-                                // damage
-                                mon.status.hp = function((Integer hpRemaining) -> hpRemaining > 0 ? hpRemaining : 0).apply(mon.status.hp - updateByDamage.damage);
-                            }
-                            var updateByStat = hit.updateByStatModifier;
-                            if (updateByStat != null) {
-                                // stat modifiers
-                                for (var t2: I(
-                                        tuple(updateByStat.statRaises, function(Integer::sum)),
-                                        tuple(updateByStat.statFalls , function((Integer a, Integer b) -> (a - b))))) {
+                        public void hit(Iterable<PmonAtomicEffect> updates) {
+                            for (var update: updates) {
+                                update.call(new PmonAtomicEffect.Handlers() {
+                                    @Override
+                                    public void damage(PmonAtomicEffectByDamage damageUpdate) {
+                                        // damage
+                                        mon.status.hp = function((Integer hpRemaining) -> hpRemaining > 0 ? hpRemaining : 0).apply(mon.status.hp - damageUpdate.damage);
+                                        var updateByStatusCondition = hit.updatesByStatusCondition;
+                                        if (updateByStatusCondition != null) {
+                                            // status conditions
+                                            for (var condition: updateByStatusCondition.statusConditions) {
 
-                                    for (var e: t2.a1.entrySet()) {
-
-                                        PmonStatModifierType type = e.getKey();
-                                        Integer stages = e.getValue();
-                                        if (mon.status.statModifiers.containsKey(type)) {
-
-                                            mon.status.statModifiers.put(type, t2.a2.apply(mon.status.statModifiers.get(type), stages));
+                                                if (mon.status.statusConditions.containsKey(condition.id)) {
+                                                    continue;
+                                                }
+                                                mon.status.statusConditions.put(condition.id, condition);
+                                                //TODO: there may be exclusive status conditions (where, if one already is in place, the incoming condition is discarded), etc
+                                            }
                                         }
                                     }
-                                }
-                            }
-                            var updateByStatusCondition = hit.updatesByStatusCondition;
-                            if (updateByStatusCondition != null) {
-                                // status conditions
-                                for (var condition: updateByStatusCondition.statusConditions) {
 
-                                    if (mon.status.statusConditions.containsKey(condition.id)) {
-                                        continue;
+                                    @Override
+                                    public void statModify(PmonAtomicEffectByStatModifier statUpdate) {
+                                        // stat modifiers
+                                        for (var t2: I(
+                                                tuple(statUpdate.statRaises, function(Integer::sum)),
+                                                tuple(statUpdate.statFalls , function((Integer a, Integer b) -> (a - b))))) {
+
+                                            for (var e: t2.a1.entrySet()) {
+
+                                                PmonStatModifierType type = e.getKey();
+                                                Integer stages = e.getValue();
+                                                if (mon.status.statModifiers.containsKey(type)) {
+
+                                                    mon.status.statModifiers.put(type, t2.a2.apply(mon.status.statModifiers.get(type), stages));
+                                                }
+                                            }
+                                        }
                                     }
-                                    mon.status.statusConditions.put(condition.id, condition);
-                                    //TODO: there may be exclusive status conditions (where, if one already is in place, the incoming condition is discarded), etc
-                                }
+
+                                    @Override
+                                    public void statusCondition(PmonAtomicEffectByStatusCondition update) {
+
+                                    }
+
+                                    @Override
+                                    public void switchIn(PmonAtomicEffectBySwitchIn update) {
+
+                                    }
+                                });
                             }
                         }
                     });
