@@ -23,30 +23,38 @@ public class PmonRuleToUpdateContext {
             @Override
             public void move(PmonUpdateByMove moveUpdate) {
 
-
                 for (var t: moveUpdate.updatesOnTargets) {
 
-                    var mon = context.parties.get(t.a1).monsOnField.get(t.a2);
-                    var u = t.a3;
-                    // damage
-                    u.call(new PmonUpdateByMove.UpdateOnTarget.Handlers() {
+                    var partyId = t.a1;
+                    var party = context.parties.get(partyId);
+                    var monId = t.a2;
+                    var mon = party.monsOnField.get(monId);
+                    var updateOnTarget = t.a3;
+                    updateOnTarget.call(new PmonUpdateByMove.UpdateOnTarget.Handlers() {
+
                         @Override
                         public void miss() {
+
                             /* Haw Haw! */
                         }
 
                         @Override
                         public void hit(Iterable<PmonAtomicEffect> updates) {
+
                             for (var update: updates) {
+
                                 update.call(new PmonAtomicEffect.Handlers() {
+
                                     @Override
                                     public void damage(PmonAtomicEffectByDamage damageUpdate) {
+
                                         // damage
                                         mon.status.hp = function((Integer hpRemaining) -> hpRemaining > 0 ? hpRemaining : 0).apply(mon.status.hp - damageUpdate.damage);
                                     }
 
                                     @Override
                                     public void statModify(PmonAtomicEffectByStatModifier statUpdate) {
+
                                         // stat modifiers
                                         for (var t2: I(
                                                 tuple(statUpdate.statRaises, function(Integer::sum)),
@@ -66,6 +74,7 @@ public class PmonRuleToUpdateContext {
 
                                     @Override
                                     public void statusCondition(PmonAtomicEffectByStatusCondition conditionUpdate) {
+
                                         // status conditions
                                         for (var condition: conditionUpdate.statusConditionsApply) {
 
@@ -80,18 +89,14 @@ public class PmonRuleToUpdateContext {
                                     @Override
                                     public void switchIn(PmonAtomicEffectBySwitchIn update) {
 
+                                        // switch-in
+                                        party.monsOnField.put(monId, party.mons.get(update.monToSwitchInIndex));
                                     }
                                 });
                             }
                         }
                     });
                 }
-            }
-
-            @Override
-            public void notify(PmonNotification update) {
-
-                /* no need to update - notifications are meant to give information to players only */
             }
 
             @Override
