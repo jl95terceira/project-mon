@@ -18,4 +18,8 @@ public class Pmon {
     public final List<PmonMove> moves = List();
 
     public Pmon(Id id) {this.id = id;}
+
+    public void restoreHp() {
+        status.hp = attrs.baseStats.hp;
+    }
 }

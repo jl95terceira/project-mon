@@ -15,7 +15,7 @@ import static jl95.lang.SuperPowers.*;
 public class PmonMoveAttributes {
 
     public PmonMoveTargettingType targetType = PmonMoveTargettingType.FOE_SINGLE_MON;
-    public PmonMoveType type;
+    public PmonMoveType type = PmonMoveType.NORMAL;
     public PmonType pmonType;
     public PmonMovePower power = null;
     public Function1<Double, Integer> powerReductionFactorByNrTargets = n -> (1.0 / n);

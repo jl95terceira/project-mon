@@ -8,6 +8,8 @@ import jl95.tbb.pmon.update.atomic.PmonAtomicEffect;
 import java.util.List;
 
 import static jl95.lang.SuperPowers.List;
+import static jl95.tbb.pmon.attrs.PmonDefaults.NO_MON;
+import static jl95.tbb.pmon.attrs.PmonDefaults.NO_PARTY;
 
 public class PmonUpdateByMove {
 
@@ -26,5 +28,8 @@ public class PmonUpdateByMove {
         static UpdateOnTarget noTarget() { return cb -> cb.noTarget(); }
     }
 
+    public PartyId partyId = NO_PARTY;
+    public MonPosition monId = NO_MON;
+    public Integer moveIndex = -1;
     public List<Tuple3<PartyId, MonPosition, UpdateOnTarget>> updatesOnTargets = List();
 }

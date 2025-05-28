@@ -30,7 +30,7 @@ import static jl95.lang.SuperPowers.*;
 public class PmonRuleToDetermineUpdates {
 
     public static class DecisionSorting {
-        public record MoveInfo(PartyId partyId, MonPosition monId, Integer speed, Integer priorityModifier, StrictMap<PartyId, ? extends Iterable<MonPosition>> targets, Boolean pursuit) {}
+        public record MoveInfo(PartyId partyId, MonPosition monId, Integer moveIndex, Integer speed, Integer priorityModifier, StrictMap<PartyId, ? extends Iterable<MonPosition>> targets, Boolean pursuit) {}
         public record SwitchInInfo(PartyId partyId, MonPosition monId, Integer monSwitchInIndex) {}
         public List<DecisionSorting.SwitchInInfo> switchInList    = List();
         public List<DecisionSorting.MoveInfo>     moveNormalList  = List();
@@ -92,7 +92,7 @@ public class PmonRuleToDetermineUpdates {
 
                                 monSpeed = (int) (monSpeed * ruleset.constants.STAT_MODIFIER_FACTOR.apply(PmonStatModifierType.SPEED, speedModifier));
                             }
-                            moveList.add(new DecisionSorting.MoveInfo(partyId, monId, monSpeed, move.attrs.priorityModifier, useMoveDecision.targets, move.attrs.pursuit));
+                            moveList.add(new DecisionSorting.MoveInfo(partyId, monId, useMoveDecision.moveIndex, monSpeed, move.attrs.priorityModifier, useMoveDecision.targets, move.attrs.pursuit));
                         }
                     });
                 }
@@ -131,6 +131,9 @@ public class PmonRuleToDetermineUpdates {
             var moveInfoToUpdate = method((DecisionSorting.MoveInfo moveInfo) -> {
 
                 var updateByMove = new PmonUpdateByMove();
+                updateByMove.partyId = moveInfo.partyId;
+                updateByMove.monId = moveInfo.monId;
+                updateByMove.moveIndex = moveInfo.moveIndex;
                 var monDecision = decisionsMap.get(moveInfo.partyId()).monDecisions.get(moveInfo.monId());
                 monDecision.call(new PmonDecision.Handlers() {
 

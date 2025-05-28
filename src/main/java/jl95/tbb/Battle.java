@@ -5,6 +5,7 @@ import jl95.lang.variadic.*;
 import jl95.util.StrictMap;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import static jl95.lang.SuperPowers.*;
@@ -40,7 +41,7 @@ public class Battle<
 
     public Optional<PartyId> spawn(StrictMap<PartyId, PartyEntry> parties,
                                    InitialConditions initialConditions,
-                                   StrictMap<PartyId, Function0<Decision>> decisionFunctionsMap,
+                                   Function1<Decision, PartyId> decisionFunction,
                                    Listeners<LocalUpdate, LocalContext, GlobalContext> listeners,
                                    Function0<Boolean> toInterrupt) {
 
@@ -90,18 +91,19 @@ public class Battle<
             for (var e: localContextsMap.entrySet()) {
                 listeners.onLocalContext(e.getKey(), e.getValue());
             }
-            StrictMap<PartyId, Decision> decisionsMap = strict(Map());
+            StrictMap<PartyId, CompletableFuture<Decision>> decisionPromisesMap = strict(I.of(partyIds).toMap(p -> p, p -> new CompletableFuture<>()));
             for (var partyId: partyIds) {
                 decisionsThreadPool.execute(() -> {
                     while (!toStop.apply()) {
-                        var decision = decisionFunctionsMap.get(partyId).apply();
+                        var decision = decisionFunction.apply(partyId);
                         if (ruleset.isValid(globalContext, partyId, decision)) {
-                            decisionsMap.put(partyId, decision);
+                            decisionPromisesMap.get(partyId).complete(decision);
                             break;
                         }
                     }
                 });
             }
+            StrictMap<PartyId, Decision> decisionsMap = strict(I.of(decisionPromisesMap.entrySet()).toMap(e -> e.getKey(), e -> uncheck(() -> e.getValue().get())));
             if (toStop.apply()) {
                 throw new Battle.InterruptedException();
             }

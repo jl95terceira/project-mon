@@ -3,6 +3,7 @@ package jl95.tbb.mon;
 import jl95.lang.Ref;
 import jl95.lang.variadic.Function0;
 import jl95.lang.variadic.Function1;
+import jl95.lang.variadic.Function2;
 import jl95.tbb.Battle;
 import jl95.tbb.PartyId;
 import jl95.lang.I;
@@ -54,7 +55,7 @@ public class MonBattle<
     public Optional<PartyId> spawn(
             StrictMap<PartyId, MonPartyEntry<Mon>> parties,
             InitialConditions initialConditions,
-            StrictMap<PartyId, Function1<StrictMap<MonPosition, MonDecision>, StrictSet<MonPosition>>> decisionFunctionsMap,
+            Function2<StrictMap<MonPosition, MonDecision>, PartyId, StrictSet<MonPosition>> decisionFunction,
             Battle.Listeners<LocalUpdate, MonLocalContext<Mon, FoeMonView>, MonGlobalContext<Mon>> listeners,
             Function0<Boolean> toInterrupt
     ) {
@@ -77,18 +78,15 @@ public class MonBattle<
                 listeners.onLocalUpdate(id, localUpdate);
             }
         };
-        return this.upcastBattle.spawn(parties, initialConditions, strict(I.of(decisionFunctionsMap.entrySet()).toMap(Map.Entry::getKey, e -> {
-            var partyId = e.getKey();
-            var monDecisionFunction = e.getValue();
-            return function(() -> {
-                var partyDecision = new MonPartyDecision<MonDecision>();
-                var allowedToDecide = ruleset.allowedToDecide(globalContextRef.get());
-                var monDecisions = monDecisionFunction.apply(strict(I.of(globalContextRef.get().parties.get(partyId).monsOnField.keySet())
-                        .filter(monId -> (allowedToDecide.containsKey(partyId) && allowedToDecide.get(partyId).contains(monId)))
-                        .toSet()));
-                partyDecision.monDecisions.putAll(monDecisions);
-                return partyDecision;
-            });
-        })), extendedCallbacks, toInterrupt);
+        return this.upcastBattle.spawn(parties, initialConditions, function(partyId -> {
+
+            var partyDecision = new MonPartyDecision<MonDecision>();
+            var allowedToDecide = ruleset.allowedToDecide(globalContextRef.get());
+            var monDecisions = decisionFunction.apply(partyId, strict(I.of(globalContextRef.get().parties.get(partyId).monsOnField.keySet())
+                    .filter(monId -> (allowedToDecide.containsKey(partyId) && allowedToDecide.get(partyId).contains(monId)))
+                    .toSet()));
+            partyDecision.monDecisions.putAll(monDecisions);
+            return partyDecision;
+        }), extendedCallbacks, toInterrupt);
     }
 }

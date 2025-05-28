@@ -4,7 +4,7 @@ import static jl95.lang.SuperPowers.*;
 
 import java.util.List;
 
-public final class MonPartyEntry<Mon> {
+public class MonPartyEntry<Mon> {
 
     public final List<Mon> mons = List();
 }
