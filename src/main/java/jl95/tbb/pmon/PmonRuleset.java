@@ -100,59 +100,8 @@ public class PmonRuleset implements MonRuleset<
 
     @Override
     public Boolean isValid(PmonGlobalContext context, PartyId partyId, MonPartyDecision<PmonDecision> decision) {
-        var ref = new Ref<>(true);
-        var party = context.parties.get(partyId);
-        for (var e: decision.monDecisions.entrySet()) {
-            var monId = e.getKey();
-            var mon = party.monsOnField.get(monId);
-            if (!party.monsOnField.containsKey(monId)) {
 
-                return false;
-            }
-            PmonDecision monDecision = e.getValue();
-            monDecision.call(new PmonDecision.Handlers() {
-
-                @Override
-                public void pass(PmonDecisionByPass decision) {
-                    if (!isAlive(mon)) {
-                        ref.set(false); // mon fainted - must NOT pass
-                    }
-                }
-                @Override
-                public void switchIn(PmonDecisionBySwitchIn decision) {
-
-                    if (decision.monSwitchInIndex < 0 || decision.monSwitchInIndex >= party.mons.size()) {
-                        ref.set(false);
-                    }
-                    else {
-                        var monToSwitchIn = party.mons.get(decision.monSwitchInIndex);
-                        if (!isAlive(monToSwitchIn)) {
-                            ref.set(false);
-                        }
-                    }
-                }
-                @Override
-                public void useMove(PmonDecisionByUseMove decision) {
-                    if (!isAlive(mon)) {
-                        ref.set(false); // mon fainted - must NOT use move
-                    }
-                    else {
-                        if (decision.moveIndex < 0 || decision.moveIndex >= mon.moves.size()) {
-                            ref.set(false);
-                        } else {
-                            var move = mon.moves.get(decision.moveIndex);
-                            if (move.status.disabled || move.status.pp <= 0) {
-                                ref.set(false);
-                            }
-                        }
-                    }
-                }
-            });
-            if (!ref.get()) {
-                break;
-            }
-        }
-        return ref.get();
+        return new PmonRuleToValidateDecision(this).isValid(context, partyId, decision);
     }
 
     @Override
