@@ -12,11 +12,11 @@ import jl95.util.StrictSet;
 
 import static jl95.lang.SuperPowers.*;
 
-public class PmoRuleToAllowDecision {
+public class PmoRuleToDetermineAllowedToDecide {
 
     public final PmonRuleset ruleset;
 
-    public PmoRuleToAllowDecision(PmonRuleset ruleset) {this.ruleset = ruleset;}
+    public PmoRuleToDetermineAllowedToDecide(PmonRuleset ruleset) {this.ruleset = ruleset;}
 
     public StrictMap<PartyId, StrictSet<MonPosition>> allowedToDecide(MonGlobalContext<Pmon> context) {
 

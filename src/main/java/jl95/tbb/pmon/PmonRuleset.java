@@ -3,14 +3,10 @@ package jl95.tbb.pmon;
 import static java.lang.Math.floor;
 import static jl95.lang.SuperPowers.*;
 
-import jl95.lang.Ref;
 import jl95.lang.variadic.Function0;
 import jl95.lang.variadic.Tuple2;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.*;
-import jl95.tbb.pmon.decision.PmonDecisionByPass;
-import jl95.tbb.pmon.decision.PmonDecisionBySwitchIn;
-import jl95.tbb.pmon.decision.PmonDecisionByUseMove;
 import jl95.tbb.pmon.rules.*;
 import jl95.tbb.pmon.status.PmonStatusCondition;
 import jl95.tbb.pmon.update.*;
@@ -148,6 +144,6 @@ public class PmonRuleset implements MonRuleset<
     @Override
     public StrictMap<PartyId, StrictSet<MonPosition>> allowedToDecide(PmonGlobalContext context) {
 
-        return new PmoRuleToAllowDecision(this).allowedToDecide(context);
+        return new PmoRuleToDetermineAllowedToDecide(this).allowedToDecide(context);
     }
 }
