@@ -1,5 +1,6 @@
 package jl95.tbb.pmon.rules;
 
+import jl95.lang.I;
 import jl95.tbb.mon.MonGlobalContext;
 import jl95.tbb.mon.MonPosition;
 import jl95.tbb.pmon.Pmon;
@@ -78,11 +79,16 @@ public class PmonRuleToUpdateContext {
                                         // status conditions
                                         for (var condition: conditionUpdate.statusConditionsApply) {
 
-                                            if (mon.status.statusConditions.containsKey(condition.id)) {
+                                            if (mon.status.statusConditions.containsKey(condition.id)) /* not to apply existing condition */ {
+
+                                                continue;
+                                            }
+                                            if (I.any(I.of(mon.status.statusConditions.keySet())
+                                                    .map(sc -> ruleset.areExclusive(sc, condition.id)))) /* not to apply condition that is mutually exclusive with existing */ {
+
                                                 continue;
                                             }
                                             mon.status.statusConditions.put(condition.id, condition);
-                                            //TODO: there may be exclusive status conditions (where, if one already is in place, the incoming condition is discarded), etc
                                         }
                                     }
 

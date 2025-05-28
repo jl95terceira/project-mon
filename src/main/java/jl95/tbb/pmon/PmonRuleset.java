@@ -12,6 +12,7 @@ import jl95.tbb.pmon.decision.PmonDecisionByPass;
 import jl95.tbb.pmon.decision.PmonDecisionBySwitchIn;
 import jl95.tbb.pmon.decision.PmonDecisionByUseMove;
 import jl95.tbb.pmon.rules.*;
+import jl95.tbb.pmon.status.PmonStatusCondition;
 import jl95.tbb.pmon.update.*;
 import jl95.util.StrictMap;
 import jl95.util.StrictSet;
@@ -52,16 +53,25 @@ public class PmonRuleset implements MonRuleset<
         return chance >= (100 * rng());
     }
 
-    public Tuple2<Integer, Double> detDamage(Pmon mon,
-                                             Integer moveIndex,
-                                             Boolean critical,
-                                             Pmon targetMon) {
+    public Tuple2<Integer, Double>
+    detDamage(Pmon mon,
+              Integer moveIndex,
+              Boolean critical,
+              Pmon targetMon) {
 
         return new PmonRuleToDetermineDamage(this).detDamage(mon, moveIndex, critical, targetMon);
     }
 
-    public Boolean isAlive(Pmon mon) {
+    public Boolean
+    isAlive(Pmon mon) {
         return mon.status.hp > 0;
+    }
+
+    public Boolean
+    areExclusive(PmonStatusCondition.Id condition1Id,
+                 PmonStatusCondition.Id condition2Id) {
+
+        return false;
     }
 
     @Override
