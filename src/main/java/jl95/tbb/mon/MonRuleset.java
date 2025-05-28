@@ -2,6 +2,7 @@ package jl95.tbb.mon;
 
 import jl95.tbb.PartyId;
 import jl95.util.StrictMap;
+import jl95.util.StrictSet;
 
 import java.util.Optional;
 
@@ -46,10 +47,8 @@ public interface MonRuleset<
     Optional<PartyId>
     detVictory(GlobalContext context);
 
-    StrictMap<PartyId, MonPosition>
-    allowedToDecide(GlobalContext context,
-                    PartyId partyId,
-                    MonPosition monId);
+    StrictMap<PartyId, StrictSet<MonPosition>>
+    allowedToDecide(GlobalContext context);
 
     default jl95.tbb.Ruleset<
             MonPartyEntry<Mon>,

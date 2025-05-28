@@ -82,8 +82,9 @@ public class MonBattle<
             var monDecisionFunction = e.getValue();
             return function(() -> {
                 var partyDecision = new MonPartyDecision<MonDecision>();
+                var allowedToDecide = ruleset.allowedToDecide(globalContextRef.get());
                 var monDecisions = monDecisionFunction.apply(strict(I.of(globalContextRef.get().parties.get(partyId).monsOnField.keySet())
-                        .filter(monId -> ruleset.allowedToDecide(globalContextRef.get(), partyId, monId))
+                        .filter(monId -> (allowedToDecide.containsKey(partyId) && allowedToDecide.get(partyId).contains(monId)))
                         .toSet()));
                 partyDecision.monDecisions.putAll(monDecisions);
                 return partyDecision;

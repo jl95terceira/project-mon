@@ -14,6 +14,7 @@ import jl95.tbb.pmon.decision.PmonDecisionByUseMove;
 import jl95.tbb.pmon.rules.*;
 import jl95.tbb.pmon.update.*;
 import jl95.util.StrictMap;
+import jl95.util.StrictSet;
 
 import java.util.*;
 
@@ -177,8 +178,8 @@ public class PmonRuleset implements MonRuleset<
     }
 
     @Override
-    public Boolean allowedToDecide(PmonGlobalContext context, PartyId partyId, MonPosition monId) {
+    public StrictMap<PartyId, StrictSet<MonPosition>> allowedToDecide(PmonGlobalContext context) {
 
-        return new PmoRuleToAllowDecision(this).allowDecide(context, partyId, monId);
+        return new PmoRuleToAllowDecision(this).allowedToDecide(context);
     }
 }
