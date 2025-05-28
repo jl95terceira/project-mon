@@ -54,7 +54,7 @@ public class MonBattle<
     public Optional<PartyId> spawn(
             StrictMap<PartyId, MonPartyEntry<Mon>> parties,
             InitialConditions initialConditions,
-            StrictMap<PartyId, Function1<StrictMap<MonParty.MonId, MonDecision>, StrictSet<MonParty.MonId>>> decisionFunctionsMap,
+            StrictMap<PartyId, Function1<StrictMap<MonPosition, MonDecision>, StrictSet<MonPosition>>> decisionFunctionsMap,
             Battle.Listeners<LocalUpdate, MonLocalContext<Mon, FoeMonView>, MonGlobalContext<Mon>> listeners,
             Function0<Boolean> toInterrupt
     ) {
@@ -83,7 +83,7 @@ public class MonBattle<
             return function(() -> {
                 var partyDecision = new MonPartyDecision<MonDecision>();
                 var monDecisions = monDecisionFunction.apply(strict(I.of(globalContextRef.get().parties.get(partyId).monsOnField.keySet())
-                        .filter(monId -> ruleset.allowDecide(globalContextRef.get(), partyId, monId))
+                        .filter(monId -> ruleset.allowedToDecide(globalContextRef.get(), partyId, monId))
                         .toSet()));
                 partyDecision.monDecisions.putAll(monDecisions);
                 return partyDecision;

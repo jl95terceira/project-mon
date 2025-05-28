@@ -26,6 +26,11 @@ public interface Ruleset<
     detLocalContext(GlobalContext context,
                     PartyId partyId);
 
+    Boolean
+    isValid(GlobalContext context,
+            PartyId partyId,
+            Decision decision);
+
     Iterable<GlobalUpdate>
     detUpdates(GlobalContext context,
                StrictMap<PartyId, Decision> decisionsMap);

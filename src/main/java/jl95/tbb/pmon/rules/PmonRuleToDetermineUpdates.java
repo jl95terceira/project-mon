@@ -3,8 +3,8 @@ package jl95.tbb.pmon.rules;
 import jl95.lang.I;
 import jl95.lang.variadic.Tuple2;
 import jl95.tbb.PartyId;
-import jl95.tbb.mon.MonParty;
 import jl95.tbb.mon.MonPartyDecision;
+import jl95.tbb.mon.MonPosition;
 import jl95.tbb.pmon.Chanced;
 import jl95.tbb.pmon.PmonDecision;
 import jl95.tbb.pmon.PmonGlobalContext;
@@ -30,12 +30,12 @@ import static jl95.lang.SuperPowers.*;
 public class PmonRuleToDetermineUpdates {
 
     public static class DecisionSorting {
-        public record MoveInfo(PartyId partyId, MonParty.MonId monId, Integer speed, Integer priorityModifier, StrictMap<PartyId, ? extends Iterable<MonParty.MonId>> targets, Boolean pursuit) {}
-        public record SwitchInInfo(PartyId partyId, MonParty.MonId monId, Integer monSwitchInIndex) {}
+        public record MoveInfo(PartyId partyId, MonPosition monId, Integer speed, Integer priorityModifier, StrictMap<PartyId, ? extends Iterable<MonPosition>> targets, Boolean pursuit) {}
+        public record SwitchInInfo(PartyId partyId, MonPosition monId, Integer monSwitchInIndex) {}
         public List<DecisionSorting.SwitchInInfo> switchInList    = List();
         public List<DecisionSorting.MoveInfo>     moveNormalList  = List();
         public List<DecisionSorting.MoveInfo>     movePursuitList = List();
-        public StrictMap<Tuple2<PartyId, MonParty.MonId>, Integer> switchInMap = strict(Map());
+        public StrictMap<Tuple2<PartyId, MonPosition>, Integer> switchInMap = strict(Map());
     }
 
     public final PmonRuleset ruleset;
@@ -53,7 +53,7 @@ public class PmonRuleToDetermineUpdates {
                 for (var f: partyDecision.monDecisions.entrySet()) {
 
                     var monId = f.getKey();
-                    if (!ruleset.allowDecide(context, partyId, monId)) {
+                    if (!ruleset.allowedToDecide(context, partyId, monId)) {
 
                         continue;
                     }

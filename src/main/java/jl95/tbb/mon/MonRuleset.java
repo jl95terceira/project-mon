@@ -26,6 +26,11 @@ public interface MonRuleset<
     detLocalContext(GlobalContext context,
                     PartyId partyId);
 
+    Boolean
+    isValid(GlobalContext context,
+            PartyId partyId,
+            MonPartyDecision<MonDecision> decision);
+
     Iterable<GlobalUpdate>
     detUpdates(GlobalContext monGlobalContext,
                StrictMap<PartyId, MonPartyDecision<MonDecision>> decisionsMap);
@@ -41,10 +46,10 @@ public interface MonRuleset<
     Optional<PartyId>
     detVictory(GlobalContext context);
 
-    Boolean
-    allowDecide(GlobalContext context,
-                PartyId partyId,
-                MonParty.MonId monId);
+    StrictMap<PartyId, MonPosition>
+    allowedToDecide(GlobalContext context,
+                    PartyId partyId,
+                    MonPosition monId);
 
     default jl95.tbb.Ruleset<
             MonPartyEntry<Mon>,
@@ -70,6 +75,11 @@ public interface MonRuleset<
             @Override
             public LocalContext detLocalContext(GlobalContext monGlobalContext, PartyId partyId) {
                 return MonRuleset.this.detLocalContext(monGlobalContext, partyId);
+            }
+
+            @Override
+            public Boolean isValid(GlobalContext context, PartyId partyId, MonPartyDecision<MonDecision> monDecisionMonPartyDecision) {
+                return MonRuleset.this.isValid(context, partyId, monDecisionMonPartyDecision);
             }
 
             @Override

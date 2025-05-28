@@ -5,6 +5,7 @@ import jl95.lang.variadic.*;
 import jl95.util.StrictMap;
 
 import java.util.*;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import static jl95.lang.SuperPowers.*;
 
@@ -65,6 +66,7 @@ public class Battle<
             }
         });
         tellLocalContexts.accept();
+        var decisionsThreadPool = new ScheduledThreadPoolExecutor(parties.size());
         var handleUpdates = method((Iterable<GlobalUpdate> updates) -> {
             for (GlobalUpdate globalUpdate: updates) {
                 tellLocalUpdates.accept(globalUpdate);
@@ -75,8 +77,9 @@ public class Battle<
         });
         var updatesAtStart = ruleset.detInitialUpdates(globalContext, initialConditions);
         handleUpdates.accept(updatesAtStart);
+        var toStop = function(() -> shuttindDown.get() || toInterrupt.apply());
         while (true) {
-            if (shuttindDown.get() || toInterrupt.apply()) {
+            if (toStop.apply()) {
                 throw new Battle.InterruptedException();
             }
             var victorOptional = ruleset.detVictory(globalContext);
@@ -87,10 +90,21 @@ public class Battle<
             for (var e: localContextsMap.entrySet()) {
                 listeners.onLocalContext(e.getKey(), e.getValue());
             }
-            var decisionsMap = strict(I.of(partyIds)
-                                       .toMap(id -> id,
-                                              id -> decisionFunctionsMap.get(id)
-                                                                        .apply()));
+            StrictMap<PartyId, Decision> decisionsMap = strict(Map());
+            for (var partyId: partyIds) {
+                decisionsThreadPool.execute(() -> {
+                    while (!toStop.apply()) {
+                        var decision = decisionFunctionsMap.get(partyId).apply();
+                        if (ruleset.isValid(globalContext, partyId, decision)) {
+                            decisionsMap.put(partyId, decision);
+                            break;
+                        }
+                    }
+                });
+            }
+            if (toStop.apply()) {
+                throw new Battle.InterruptedException();
+            }
             var updates = I.of(ruleset.detUpdates(globalContext, decisionsMap)).toList();
             handleUpdates.accept(updates);
         }

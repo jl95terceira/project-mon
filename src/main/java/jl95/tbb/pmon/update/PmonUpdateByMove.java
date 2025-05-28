@@ -2,7 +2,7 @@ package jl95.tbb.pmon.update;
 
 import jl95.lang.variadic.Tuple3;
 import jl95.tbb.PartyId;
-import jl95.tbb.mon.MonParty;
+import jl95.tbb.mon.MonPosition;
 import jl95.tbb.pmon.update.atomic.PmonAtomicEffect;
 
 import java.util.List;
@@ -24,5 +24,5 @@ public class PmonUpdateByMove {
         static UpdateOnTarget hit(Iterable<PmonAtomicEffect> atomicUpdates) { return cb -> cb.hit(atomicUpdates); }
     }
 
-    public List<Tuple3<PartyId, MonParty.MonId, UpdateOnTarget>> updatesOnTargets = List();
+    public List<Tuple3<PartyId, MonPosition, UpdateOnTarget>> updatesOnTargets = List();
 }

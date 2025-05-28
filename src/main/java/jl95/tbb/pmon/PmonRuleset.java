@@ -3,11 +3,14 @@ package jl95.tbb.pmon;
 import static java.lang.Math.floor;
 import static jl95.lang.SuperPowers.*;
 
-import jl95.lang.I;
+import jl95.lang.Ref;
 import jl95.lang.variadic.Function0;
 import jl95.lang.variadic.Tuple2;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.*;
+import jl95.tbb.pmon.decision.PmonDecisionByPass;
+import jl95.tbb.pmon.decision.PmonDecisionBySwitchIn;
+import jl95.tbb.pmon.decision.PmonDecisionByUseMove;
 import jl95.tbb.pmon.rules.*;
 import jl95.tbb.pmon.update.*;
 import jl95.util.StrictMap;
@@ -56,6 +59,10 @@ public class PmonRuleset implements MonRuleset<
         return new PmonRuleToDetermineDamage(this).detDamage(mon, moveIndex, critical, targetMon);
     }
 
+    public Boolean isAlive(Pmon mon) {
+        return mon.status.hp > 0;
+    }
+
     @Override
     public PmonGlobalContext init(StrictMap<PartyId, MonPartyEntry<Pmon>> parties, PmonInitialConditions pmonInitialConditions) {
         
@@ -78,6 +85,54 @@ public class PmonRuleset implements MonRuleset<
     public PmonLocalContext detLocalContext(PmonGlobalContext context, PartyId ownPartyId) {
         
         return new PmonRuleToDetermineLocalContext(this).detLocalContext(context, ownPartyId);
+    }
+
+    @Override
+    public Boolean isValid(PmonGlobalContext context, PartyId partyId, MonPartyDecision<PmonDecision> decision) {
+        var ref = new Ref<>(true);
+        var party = context.parties.get(partyId);
+        for (var e: decision.monDecisions.entrySet()) {
+            var monId = e.getKey();
+            if (!party.monsOnField.containsKey(monId)) {
+                return false;
+            }
+            PmonDecision monDecision = e.getValue();
+            monDecision.call(new PmonDecision.Handlers() {
+
+                @Override
+                public void pass(PmonDecisionByPass decision) {}
+                @Override
+                public void switchIn(PmonDecisionBySwitchIn decision) {
+
+                    if (decision.monSwitchInIndex < 0 || decision.monSwitchInIndex >= party.mons.size()) {
+                        ref.set(false);
+                    }
+                    else {
+                        var mon = party.mons.get(decision.monSwitchInIndex);
+                        if (!isAlive(mon)) {
+                            ref.set(false);
+                        }
+                    }
+                }
+                @Override
+                public void useMove(PmonDecisionByUseMove decision) {
+                    var mon = party.monsOnField.get(monId);
+                    if (decision.moveIndex < 0 || decision.moveIndex >= mon.moves.size()) {
+                        ref.set(false);
+                    }
+                    else {
+                        var move = mon.moves.get(decision.moveIndex);
+                        if (move.status.disabled || move.status.pp <= 0) {
+                            ref.set(false);
+                        }
+                    }
+                }
+            });
+            if (!ref.get()) {
+                break;
+            }
+        }
+        return ref.get();
     }
 
     @Override
@@ -122,7 +177,7 @@ public class PmonRuleset implements MonRuleset<
     }
 
     @Override
-    public Boolean allowDecide(PmonGlobalContext context, PartyId partyId, MonParty.MonId monId) {
+    public Boolean allowedToDecide(PmonGlobalContext context, PartyId partyId, MonPosition monId) {
 
         return new PmoRuleToAllowDecision(this).allowDecide(context, partyId, monId);
     }
