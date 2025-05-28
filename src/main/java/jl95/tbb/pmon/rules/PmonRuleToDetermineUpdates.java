@@ -46,6 +46,7 @@ public class PmonRuleToDetermineUpdates {
             // group decisions and calculate speeds + priorities
             var s = new DecisionSorting();
             List<DecisionSorting.MoveInfo> moveList = List();
+            var allowedToDecide = ruleset.allowedToDecide(context);
             for (var e: decisionsMap.entrySet()) {
 
                 var partyId = e.getKey();
@@ -53,7 +54,7 @@ public class PmonRuleToDetermineUpdates {
                 for (var f: partyDecision.monDecisions.entrySet()) {
 
                     var monId = f.getKey();
-                    if (!ruleset.allowedToDecide(context, partyId, monId)) {
+                    if (!allowedToDecide.containsKey(partyId) || !allowedToDecide.get(partyId).contains(monId)) {
 
                         continue;
                     }

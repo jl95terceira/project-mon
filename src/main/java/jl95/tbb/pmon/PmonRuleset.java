@@ -94,14 +94,20 @@ public class PmonRuleset implements MonRuleset<
         var party = context.parties.get(partyId);
         for (var e: decision.monDecisions.entrySet()) {
             var monId = e.getKey();
+            var mon = party.monsOnField.get(monId);
             if (!party.monsOnField.containsKey(monId)) {
+
                 return false;
             }
             PmonDecision monDecision = e.getValue();
             monDecision.call(new PmonDecision.Handlers() {
 
                 @Override
-                public void pass(PmonDecisionByPass decision) {}
+                public void pass(PmonDecisionByPass decision) {
+                    if (!isAlive(mon)) {
+                        ref.set(false); // mon fainted - must NOT pass
+                    }
+                }
                 @Override
                 public void switchIn(PmonDecisionBySwitchIn decision) {
 
@@ -109,22 +115,25 @@ public class PmonRuleset implements MonRuleset<
                         ref.set(false);
                     }
                     else {
-                        var mon = party.mons.get(decision.monSwitchInIndex);
-                        if (!isAlive(mon)) {
+                        var monToSwitchIn = party.mons.get(decision.monSwitchInIndex);
+                        if (!isAlive(monToSwitchIn)) {
                             ref.set(false);
                         }
                     }
                 }
                 @Override
                 public void useMove(PmonDecisionByUseMove decision) {
-                    var mon = party.monsOnField.get(monId);
-                    if (decision.moveIndex < 0 || decision.moveIndex >= mon.moves.size()) {
-                        ref.set(false);
+                    if (!isAlive(mon)) {
+                        ref.set(false); // mon fainted - must NOT use move
                     }
                     else {
-                        var move = mon.moves.get(decision.moveIndex);
-                        if (move.status.disabled || move.status.pp <= 0) {
+                        if (decision.moveIndex < 0 || decision.moveIndex >= mon.moves.size()) {
                             ref.set(false);
+                        } else {
+                            var move = mon.moves.get(decision.moveIndex);
+                            if (move.status.disabled || move.status.pp <= 0) {
+                                ref.set(false);
+                            }
                         }
                     }
                 }
