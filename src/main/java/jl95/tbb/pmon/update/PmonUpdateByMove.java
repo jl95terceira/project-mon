@@ -16,12 +16,14 @@ public class PmonUpdateByMove {
         interface Handlers {
             void miss();
             void hit(Iterable<PmonAtomicEffect> atomicUpdates);
+            void noTarget();
         }
 
         void call(Handlers handlers);
 
         static UpdateOnTarget miss() { return cb -> cb.miss(); }
         static UpdateOnTarget hit(Iterable<PmonAtomicEffect> atomicUpdates) { return cb -> cb.hit(atomicUpdates); }
+        static UpdateOnTarget noTarget() { return cb -> cb.noTarget(); }
     }
 
     public List<Tuple3<PartyId, MonPosition, UpdateOnTarget>> updatesOnTargets = List();

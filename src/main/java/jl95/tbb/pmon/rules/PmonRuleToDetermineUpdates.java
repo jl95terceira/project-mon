@@ -151,7 +151,11 @@ public class PmonRuleToDetermineUpdates {
 
                                 var targetMon = context.parties.get(targetPartyId).monsOnField.get(targetMonId);
                                 PmonUpdateByMove.UpdateOnTarget updateOnTarget;
-                                if (ruleset.roll100(move.attrs.accuracy)) {
+                                if (!ruleset.isAlive(targetMon)) {
+
+                                    updateOnTarget = PmonUpdateByMove.UpdateOnTarget.noTarget();
+                                }
+                                else if (ruleset.roll100(move.attrs.accuracy)) {
 
                                     List<PmonAtomicEffect> atomicEffects = List();
                                     for (var n: I.range(ruleset.rngBetweenInclusive(move.attrs.hitNrTimesRange))) {

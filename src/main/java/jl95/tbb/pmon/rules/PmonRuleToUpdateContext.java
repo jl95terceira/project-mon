@@ -36,7 +36,7 @@ public class PmonRuleToUpdateContext {
                         @Override
                         public void miss() {
 
-                            /* Haw Haw! */
+                            /* haw haw! */
                         }
 
                         @Override
@@ -100,6 +100,12 @@ public class PmonRuleToUpdateContext {
                                     }
                                 });
                             }
+                        }
+
+                        @Override
+                        public void noTarget() {
+
+                            /* nothing to do */
                         }
                     });
                 }
