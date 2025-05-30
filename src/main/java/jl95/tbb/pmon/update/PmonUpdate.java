@@ -12,9 +12,9 @@ public interface PmonUpdate {
     }
 
     static PmonUpdate by(PmonUpdateBySwitchIn update) {
-        return cb -> cb.switchIn(update);
+        return handlers -> handlers.switchIn(update);
     }
     static PmonUpdate by(PmonUpdateByMove update) {
-        return cb -> cb.move(update);
+        return handlers -> handlers.move(update);
     }
 }

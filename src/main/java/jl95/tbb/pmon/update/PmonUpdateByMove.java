@@ -23,9 +23,9 @@ public class PmonUpdateByMove {
 
         void call(Handlers handlers);
 
-        static UpdateOnTarget miss() { return cb -> cb.miss(); }
-        static UpdateOnTarget hit(Iterable<PmonAtomicEffect> atomicUpdates) { return cb -> cb.hit(atomicUpdates); }
-        static UpdateOnTarget noTarget() { return cb -> cb.noTarget(); }
+        static UpdateOnTarget miss() { return handlers -> handlers.miss(); }
+        static UpdateOnTarget hit(Iterable<PmonAtomicEffect> atomicUpdates) { return handlers -> handlers.hit(atomicUpdates); }
+        static UpdateOnTarget noTarget() { return handlers -> handlers.noTarget(); }
     }
 
     public PartyId partyId = NO_PARTY;

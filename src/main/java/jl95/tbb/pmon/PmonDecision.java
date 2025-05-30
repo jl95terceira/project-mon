@@ -19,12 +19,12 @@ public interface PmonDecision {
     }
 
     static PmonDecision by(PmonDecisionByPass decision) {
-        return cb -> cb.pass(decision);
+        return handlers -> handlers.pass(decision);
     }
     static PmonDecision by(PmonDecisionBySwitchIn decision) {
-        return cb -> cb.switchIn(decision);
+        return handlers -> handlers.switchIn(decision);
     }
     static PmonDecision by(PmonDecisionByUseMove decision) {
-        return cb -> cb.useMove(decision);
+        return handlers -> handlers.useMove(decision);
     }
 }

@@ -154,5 +154,6 @@ public class PmonBattleDemo {
                 },
                 constant(false)
         );
+        System.out.println("Done!");
     }
 }

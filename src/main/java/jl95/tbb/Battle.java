@@ -38,6 +38,7 @@ public class Battle<
     }
 
     public static class InterruptedException extends RuntimeException {}
+    public static class BadDecisionException extends RuntimeException {}
 
     public Optional<PartyId> spawn(StrictMap<PartyId, PartyEntry> parties,
                                    InitialConditions initialConditions,
@@ -94,16 +95,27 @@ public class Battle<
             StrictMap<PartyId, CompletableFuture<Decision>> decisionPromisesMap = strict(I.of(partyIds).toMap(p -> p, p -> new CompletableFuture<>()));
             for (var partyId: partyIds) {
                 decisionsThreadPool.execute(() -> {
-                    while (!toStop.apply()) {
-                        var decision = decisionFunction.apply(partyId);
-                        if (ruleset.isValid(globalContext, partyId, decision)) {
-                            decisionPromisesMap.get(partyId).complete(decision);
-                            break;
+
+                    try {
+                        while (!toStop.apply()) {
+                            var decision = decisionFunction.apply(partyId);
+                            if (ruleset.isValid(globalContext, partyId, decision)) {
+                                decisionPromisesMap.get(partyId).complete(decision);
+                                break;
+                            }
                         }
+                    }
+                    catch (Exception ex) {
+                        decisionPromisesMap.get(partyId).complete(null);
                     }
                 });
             }
             StrictMap<PartyId, Decision> decisionsMap = strict(I.of(decisionPromisesMap.entrySet()).toMap(e -> e.getKey(), e -> uncheck(() -> e.getValue().get())));
+            for (var decision: decisionsMap.values()) {
+                if (decision == null) {
+                    throw new BadDecisionException();
+                }
+            }
             if (toStop.apply()) {
                 throw new Battle.InterruptedException();
             }
