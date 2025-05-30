@@ -8,7 +8,6 @@ import static jl95.lang.SuperPowers.*;
 
 public class PmonAtomicEffectByStatModifier {
 
-    public StrictMap<PmonStatModifierType, Integer> statRaises = strict(Map());
-    public StrictMap<PmonStatModifierType, Integer> statFalls = strict(Map());
-    public StrictSet<PmonStatModifierType> statResets = strict(Set());
+    public StrictMap<PmonStatModifierType, Integer> increments = strict(Map());
+    public StrictSet<PmonStatModifierType> resets = strict(Set());
 }

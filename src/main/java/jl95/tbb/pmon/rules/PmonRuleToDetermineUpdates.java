@@ -177,15 +177,10 @@ public class PmonRuleToDetermineUpdates {
                                             PmonStatModifierType type = e.getKey();
                                             Chanced<Integer> chancedStatModify = e.getValue();
                                             if (ruleset.roll100(chancedStatModify.chance)) {
-                                                if (chancedStatModify.value > 0) {
-                                                    statUpdate.statRaises.put(type, chancedStatModify.value);
-                                                }
-                                                else if (chancedStatModify.value < 0) {
-                                                    statUpdate.statFalls.put(type, chancedStatModify.value);
-                                                }
+                                                statUpdate.increments.put(type, chancedStatModify.value);
                                             }
                                         }
-                                        if (!(statUpdate.statRaises.isEmpty() && statUpdate.statFalls.isEmpty() && statUpdate.statResets.isEmpty())) {
+                                        if (!(statUpdate.increments.isEmpty() && statUpdate.resets.isEmpty())) {
                                             atomicEffects.add(PmonAtomicEffect.by(statUpdate));
                                         }
                                         // status conditions

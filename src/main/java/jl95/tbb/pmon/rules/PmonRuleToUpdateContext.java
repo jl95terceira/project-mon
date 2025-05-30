@@ -57,18 +57,14 @@ public class PmonRuleToUpdateContext {
                                     public void statModify(PmonAtomicEffectByStatModifier statUpdate) {
 
                                         // stat modifiers
-                                        for (var t2: I(
-                                                tuple(statUpdate.statRaises, function(Integer::sum)),
-                                                tuple(statUpdate.statFalls , function((Integer a, Integer b) -> (a - b))))) {
+                                        var monStatModifiers = mon.status.statModifiers;
+                                        for (var e: statUpdate.increments.entrySet()) {
 
-                                            for (var e: t2.a1.entrySet()) {
-
-                                                PmonStatModifierType type = e.getKey();
-                                                Integer stages = e.getValue();
-                                                if (mon.status.statModifiers.containsKey(type)) {
-
-                                                    mon.status.statModifiers.put(type, t2.a2.apply(mon.status.statModifiers.get(type), stages));
-                                                }
+                                            PmonStatModifierType type = e.getKey();
+                                            Integer stages = e.getValue();
+                                            monStatModifiers.put(type, (monStatModifiers.containsKey(type)? monStatModifiers.get(type): 0) + stages);
+                                            if (monStatModifiers.get(type) == 0) {
+                                                monStatModifiers.remove(type);
                                             }
                                         }
                                     }

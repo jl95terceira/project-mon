@@ -104,6 +104,7 @@ public class PmonBattleDemo {
         Pmons.pmon4.moves.add(MoveFactories.leer  .apply());
     }
 
+    public static void pause() { sleep(600); }
     public static void main(String[] args) {
 
         var battle = new PmonBattle(new PmonRuleset());
@@ -146,9 +147,9 @@ public class PmonBattleDemo {
                     return strict(I.of(monPositionsAble.iter()).toMap(id -> id, id -> {
 
                         var mon = party.monsOnField.get(id);
-                        System.out.println(partyName+" is making a decision for "+Pmons.namesMap.get(mon.id)+" ..."); sleep(1000);
+                        System.out.println(partyName+" is making a decision for "+Pmons.namesMap.get(mon.id)+" ..."); pause();
                         var d = decision.apply(mon);
-                        System.out.println(partyName+" has decided!"); sleep(1000);
+                        System.out.println(partyName+" has decided!"); pause();
                         return d;
                     }));
                 }),
@@ -176,7 +177,7 @@ public class PmonBattleDemo {
                                 System.out.println("    "+Pmons.namesMap.get(mon.id)+" (%s HP)".formatted(mon.status.hp));
                             }
                         }
-                        sleep(2000);
+                        pause();
                     }
 
                     @Override
@@ -190,7 +191,7 @@ public class PmonBattleDemo {
                                 System.out.printf("%s withdraws %s and switches in %s!\n",
                                         PartyIds.namesMap.get(update.partyId),
                                         Pmons.namesMap.get(party.monsOnField.get(update.monFieldPosition).id),
-                                        Pmons.namesMap.get(party.mons.get(update.monToSwitchInPartyPosition).id)); sleep(1);
+                                        Pmons.namesMap.get(party.mons.get(update.monToSwitchInPartyPosition).id)); pause();
                             }
 
                             @Override
@@ -200,7 +201,7 @@ public class PmonBattleDemo {
                                 System.out.printf("%s's %s used %s!\n",
                                         PartyIds.namesMap.get(update.partyId),
                                         Pmons.namesMap.get(mon.id),
-                                        MoveFactories.namesMap.get(mon.moves.get(update.moveIndex).id)); sleep(1);
+                                        MoveFactories.namesMap.get(mon.moves.get(update.moveIndex).id)); pause();
                                 for (var e: update.updatesOnTargets) {
                                     var foePartyId = e.a1;
                                     var foeMon = globalContextRef.get().parties.get(foePartyId).monsOnField.get(e.a2);
