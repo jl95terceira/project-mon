@@ -1,11 +1,8 @@
 package jl95.tbb.pmon;
 
-import jl95.tbb.PartyId;
-import jl95.tbb.mon.MonParty;
-import jl95.tbb.pmon.decision.PmonDecisionByUseMove;
-import jl95.tbb.pmon.decision.PmonDecisionByPass;
-import jl95.tbb.pmon.decision.PmonDecisionBySwitchIn;
-import jl95.util.StrictMap;
+import jl95.tbb.pmon.decision.PmonDecisionToUseMove;
+import jl95.tbb.pmon.decision.PmonDecisionToPass;
+import jl95.tbb.pmon.decision.PmonDecisionToSwitchIn;
 
 public interface PmonDecision {
 
@@ -13,18 +10,18 @@ public interface PmonDecision {
 
     interface Handlers {
 
-        void pass(PmonDecisionByPass decision);
-        void switchIn(PmonDecisionBySwitchIn decision);
-        void useMove(PmonDecisionByUseMove decision);
+        void pass(PmonDecisionToPass decision);
+        void switchIn(PmonDecisionToSwitchIn decision);
+        void useMove(PmonDecisionToUseMove decision);
     }
 
-    static PmonDecision by(PmonDecisionByPass decision) {
+    static PmonDecision from(PmonDecisionToPass decision) {
         return handlers -> handlers.pass(decision);
     }
-    static PmonDecision by(PmonDecisionBySwitchIn decision) {
+    static PmonDecision from(PmonDecisionToSwitchIn decision) {
         return handlers -> handlers.switchIn(decision);
     }
-    static PmonDecision by(PmonDecisionByUseMove decision) {
+    static PmonDecision from(PmonDecisionToUseMove decision) {
         return handlers -> handlers.useMove(decision);
     }
 }

@@ -2,7 +2,6 @@ package jl95.tbb.mon;
 
 import jl95.lang.Ref;
 import jl95.lang.variadic.Function0;
-import jl95.lang.variadic.Function1;
 import jl95.lang.variadic.Function2;
 import jl95.tbb.Battle;
 import jl95.tbb.PartyId;
@@ -11,7 +10,6 @@ import jl95.util.StrictMap;
 import jl95.util.StrictSet;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 import static jl95.lang.SuperPowers.*;
@@ -19,7 +17,7 @@ import static jl95.lang.SuperPowers.*;
 public class MonBattle<
         Mon, FoeMonView,
         InitialConditions,
-        LocalContext extends MonLocalContext<Mon, FoeMonView>, GlobalContext extends MonGlobalContext<Mon>,
+        LocalContext extends MonLocalContext<Mon>, GlobalContext extends MonGlobalContext<Mon>,
         MonDecision,
         GlobalUpdate, LocalUpdate
         > {
@@ -55,8 +53,8 @@ public class MonBattle<
     public Optional<PartyId> spawn(
             StrictMap<PartyId, MonPartyEntry<Mon>> parties,
             InitialConditions initialConditions,
-            Function2<StrictMap<MonPosition, MonDecision>, PartyId, StrictSet<MonPosition>> decisionFunction,
-            Battle.Listeners<LocalUpdate, MonLocalContext<Mon, FoeMonView>, MonGlobalContext<Mon>> listeners,
+            Function2<StrictMap<MonFieldPosition, MonDecision>, PartyId, StrictSet<MonFieldPosition>> decisionFunction,
+            Battle.Listeners<LocalUpdate, MonLocalContext<Mon>, MonGlobalContext<Mon>> listeners,
             Function0<Boolean> toInterrupt
     ) {
 

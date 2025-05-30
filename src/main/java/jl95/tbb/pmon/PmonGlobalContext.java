@@ -2,7 +2,7 @@ package jl95.tbb.pmon;
 
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonGlobalContext;
-import jl95.tbb.mon.MonPosition;
+import jl95.tbb.mon.MonFieldPosition;
 import jl95.tbb.pmon.status.PmonFieldCondition;
 import jl95.util.StrictMap;
 
@@ -14,6 +14,6 @@ public class PmonGlobalContext extends MonGlobalContext<Pmon> {
     public StrictMap<PmonFieldCondition.Id, PmonFieldCondition>   fieldConditionsGlobal  = strict(Map());
     public StrictMap<PartyId,
            StrictMap<PmonFieldCondition.Id, PmonFieldCondition>>  fieldConditionsByParty = strict(Map());
-    public StrictMap<PartyId, StrictMap<MonPosition,
+    public StrictMap<PartyId, StrictMap<MonFieldPosition,
            StrictMap<PmonFieldCondition.Id, PmonFieldCondition>>> fieldConditionsByMon   = strict(Map());
 }

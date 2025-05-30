@@ -2,7 +2,7 @@ package jl95.tbb.pmon.rules;
 
 import jl95.lang.I;
 import jl95.tbb.mon.MonGlobalContext;
-import jl95.tbb.mon.MonPosition;
+import jl95.tbb.mon.MonFieldPosition;
 import jl95.tbb.pmon.Pmon;
 import jl95.tbb.pmon.PmonRuleset;
 import jl95.tbb.pmon.status.PmonStatModifierType;
@@ -115,8 +115,8 @@ public class PmonRuleToUpdateContext {
             public void switchIn(PmonUpdateBySwitchIn update) {
 
                 var party = context.parties.get(update.partyId);
-                party.monsOnField.remove(update.monId);
-                party.monsOnField.put(new MonPosition(), party.mons.get(update.monToSwitchInIndex));
+                party.monsOnField.remove(update.monFieldPosition);
+                party.monsOnField.put(new MonFieldPosition(), party.mons.get(update.monToSwitchInPartyPosition));
             }
         });
     }

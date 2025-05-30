@@ -1,4 +1,4 @@
 package jl95.tbb.pmon.decision;
 
-public class PmonDecisionByPass {
+public class PmonDecisionToPass {
 }

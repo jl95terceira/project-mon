@@ -1,9 +1,8 @@
 package jl95.tbb.pmon.update.atomic;
 
-import jl95.tbb.PartyId;
-import jl95.tbb.mon.MonPosition;
+import static jl95.tbb.pmon.attrs.PmonDefaults.NO_PARTY_POSITION;
 
 public class PmonAtomicEffectBySwitchIn {
 
-        public Integer monToSwitchInIndex = 0;
+        public Integer monToSwitchInIndex = NO_PARTY_POSITION;
 }

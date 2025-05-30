@@ -1,18 +1,19 @@
 package jl95.tbb.pmon._demo;
 
+import jl95.lang.I;
 import jl95.lang.Ref;
 import jl95.lang.variadic.Function0;
-import jl95.lang.variadic.Function1;
 import jl95.tbb.Battle;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonGlobalContext;
 import jl95.tbb.mon.MonLocalContext;
-import jl95.tbb.mon.MonPartyDecision;
-import jl95.tbb.mon.MonPosition;
+import jl95.tbb.mon.MonFieldPosition;
 import jl95.tbb.pmon.*;
 import jl95.tbb.pmon.attrs.PmonMoveEffectivenessType;
 import jl95.tbb.pmon.attrs.PmonMovePower;
 import jl95.tbb.pmon.attrs.PmonType;
+import jl95.tbb.pmon.decision.PmonDecisionToSwitchIn;
+import jl95.tbb.pmon.decision.PmonDecisionToUseMove;
 import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.update.PmonUpdate;
 import jl95.tbb.pmon.update.PmonUpdateByMove;
@@ -20,7 +21,7 @@ import jl95.tbb.pmon.update.PmonUpdateBySwitchIn;
 import jl95.util.StrictMap;
 import jl95.util.StrictSet;
 
-import java.util.Set;
+import java.util.Random;
 
 import static jl95.lang.SuperPowers.*;
 
@@ -33,8 +34,8 @@ public class PmonBattleDemo {
             namesMap.put(id, name);
             return id;
         }
-        public static PartyId PLAYER = named("PLAYER");
-        public static PartyId NPC    = named("RIVAL");
+        public static PartyId PLAYER1 = named("Player 1");
+        public static PartyId PLAYER2 = named("Player 2");
     }
     public static class Pmons {
         public static StrictMap<Pmon.Id, String> namesMap = strict(Map());
@@ -106,27 +107,47 @@ public class PmonBattleDemo {
         playerEntry.mons.addAll(List(Pmons.pmon1, Pmons.pmon4));
         var npcEntry = new PmonPartyEntry();
         npcEntry.mons.addAll(List(Pmons.pmon2, Pmons.pmon3));
-        Ref<MonGlobalContext<Pmon>> globalContextRef = new Ref<>();
-        Ref<MonLocalContext<Pmon, PmonFoeView>> localContextRef = new Ref<>();
+        Ref<PmonGlobalContext> globalContextRef = new Ref<>();
+        StrictMap<PartyId, PmonLocalContext> localContextRefs = strict(Map());
         battle.spawn(
                 strict(Map(
-                        tuple(PartyIds.PLAYER, playerEntry),
-                        tuple(PartyIds.NPC, npcEntry))),
+                        tuple(PartyIds.PLAYER1, playerEntry),
+                        tuple(PartyIds.PLAYER2, npcEntry))),
                 new PmonInitialConditions(),
-                function((PartyId p, StrictSet<MonPosition> monPositionsAble) -> {
-                    throw new UnsupportedOperationException();
+                function((PartyId p, StrictSet<MonFieldPosition> monPositionsAble) -> {
+                    var pFoe = localContextRefs.get(p).foeParty.keySet().iterator().next(); // only 1 foe in this demo (1v1) so get single next
+                    var party = globalContextRef.get().parties.get(p);
+                    var decision = function((Pmon mon) -> {
+                        if (mon.status.hp <= 0) {
+                            var decisionToSwitchIn = new PmonDecisionToSwitchIn();
+                            for (var i: I.range(party.mons.size())) {
+                                var monToSwitchIn = party.mons.get(i);
+                                if (monToSwitchIn.status.hp <= 0) continue;
+                                if (monToSwitchIn == mon) continue;
+                                decisionToSwitchIn.monSwitchInIndex = i;
+                                return PmonDecision.from(decisionToSwitchIn);
+                            }
+                        }
+                        else {
+                            var decisionToUseMove = new PmonDecisionToUseMove();
+                            decisionToUseMove.moveIndex = new Random().nextInt(0, mon.moves.size());
+                            var move = mon.moves.get(decisionToUseMove.moveIndex);
+                            decisionToUseMove.targets.put(pFoe, I(localContextRefs.get(p).foeParty.get(pFoe).keySet().iterator().next()));
+                        }
+                        throw new AssertionError();
+                    });
+                    return strict(I.of(monPositionsAble.iter()).toMap(id -> id, id -> decision.apply(party.monsOnField.get(id))));
                 }),
-                new Battle.Listeners<>() {
+                new Battle.Listeners<PmonUpdate, PmonLocalContext, PmonGlobalContext>() {
                     @Override
-                    public void onGlobalContext(MonGlobalContext<Pmon> context) {
+                    public void onGlobalContext(PmonGlobalContext context) {
+
                         globalContextRef.set(context);
                     }
 
                     @Override
-                    public void onLocalContext(PartyId id, MonLocalContext<Pmon, PmonFoeView> localContext) {
-                        if (id == PartyIds.PLAYER) {
-                            localContextRef.set(localContext);
-                        }
+                    public void onLocalContext(PartyId id, PmonLocalContext localContext) {
+                        localContextRefs.put(id, localContext);
                     }
 
                     @Override
@@ -137,8 +158,8 @@ public class PmonBattleDemo {
                             public void switchIn(PmonUpdateBySwitchIn update) {
                                 System.out.printf("%s withdraws %s and switches in %s!\n",
                                         PartyIds.namesMap.get(id),
-                                        Pmons.namesMap.get(party.monsOnField.get(update.monId).id),
-                                        Pmons.namesMap.get(party.mons.get(update.monToSwitchInIndex).id));
+                                        Pmons.namesMap.get(party.monsOnField.get(update.monFieldPosition).id),
+                                        Pmons.namesMap.get(party.mons.get(update.monToSwitchInPartyPosition).id));
                             }
 
                             @Override

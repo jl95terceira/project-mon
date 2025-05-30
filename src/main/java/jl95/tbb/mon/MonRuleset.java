@@ -9,7 +9,7 @@ import java.util.Optional;
 public interface MonRuleset<
         Mon, FoeMonView,
         InitialConditions,
-        LocalContext extends MonLocalContext<Mon, FoeMonView>,
+        LocalContext extends MonLocalContext<Mon>,
         GlobalContext extends MonGlobalContext<Mon>,
         MonDecision,
         GlobalUpdate, LocalUpdate
@@ -47,7 +47,7 @@ public interface MonRuleset<
     Optional<PartyId>
     detVictory(GlobalContext context);
 
-    StrictMap<PartyId, StrictSet<MonPosition>>
+    StrictMap<PartyId, StrictSet<MonFieldPosition>>
     allowedToDecide(GlobalContext context);
 
     default jl95.tbb.Ruleset<

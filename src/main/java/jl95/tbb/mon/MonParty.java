@@ -8,7 +8,7 @@ import static jl95.lang.SuperPowers.*;
 
 public class MonParty<Mon> {
 
-    public final StrictMap<MonPosition, Mon> monsOnField = strict(Map());
+    public final StrictMap<MonFieldPosition, Mon> monsOnField = strict(Map());
     public final List<Mon> mons = List();
 
     public static <Mon> MonParty<Mon> fromEntry(MonPartyEntry<Mon> entry) {

@@ -3,6 +3,7 @@ package jl95.tbb.pmon;
 import static java.lang.Math.floor;
 import static jl95.lang.SuperPowers.*;
 
+import jl95.lang.I;
 import jl95.lang.variadic.Function0;
 import jl95.lang.variadic.Tuple2;
 import jl95.tbb.PartyId;
@@ -14,6 +15,9 @@ import jl95.util.StrictMap;
 import jl95.util.StrictSet;
 
 import java.util.*;
+
+//TODO: make the following class into an interface (where the public non-final methods become interface methods)
+// that can be implemented case-by-case, to change the rules of the game.
 
 public class PmonRuleset implements MonRuleset<
         Pmon, PmonFoeView,
@@ -70,22 +74,32 @@ public class PmonRuleset implements MonRuleset<
         return false;
     }
 
+    public Integer
+    howManyMonsAllowedOnField(PmonInitialConditions pmonInitialConditions, PartyId partyId) {
+
+        return 1;
+    }
+
     @Override
-    public PmonGlobalContext init(StrictMap<PartyId, MonPartyEntry<Pmon>> parties, PmonInitialConditions pmonInitialConditions) {
+    public PmonGlobalContext init(StrictMap<PartyId, MonPartyEntry<Pmon>> parties, PmonInitialConditions initialConditions) {
         
         var context = new PmonGlobalContext();
         for (var e: parties.entrySet()) {
             var partyId = e.getKey();
-            var partyEntry = e.getValue();
-            context.parties.put(partyId, MonParty.fromEntry(partyEntry));
+            var party = MonParty.fromEntry(e.getValue());
+            context.parties.put(partyId, party);
+            for (var i: I.range(howManyMonsAllowedOnField(initialConditions, partyId))) {
+                party.monsOnField.put(new MonFieldPosition(), party.mons.get(i));
+            }
         }
         return context;
     }
 
     @Override
     public Iterable<PmonUpdate> detInitialUpdates(PmonGlobalContext context, PmonInitialConditions pmonInitialConditions) {
-        
+
         return I();
+        //TODO: allow for starting the battle under field conditions (weather), handicaps, initial status conditions, etc
     }
 
     @Override
@@ -142,7 +156,7 @@ public class PmonRuleset implements MonRuleset<
     }
 
     @Override
-    public StrictMap<PartyId, StrictSet<MonPosition>> allowedToDecide(PmonGlobalContext context) {
+    public StrictMap<PartyId, StrictSet<MonFieldPosition>> allowedToDecide(PmonGlobalContext context) {
 
         return new PmoRuleToDetermineAllowedToDecide(this).allowedToDecide(context);
     }

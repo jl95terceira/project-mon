@@ -1,14 +1,13 @@
 package jl95.tbb.pmon.update;
 
 import jl95.tbb.PartyId;
-import jl95.tbb.mon.MonPosition;
+import jl95.tbb.mon.MonFieldPosition;
 
-import static jl95.tbb.pmon.attrs.PmonDefaults.NO_MON;
-import static jl95.tbb.pmon.attrs.PmonDefaults.NO_PARTY;
+import static jl95.tbb.pmon.attrs.PmonDefaults.*;
 
 public class PmonUpdateBySwitchIn {
 
         public PartyId partyId = NO_PARTY;
-        public MonPosition monId = NO_MON;
-        public Integer monToSwitchInIndex = 0;
+        public MonFieldPosition monFieldPosition = NO_FIELD_POSITION;
+        public Integer monToSwitchInPartyPosition = NO_PARTY_POSITION;
 }

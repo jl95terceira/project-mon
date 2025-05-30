@@ -2,13 +2,13 @@ package jl95.tbb.pmon.update;
 
 import jl95.lang.variadic.Tuple3;
 import jl95.tbb.PartyId;
-import jl95.tbb.mon.MonPosition;
+import jl95.tbb.mon.MonFieldPosition;
 import jl95.tbb.pmon.update.atomic.PmonAtomicEffect;
 
 import java.util.List;
 
 import static jl95.lang.SuperPowers.List;
-import static jl95.tbb.pmon.attrs.PmonDefaults.NO_MON;
+import static jl95.tbb.pmon.attrs.PmonDefaults.NO_FIELD_POSITION;
 import static jl95.tbb.pmon.attrs.PmonDefaults.NO_PARTY;
 
 public class PmonUpdateByMove {
@@ -29,7 +29,7 @@ public class PmonUpdateByMove {
     }
 
     public PartyId partyId = NO_PARTY;
-    public MonPosition monId = NO_MON;
+    public MonFieldPosition monId = NO_FIELD_POSITION;
     public Integer moveIndex = -1;
-    public List<Tuple3<PartyId, MonPosition, UpdateOnTarget>> updatesOnTargets = List();
+    public List<Tuple3<PartyId, MonFieldPosition, UpdateOnTarget>> updatesOnTargets = List();
 }

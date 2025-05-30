@@ -1,14 +1,15 @@
 package jl95.tbb.pmon.rules;
 
+import jl95.lang.I;
 import jl95.lang.Ref;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonPartyDecision;
 import jl95.tbb.pmon.PmonDecision;
 import jl95.tbb.pmon.PmonGlobalContext;
 import jl95.tbb.pmon.PmonRuleset;
-import jl95.tbb.pmon.decision.PmonDecisionByPass;
-import jl95.tbb.pmon.decision.PmonDecisionBySwitchIn;
-import jl95.tbb.pmon.decision.PmonDecisionByUseMove;
+import jl95.tbb.pmon.decision.PmonDecisionToPass;
+import jl95.tbb.pmon.decision.PmonDecisionToSwitchIn;
+import jl95.tbb.pmon.decision.PmonDecisionToUseMove;
 
 public class PmonRuleToValidateDecision {
 
@@ -31,15 +32,15 @@ public class PmonRuleToValidateDecision {
             monDecision.call(new PmonDecision.Handlers() {
 
                 @Override
-                public void pass(PmonDecisionByPass decision) {
+                public void pass(PmonDecisionToPass decision) {
                     if (!ruleset.isAlive(mon)) {
                         ref.set(false); // mon fainted - must NOT pass
                     }
                 }
                 @Override
-                public void switchIn(PmonDecisionBySwitchIn decision) {
+                public void switchIn(PmonDecisionToSwitchIn decision) {
 
-                    if (decision.monSwitchInIndex < 0 || decision.monSwitchInIndex >= party.mons.size()) {
+                    if (!I.range(party.mons.size()).toSet().contains(decision.monSwitchInIndex)) {
                         ref.set(false);
                     }
                     else {
@@ -50,7 +51,7 @@ public class PmonRuleToValidateDecision {
                     }
                 }
                 @Override
-                public void useMove(PmonDecisionByUseMove decision) {
+                public void useMove(PmonDecisionToUseMove decision) {
                     if (!ruleset.isAlive(mon)) {
                         ref.set(false); // mon fainted - must NOT use move
                     }

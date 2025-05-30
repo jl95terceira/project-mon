@@ -4,14 +4,14 @@ import jl95.lang.I;
 import jl95.lang.variadic.Tuple2;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonPartyDecision;
-import jl95.tbb.mon.MonPosition;
+import jl95.tbb.mon.MonFieldPosition;
 import jl95.tbb.pmon.Chanced;
 import jl95.tbb.pmon.PmonDecision;
 import jl95.tbb.pmon.PmonGlobalContext;
 import jl95.tbb.pmon.PmonRuleset;
-import jl95.tbb.pmon.decision.PmonDecisionByPass;
-import jl95.tbb.pmon.decision.PmonDecisionBySwitchIn;
-import jl95.tbb.pmon.decision.PmonDecisionByUseMove;
+import jl95.tbb.pmon.decision.PmonDecisionToPass;
+import jl95.tbb.pmon.decision.PmonDecisionToSwitchIn;
+import jl95.tbb.pmon.decision.PmonDecisionToUseMove;
 import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.update.PmonUpdate;
 import jl95.tbb.pmon.update.PmonUpdateByMove;
@@ -30,12 +30,12 @@ import static jl95.lang.SuperPowers.*;
 public class PmonRuleToDetermineUpdates {
 
     public static class DecisionSorting {
-        public record MoveInfo(PartyId partyId, MonPosition monId, Integer moveIndex, Integer speed, Integer priorityModifier, StrictMap<PartyId, ? extends Iterable<MonPosition>> targets, Boolean pursuit) {}
-        public record SwitchInInfo(PartyId partyId, MonPosition monId, Integer monSwitchInIndex) {}
+        public record MoveInfo(PartyId partyId, MonFieldPosition monId, Integer moveIndex, Integer speed, Integer priorityModifier, StrictMap<PartyId, ? extends Iterable<MonFieldPosition>> targets, Boolean pursuit) {}
+        public record SwitchInInfo(PartyId partyId, MonFieldPosition monId, Integer monSwitchInIndex) {}
         public List<DecisionSorting.SwitchInInfo> switchInList    = List();
         public List<DecisionSorting.MoveInfo>     moveNormalList  = List();
         public List<DecisionSorting.MoveInfo>     movePursuitList = List();
-        public StrictMap<Tuple2<PartyId, MonPosition>, Integer> switchInMap = strict(Map());
+        public StrictMap<Tuple2<PartyId, MonFieldPosition>, Integer> switchInMap = strict(Map());
     }
 
     public final PmonRuleset ruleset;
@@ -62,16 +62,16 @@ public class PmonRuleToDetermineUpdates {
                     monDecision.call(new PmonDecision.Handlers() {
 
                         @Override
-                        public void pass(PmonDecisionByPass passDecision) {
+                        public void pass(PmonDecisionToPass passDecision) {
                             // pass the turn - ignore
                         }
                         @Override
-                        public void switchIn(PmonDecisionBySwitchIn switchInDecision) {
+                        public void switchIn(PmonDecisionToSwitchIn switchInDecision) {
 
                             s.switchInList.add(new DecisionSorting.SwitchInInfo(partyId, monId, switchInDecision.monSwitchInIndex));
                         }
                         @Override
-                        public void useMove(PmonDecisionByUseMove useMoveDecision) {
+                        public void useMove(PmonDecisionToUseMove useMoveDecision) {
 
                             var mon = context.parties.get(partyId).monsOnField.get(monId);
                             var monSpeed = mon.attrs.baseStats.speed;
@@ -138,11 +138,11 @@ public class PmonRuleToDetermineUpdates {
                 monDecision.call(new PmonDecision.Handlers() {
 
                     @Override
-                    public void pass(PmonDecisionByPass passDecision) {throw new AssertionError();}
+                    public void pass(PmonDecisionToPass passDecision) {throw new AssertionError();}
                     @Override
-                    public void switchIn(PmonDecisionBySwitchIn switchInDecision) {throw new AssertionError();}
+                    public void switchIn(PmonDecisionToSwitchIn switchInDecision) {throw new AssertionError();}
                     @Override
-                    public void useMove(PmonDecisionByUseMove useMoveDecision) {
+                    public void useMove(PmonDecisionToUseMove useMoveDecision) {
 
                         var mon = context.parties.get(moveInfo.partyId()).monsOnField.get(moveInfo.monId());
                         var move = mon.moves.get(useMoveDecision.moveIndex);
@@ -216,8 +216,8 @@ public class PmonRuleToDetermineUpdates {
             for (var switchInInfo: s.switchInList) {
                 var switchInUpdate = new PmonUpdateBySwitchIn();
                 switchInUpdate.partyId = switchInInfo.partyId();
-                switchInUpdate.monId = switchInInfo.monId();
-                switchInUpdate.monToSwitchInIndex = switchInInfo.monSwitchInIndex();
+                switchInUpdate.monFieldPosition = switchInInfo.monId();
+                switchInUpdate.monToSwitchInPartyPosition = switchInInfo.monSwitchInIndex();
                 updates.add(PmonUpdate.by(switchInUpdate));
             }
 
