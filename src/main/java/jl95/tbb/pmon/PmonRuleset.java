@@ -27,7 +27,7 @@ public class PmonRuleset implements MonRuleset<
         PmonUpdate, PmonUpdate
         > {
 
-    public static PartyId NO_VICTOR = new PartyId();
+    public static PartyId NO_WINNER = new PartyId();
 
     public final PmonRulesetConstants constants = new PmonRulesetConstants();
     public Function0<Double> rng = new Random()::nextDouble; // to return a number between 0 and 1
@@ -132,7 +132,7 @@ public class PmonRuleset implements MonRuleset<
     }
 
     @Override
-    public Optional<PartyId> detVictory(PmonGlobalContext context) {
+    public Optional<PartyId> detWinner(PmonGlobalContext context) {
         
         Set<PartyId> partiesRemaining = Set();
         for (var e: context.parties.entrySet()) {
@@ -149,7 +149,7 @@ public class PmonRuleset implements MonRuleset<
             return Optional.of(partiesRemaining.iterator().next());
         }
         else if (partiesRemaining.isEmpty()) {
-            return Optional.of(NO_VICTOR);
+            return Optional.of(NO_WINNER);
         }
         return Optional.empty();
     }

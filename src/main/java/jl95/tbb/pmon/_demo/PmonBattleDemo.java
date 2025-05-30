@@ -88,7 +88,7 @@ public class PmonBattleDemo {
 
     static {
         for (var pmon: I(Pmons.pmon1, Pmons.pmon2, Pmons.pmon3, Pmons.pmon4)) {
-            pmon.attrs.baseStats.hp = 35;
+            pmon.attrs.baseStats.hp = 95;
             pmon.attrs.baseStats.attack = 55;
             pmon.attrs.baseStats.defense = 40;
             pmon.attrs.baseStats.speed = 90;
@@ -114,7 +114,7 @@ public class PmonBattleDemo {
         npcEntry.mons.addAll(List(Pmons.pmon2, Pmons.pmon3));
         Ref<PmonGlobalContext> globalContextRef = new Ref<>();
         StrictMap<PartyId, PmonLocalContext> localContextRefs = strict(Map());
-        battle.spawn(
+        var winner = battle.spawn(
                 strict(Map(
                         tuple(PartyIds.PLAYER1, playerEntry),
                         tuple(PartyIds.PLAYER2, npcEntry))),
@@ -258,6 +258,11 @@ public class PmonBattleDemo {
                 },
                 constant(false)
         );
-        System.out.println("Done!");
+        if (winner.isPresent()) {
+            System.out.printf("%s is the winner!%n", PartyIds.namesMap.get(winner.get()));
+        }
+        else {
+            System.out.printf("Nobody wins%n");
+        }
     }
 }

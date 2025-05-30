@@ -45,7 +45,7 @@ public interface MonRuleset<
                     PartyId partyId);
 
     Optional<PartyId>
-    detVictory(GlobalContext context);
+    detWinner(GlobalContext context);
 
     StrictMap<PartyId, StrictSet<MonFieldPosition>>
     allowedToDecide(GlobalContext context);
@@ -97,8 +97,8 @@ public interface MonRuleset<
             }
 
             @Override
-            public Optional<PartyId> detVictory(GlobalContext monGlobalContext) {
-                return MonRuleset.this.detVictory(monGlobalContext);
+            public Optional<PartyId> detWinner(GlobalContext monGlobalContext) {
+                return MonRuleset.this.detWinner(monGlobalContext);
             }
         };
     }

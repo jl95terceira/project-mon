@@ -44,5 +44,5 @@ public interface Ruleset<
            GlobalUpdate globalUpdate);
 
     Optional<PartyId>
-    detVictory(GlobalContext context);
+    detWinner(GlobalContext context);
 }

@@ -84,9 +84,9 @@ public class Battle<
             if (toStop.apply()) {
                 throw new Battle.InterruptedException();
             }
-            var victorOptional = ruleset.detVictory(globalContext);
-            if (victorOptional.isPresent()) {
-                return victorOptional;
+            var winnerOptional = ruleset.detWinner(globalContext);
+            if (winnerOptional.isPresent()) {
+                return winnerOptional;
             }
             var localContextsMap = localContextGetter.apply();
             for (var e: localContextsMap.entrySet()) {
