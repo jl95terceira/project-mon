@@ -166,9 +166,11 @@ public class PmonRuleToDetermineUpdates {
                                         // damage
                                         var damageUpdate = new PmonAtomicEffectByDamage();
                                         var damageAndEffectiveness = ruleset.detDamage(mon, useMoveDecision.moveIndex, ruleset.constants.CRITICAL_HIT_CHANCE >= ruleset.rng(), targetMon);
-                                        damageUpdate.damage = (int) floor(move.attrs.powerReductionFactorByNrTargets.apply(nrTargets) * damageAndEffectiveness.a1);
-                                        damageUpdate.effectivenessFactor = damageAndEffectiveness.a2;
-                                        atomicEffects.add(PmonAtomicEffect.by(damageUpdate));
+                                        if (damageAndEffectiveness.a1) {
+                                            damageUpdate.damage = (int) floor(move.attrs.powerReductionFactorByNrTargets.apply(nrTargets) * damageAndEffectiveness.a2);
+                                            damageUpdate.effectivenessFactor = damageAndEffectiveness.a3;
+                                            atomicEffects.add(PmonAtomicEffect.by(damageUpdate));
+                                        }
                                         // stat modify
                                         var statUpdate = new PmonAtomicEffectByStatModifier();
                                         for (var e: move.attrs.statModifiers.entrySet()) {
@@ -183,7 +185,9 @@ public class PmonRuleToDetermineUpdates {
                                                 }
                                             }
                                         }
-                                        atomicEffects.add(PmonAtomicEffect.by(statUpdate));
+                                        if (!(statUpdate.statRaises.isEmpty() && statUpdate.statFalls.isEmpty() && statUpdate.statResets.isEmpty())) {
+                                            atomicEffects.add(PmonAtomicEffect.by(statUpdate));
+                                        }
                                         // status conditions
                                         var conditionUpdate = new PmonAtomicEffectByStatusCondition();
                                         for (var chancedStatusConditionSupplier: move.attrs.statusConditions) {
@@ -191,7 +195,9 @@ public class PmonRuleToDetermineUpdates {
                                                 conditionUpdate.statusConditionsApply.add(chancedStatusConditionSupplier.value.apply());
                                             }
                                         }
-                                        atomicEffects.add(PmonAtomicEffect.by(conditionUpdate));
+                                        if (!(conditionUpdate.statusConditionsApply.isEmpty() && conditionUpdate.statusConditionsRemove.isEmpty())) {
+                                            atomicEffects.add(PmonAtomicEffect.by(conditionUpdate));
+                                        }
                                     }
                                     updateOnTarget = PmonUpdateByMove.UpdateOnTarget.hit(atomicEffects);
                                 }

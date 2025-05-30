@@ -54,7 +54,7 @@ public class MonBattle<
             StrictMap<PartyId, MonPartyEntry<Mon>> parties,
             InitialConditions initialConditions,
             Function2<StrictMap<MonFieldPosition, MonDecision>, PartyId, StrictSet<MonFieldPosition>> decisionFunction,
-            Battle.Listeners<LocalUpdate, MonLocalContext<Mon>, MonGlobalContext<Mon>> listeners,
+            Battle.Listeners<LocalUpdate, LocalContext, GlobalContext> listeners,
             Function0<Boolean> toInterrupt
     ) {
 

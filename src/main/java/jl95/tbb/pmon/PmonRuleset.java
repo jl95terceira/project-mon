@@ -4,8 +4,7 @@ import static java.lang.Math.floor;
 import static jl95.lang.SuperPowers.*;
 
 import jl95.lang.I;
-import jl95.lang.variadic.Function0;
-import jl95.lang.variadic.Tuple2;
+import jl95.lang.variadic.*;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.*;
 import jl95.tbb.pmon.rules.*;
@@ -53,7 +52,7 @@ public class PmonRuleset implements MonRuleset<
         return chance >= (100 * rng());
     }
 
-    public Tuple2<Integer, Double>
+    public Tuple3<Boolean, Integer, Double>
     detDamage(Pmon mon,
               Integer moveIndex,
               Boolean critical,

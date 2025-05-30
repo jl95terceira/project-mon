@@ -9,5 +9,5 @@ import static jl95.lang.SuperPowers.*;
 public class PmonDecisionToUseMove {
 
     public Integer moveIndex = -1;
-    public StrictMap<PartyId, Iterable<? extends MonFieldPosition>> targets = strict(Map());
+    public StrictMap<PartyId, Iterable<MonFieldPosition>> targets = strict(Map());
 }

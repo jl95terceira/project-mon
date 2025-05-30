@@ -5,8 +5,6 @@ import jl95.lang.Ref;
 import jl95.lang.variadic.Function0;
 import jl95.tbb.Battle;
 import jl95.tbb.PartyId;
-import jl95.tbb.mon.MonGlobalContext;
-import jl95.tbb.mon.MonLocalContext;
 import jl95.tbb.mon.MonFieldPosition;
 import jl95.tbb.pmon.*;
 import jl95.tbb.pmon.attrs.PmonMoveEffectivenessType;
@@ -18,6 +16,7 @@ import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.update.PmonUpdate;
 import jl95.tbb.pmon.update.PmonUpdateByMove;
 import jl95.tbb.pmon.update.PmonUpdateBySwitchIn;
+import jl95.tbb.pmon.update.atomic.*;
 import jl95.util.StrictMap;
 import jl95.util.StrictSet;
 
@@ -66,17 +65,22 @@ public class PmonBattleDemo {
         }
         public static Function0<PmonMove> tackle = () -> {
             var move = new PmonMove(named("Tackle"), PmonTypes.NORMAL);
-            move.attrs.power = PmonMovePower.typed(40);
+            move.status.pp = 30;
             move.attrs.accuracy = 80;
+            move.attrs.power = PmonMovePower.typed(40);
             return move;
         };
         public static Function0<PmonMove> growl  = () -> {
             var move = new PmonMove(named("Growl"), PmonTypes.NORMAL);
+            move.status.pp = 20;
+            move.attrs.accuracy = 100;
             move.attrs.statModifiers.put(PmonStatModifierType.ATTACK, new Chanced<>(-1, 100));
             return move;
         };
         public static Function0<PmonMove> leer   = () -> {
             var move = new PmonMove(named("Leer"), PmonTypes.NORMAL);
+            move.status.pp = 20;
+            move.attrs.accuracy = 100;
             move.attrs.statModifiers.put(PmonStatModifierType.DEFENSE, new Chanced<>(-1, 100));
             return move;
         };
@@ -84,10 +88,10 @@ public class PmonBattleDemo {
 
     static {
         for (var pmon: I(Pmons.pmon1, Pmons.pmon2, Pmons.pmon3, Pmons.pmon4)) {
-            pmon.attrs.baseStats.hp = 20;
-            pmon.attrs.baseStats.attack = 5;
-            pmon.attrs.baseStats.defense = 5;
-            pmon.attrs.baseStats.speed = 10;
+            pmon.attrs.baseStats.hp = 35;
+            pmon.attrs.baseStats.attack = 55;
+            pmon.attrs.baseStats.defense = 40;
+            pmon.attrs.baseStats.speed = 90;
             pmon.restoreHp();
         }
         Pmons.pmon1.moves.add(MoveFactories.tackle.apply());
@@ -115,9 +119,12 @@ public class PmonBattleDemo {
                         tuple(PartyIds.PLAYER2, npcEntry))),
                 new PmonInitialConditions(),
                 function((PartyId p, StrictSet<MonFieldPosition> monPositionsAble) -> {
+
+                    var partyName = PartyIds.namesMap.get(p);
                     var pFoe = localContextRefs.get(p).foeParty.keySet().iterator().next(); // only 1 foe in this demo (1v1) so get single next
                     var party = globalContextRef.get().parties.get(p);
                     var decision = function((Pmon mon) -> {
+
                         if (mon.status.hp <= 0) {
                             var decisionToSwitchIn = new PmonDecisionToSwitchIn();
                             for (var i: I.range(party.mons.size())) {
@@ -131,14 +138,21 @@ public class PmonBattleDemo {
                         else {
                             var decisionToUseMove = new PmonDecisionToUseMove();
                             decisionToUseMove.moveIndex = new Random().nextInt(0, mon.moves.size());
-                            var move = mon.moves.get(decisionToUseMove.moveIndex);
                             decisionToUseMove.targets.put(pFoe, I(localContextRefs.get(p).foeParty.get(pFoe).keySet().iterator().next()));
+                            return PmonDecision.from(decisionToUseMove);
                         }
-                        throw new AssertionError();
+                        throw new UnsupportedOperationException();
                     });
-                    return strict(I.of(monPositionsAble.iter()).toMap(id -> id, id -> decision.apply(party.monsOnField.get(id))));
+                    return strict(I.of(monPositionsAble.iter()).toMap(id -> id, id -> {
+
+                        var mon = party.monsOnField.get(id);
+                        System.out.println(partyName+" is making a decision for "+Pmons.namesMap.get(mon.id)+" ..."); sleep(1000);
+                        var d = decision.apply(mon);
+                        System.out.println(partyName+" has decided!"); sleep(1000);
+                        return d;
+                    }));
                 }),
-                new Battle.Listeners<PmonUpdate, PmonLocalContext, PmonGlobalContext>() {
+                new Battle.Listeners<>() {
                     @Override
                     public void onGlobalContext(PmonGlobalContext context) {
 
@@ -146,29 +160,97 @@ public class PmonBattleDemo {
                     }
 
                     @Override
-                    public void onLocalContext(PartyId id, PmonLocalContext localContext) {
-                        localContextRefs.put(id, localContext);
+                    public void onLocalContext(PartyId p, PmonLocalContext localContext) {
+
+                        localContextRefs.put(p, localContext);
+                        if (p != PartyIds.PLAYER1) return;
+                        System.out.println(PartyIds.namesMap.get(p));
+                        for (var mon: localContextRefs.get(p).ownParty.monsOnField.values()) {
+                            System.out.println("    "+Pmons.namesMap.get(mon.id)+" (%s HP)".formatted(mon.status.hp));
+                        }
+                        for (var eFoe: localContextRefs.get(p).foeParty.entrySet()) {
+                            var pFoe = eFoe.getKey();
+                            var foe = eFoe.getValue();
+                            System.out.println(PartyIds.namesMap.get(pFoe));
+                            for (var mon: foe.values()) {
+                                System.out.println("    "+Pmons.namesMap.get(mon.id)+" (%s HP)".formatted(mon.status.hp));
+                            }
+                        }
+                        sleep(2000);
                     }
 
                     @Override
                     public void onLocalUpdate(PartyId id, PmonUpdate pmonUpdate) {
-                        var party = globalContextRef.get().parties.get(id);
+
+                        if (id != PartyIds.PLAYER1) return;
                         pmonUpdate.call(new PmonUpdate.Handlers() {
                             @Override
                             public void switchIn(PmonUpdateBySwitchIn update) {
+                                var party = globalContextRef.get().parties.get(update.partyId);
                                 System.out.printf("%s withdraws %s and switches in %s!\n",
-                                        PartyIds.namesMap.get(id),
+                                        PartyIds.namesMap.get(update.partyId),
                                         Pmons.namesMap.get(party.monsOnField.get(update.monFieldPosition).id),
-                                        Pmons.namesMap.get(party.mons.get(update.monToSwitchInPartyPosition).id));
+                                        Pmons.namesMap.get(party.mons.get(update.monToSwitchInPartyPosition).id)); sleep(1);
                             }
 
                             @Override
                             public void move(PmonUpdateByMove update) {
+                                var party = globalContextRef.get().parties.get(update.partyId);
+                                var mon = party.monsOnField.get(update.monId);
                                 System.out.printf("%s's %s used %s!\n",
-                                        PartyIds.namesMap.get(id),
-                                        Pmons.namesMap.get(party.monsOnField.get(update.monId).id),
-                                        MoveFactories.namesMap.get(party.monsOnField.get(update.monId).moves.get(update.moveIndex).id)
-                                );
+                                        PartyIds.namesMap.get(update.partyId),
+                                        Pmons.namesMap.get(mon.id),
+                                        MoveFactories.namesMap.get(mon.moves.get(update.moveIndex).id)); sleep(1);
+                                for (var e: update.updatesOnTargets) {
+                                    var foePartyId = e.a1;
+                                    var foeMon = globalContextRef.get().parties.get(foePartyId).monsOnField.get(e.a2);
+                                    e.a3.call(new PmonUpdateByMove.UpdateOnTarget.Handlers() {
+                                        @Override
+                                        public void miss() {
+                                            System.out.printf("Wow... It missed %s's %s!%n", PartyIds.namesMap.get(foePartyId), Pmons.namesMap.get(foeMon.id));
+                                        }
+
+                                        @Override
+                                        public void hit(Iterable<PmonAtomicEffect> atomicUpdates) {
+                                            var foePartyName = PartyIds.namesMap.get(foePartyId);
+                                            var foeMonName = Pmons.namesMap.get(foeMon.id);
+                                            for (var atomicUpdate: atomicUpdates) {
+                                                atomicUpdate.call(new PmonAtomicEffect.Handlers() {
+                                                    @Override
+                                                    public void damage(PmonAtomicEffectByDamage update) {
+                                                        if (update.criticalHit) {
+                                                            System.out.println("It's a critical hit!");
+                                                        }
+                                                        if (update.effectivenessFactor != 1.0) {
+                                                            System.out.println(update.effectivenessFactor > 1.0? "It's super effective!": "It's not very effective...");
+                                                        }
+                                                        System.out.printf("%s's %s took %s damage!%n", foePartyName, foeMonName, update.damage);
+                                                    }
+
+                                                    @Override
+                                                    public void statModify(PmonAtomicEffectByStatModifier update) {
+                                                        System.out.printf("It modified the stats of %s's %s!%n", foePartyName, foeMonName);
+                                                    }
+
+                                                    @Override
+                                                    public void statusCondition(PmonAtomicEffectByStatusCondition update) {
+                                                        System.out.printf("It applied a status condition on %s's %s!%n", foePartyName, foeMonName);
+                                                    }
+
+                                                    @Override
+                                                    public void switchIn(PmonAtomicEffectBySwitchIn update) {
+                                                        System.out.printf("???%n");
+                                                    }
+                                                });
+                                            }
+                                        }
+
+                                        @Override
+                                        public void noTarget() {
+                                            System.out.println("There was no target...");
+                                        }
+                                    });
+                                }
                             }
                         });
                     }

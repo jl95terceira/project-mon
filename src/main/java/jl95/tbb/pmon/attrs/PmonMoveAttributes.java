@@ -17,7 +17,7 @@ public class PmonMoveAttributes {
     public PmonMoveTargettingType targetType = PmonMoveTargettingType.FOE_SINGLE_MON;
     public PmonMoveType type = PmonMoveType.NORMAL;
     public PmonType pmonType;
-    public PmonMovePower power = null;
+    public PmonMovePower power = PmonMovePower.none();
     public Function1<Double, Integer> powerReductionFactorByNrTargets = n -> (1.0 / n);
     public Tuple2<Integer, Integer> hitNrTimesRange = tuple(1,1);
     public Integer accuracy = 0;

@@ -56,7 +56,7 @@ public class PmonRuleToValidateDecision {
                         ref.set(false); // mon fainted - must NOT use move
                     }
                     else {
-                        if (decision.moveIndex < 0 || decision.moveIndex >= mon.moves.size()) {
+                        if  (!I.range(mon.moves.size()).toSet().contains(decision.moveIndex)) {
                             ref.set(false);
                         } else {
                             var move = mon.moves.get(decision.moveIndex);
