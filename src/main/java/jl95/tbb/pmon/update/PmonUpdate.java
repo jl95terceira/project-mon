@@ -9,7 +9,6 @@ public interface PmonUpdate {
         void pass    (PmonUpdateByPass update);
         void switchIn(PmonUpdateBySwitchIn update);
         void move    (PmonUpdateByMove update);
-        // TODO: Are there other "types" of updates? Do we create a class for each possible "type" of update?
     }
 
     static PmonUpdate by(PmonUpdateByPass update) { return handlers -> handlers.pass(update); }
