@@ -12,6 +12,8 @@ import jl95.util.StrictSet;
 
 import static jl95.lang.SuperPowers.*;
 
+import java.util.Map;
+
 public class PmoRuleToDetermineAllowedToDecide {
 
     public final PmonRuleset ruleset;
@@ -50,7 +52,7 @@ public class PmoRuleToDetermineAllowedToDecide {
         }
         if (fainted.isEmpty()) {
 
-            return strict(I.of(context.parties.entrySet()).toMap(e -> e.getKey(), e -> strict(e.getValue().monsOnField.keySet())));
+            return strict(I.of(context.parties.entrySet()).toMap(Map.Entry::getKey, e -> strict(e.getValue().monsOnField.keySet())));
 
             //TODO: should be based also on move lock-in, charging / recharging, etc
         }

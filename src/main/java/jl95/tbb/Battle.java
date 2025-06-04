@@ -48,7 +48,7 @@ public class Battle<
 
         var shuttindDown = new Ref<>(false);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> shuttindDown.set(true)));
-        var partyIds = strict(parties.keySet()).iter();
+        var partyIds = strict(parties.keySet());
         var globalContext = ruleset.init(parties, initialConditions);
         listeners.onGlobalContext(globalContext);
         var localContextGetter = function(() -> strict(I.of(partyIds)

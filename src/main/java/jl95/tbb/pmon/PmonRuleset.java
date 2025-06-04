@@ -15,7 +15,7 @@ import jl95.util.StrictSet;
 
 import java.util.*;
 
-//TODO: make the following class into an interface (where the public non-final methods become interface methods)
+//TODO 2.0: make the following class into an interface (where the public non-final methods become interface methods)
 // that can be implemented case-by-case, to change the rules of the game.
 
 public class PmonRuleset implements MonRuleset<
@@ -98,7 +98,7 @@ public class PmonRuleset implements MonRuleset<
     public Iterable<PmonUpdate> detInitialUpdates(PmonGlobalContext context, PmonInitialConditions pmonInitialConditions) {
 
         return I();
-        //TODO: allow for starting the battle under field conditions (weather), handicaps, initial status conditions, etc
+        //TODO 2.0: allow for starting the battle under field conditions (weather), handicaps, initial status conditions, etc
     }
 
     @Override

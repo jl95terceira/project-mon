@@ -15,6 +15,7 @@ import jl95.tbb.pmon.decision.PmonDecisionToUseMove;
 import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.update.PmonUpdate;
 import jl95.tbb.pmon.update.PmonUpdateByMove;
+import jl95.tbb.pmon.update.PmonUpdateByPass;
 import jl95.tbb.pmon.update.PmonUpdateBySwitchIn;
 import jl95.tbb.pmon.update.atomic.*;
 import jl95.util.StrictMap;
@@ -144,7 +145,7 @@ public class PmonBattleDemo {
                         }
                         throw new UnsupportedOperationException();
                     });
-                    return strict(I.of(monPositionsAble.iter()).toMap(id -> id, id -> {
+                    return strict(I.of(monPositionsAble).toMap(id -> id, id -> {
 
                         var mon = party.monsOnField.get(id);
                         System.out.println(partyName+" is making a decision for "+Pmons.namesMap.get(mon.id)+" ..."); pause();
@@ -185,6 +186,14 @@ public class PmonBattleDemo {
 
                         if (id != PartyIds.PLAYER1) return;
                         pmonUpdate.call(new PmonUpdate.Handlers() {
+                            @Override
+                            public void pass(PmonUpdateByPass update) {
+                                var party = globalContextRef.get().parties.get(update.partyId);
+                                System.out.printf("%s's %s won't do anything!\n",
+                                        PartyIds.namesMap.get(update.partyId),
+                                        Pmons.namesMap.get(party.monsOnField.get(update.monFieldPosition).id)); pause();
+                            }
+
                             @Override
                             public void switchIn(PmonUpdateBySwitchIn update) {
                                 var party = globalContextRef.get().parties.get(update.partyId);

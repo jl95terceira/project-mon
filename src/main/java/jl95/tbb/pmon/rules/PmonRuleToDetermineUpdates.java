@@ -1,6 +1,7 @@
 package jl95.tbb.pmon.rules;
 
 import jl95.lang.I;
+import jl95.lang.StrictList;
 import jl95.lang.variadic.Tuple2;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonPartyDecision;
@@ -32,9 +33,9 @@ public class PmonRuleToDetermineUpdates {
     public static class DecisionSorting {
         public record MoveInfo(PartyId partyId, MonFieldPosition monId, Integer moveIndex, Integer speed, Integer priorityModifier, StrictMap<PartyId, ? extends Iterable<MonFieldPosition>> targets, Boolean pursuit) {}
         public record SwitchInInfo(PartyId partyId, MonFieldPosition monId, Integer monSwitchInIndex) {}
-        public List<DecisionSorting.SwitchInInfo> switchInList    = List();
-        public List<DecisionSorting.MoveInfo>     moveNormalList  = List();
-        public List<DecisionSorting.MoveInfo>     movePursuitList = List();
+        public StrictList<SwitchInInfo>             switchInList    = strict(List());
+        public StrictList<DecisionSorting.MoveInfo> moveNormalList  = strict(List());
+        public StrictList<DecisionSorting.MoveInfo> movePursuitList = strict(List());
         public StrictMap<Tuple2<PartyId, MonFieldPosition>, Integer> switchInMap = strict(Map());
     }
 
@@ -45,7 +46,7 @@ public class PmonRuleToDetermineUpdates {
     public Iterable<PmonUpdate> detUpdates(PmonGlobalContext context, StrictMap<PartyId, MonPartyDecision<PmonDecision>> decisionsMap) {
             // group decisions and calculate speeds + priorities
             var s = new DecisionSorting();
-            List<DecisionSorting.MoveInfo> moveList = List();
+            StrictList<DecisionSorting.MoveInfo> moveList = strict(List());
             var allowedToDecide = ruleset.allowedToDecide(context);
             for (var e: decisionsMap.entrySet()) {
 
@@ -76,16 +77,16 @@ public class PmonRuleToDetermineUpdates {
                             var mon = context.parties.get(partyId).monsOnField.get(monId);
                             var monSpeed = mon.attrs.baseStats.speed;
                             var move = context.parties.get(partyId).monsOnField.get(monId).moves.get(useMoveDecision.moveIndex);
-                            List<Integer> speedModifiers = List();
+                            StrictList<Integer> speedModifiers = strict(List());
                             if (mon.status.statModifiers.containsKey(PmonStatModifierType.SPEED)) {
 
                                 speedModifiers.add(mon.status.statModifiers.get(PmonStatModifierType.SPEED));
                             }
-                            for (var statusProblem: mon.status.statusConditions.values()) {
+                            for (var statusCondition: mon.status.statusConditions.values()) {
 
-                                if (statusProblem.statModifiers.containsKey(PmonStatModifierType.SPEED)) {
+                                if (statusCondition.attrs.statModifiers.containsKey(PmonStatModifierType.SPEED)) {
 
-                                    speedModifiers.add(statusProblem.statModifiers.get(PmonStatModifierType.SPEED));
+                                    speedModifiers.add(statusCondition.attrs.statModifiers.get(PmonStatModifierType.SPEED));
                                 }
                             }
                             for (var speedModifier: speedModifiers) {
@@ -127,7 +128,7 @@ public class PmonRuleToDetermineUpdates {
                                     : speedDiffWithRng(m1.speed - m2.speed));
             }
             // evaluate decisions into updates - where THE GOOD STUFF happens
-            List<PmonUpdate> updates = List();
+            StrictList<PmonUpdate> updates = strict(List());
             var moveInfoToUpdate = method((DecisionSorting.MoveInfo moveInfo) -> {
 
                 var updateByMove = new PmonUpdateByMove();
@@ -160,7 +161,7 @@ public class PmonRuleToDetermineUpdates {
                                 }
                                 else if (ruleset.roll100(move.attrs.accuracy)) {
 
-                                    List<PmonAtomicEffect> atomicEffects = List();
+                                    StrictList<PmonAtomicEffect> atomicEffects = strict(List());
                                     for (var n: I.range(ruleset.rngBetweenInclusive(move.attrs.hitNrTimesRange))) {
 
                                         // damage

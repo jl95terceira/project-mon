@@ -108,6 +108,11 @@ public class PmonRuleToUpdateContext {
             }
 
             @Override
+            public void pass(PmonUpdateByPass update) {
+
+            }
+
+            @Override
             public void switchIn(PmonUpdateBySwitchIn update) {
 
                 var party = context.parties.get(update.partyId);

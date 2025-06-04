@@ -1,5 +1,6 @@
 package jl95.tbb.pmon.attrs;
 
+import jl95.lang.StrictList;
 import jl95.lang.variadic.Function0;
 import jl95.lang.variadic.Function1;
 import jl95.lang.variadic.Tuple2;
@@ -24,9 +25,8 @@ public class PmonMoveAttributes {
     public StrictMap<PmonStatModifierType, Chanced<Integer>> statModifiers = strict(Map());
     public Integer priorityModifier = 0;
     public Boolean pursuit = false;
-    public List<Chanced<Function0<PmonStatusCondition>>> statusConditions = List();
+    public StrictList<Chanced<Function0<PmonStatusCondition>>> statusConditions = strict(List());
     public Boolean disableLastMove = false;
-    public Boolean exhaustLastMove = false;
 
     public PmonMoveAttributes(PmonType pmonType) {
         this.pmonType = pmonType;
