@@ -15,22 +15,24 @@ import java.util.Optional;
 import static jl95.lang.SuperPowers.*;
 
 public class MonBattle<
-        Mon, FoeMonView,
+        Mon, PartyEntry extends MonPartyEntry<Mon>,
+        Party extends MonParty<Mon>,
         InitialConditions,
-        LocalContext extends MonLocalContext<Mon>, GlobalContext extends MonGlobalContext<Mon>,
+        LocalContext extends MonLocalContext<Mon, Party>,
+        GlobalContext extends MonGlobalContext<Mon, Party>,
         MonDecision,
         GlobalUpdate, LocalUpdate
         > {
 
     public final MonRuleset<
-            Mon, FoeMonView,
+            Mon, PartyEntry, Party,
             InitialConditions,
             LocalContext, GlobalContext,
             MonDecision,
             GlobalUpdate, LocalUpdate
             > ruleset;
     public final jl95.tbb.Battle<
-            MonPartyEntry<Mon>,
+            PartyEntry,
             InitialConditions,
             LocalContext, GlobalContext,
             MonPartyDecision<MonDecision>,
@@ -39,7 +41,7 @@ public class MonBattle<
             > upcastBattle;
 
     public MonBattle(MonRuleset<
-                Mon, FoeMonView,
+                Mon, PartyEntry, Party,
                 InitialConditions,
                 LocalContext, GlobalContext,
                 MonDecision,
@@ -51,7 +53,7 @@ public class MonBattle<
     }
 
     public Optional<PartyId> spawn(
-            StrictMap<PartyId, MonPartyEntry<Mon>> parties,
+            StrictMap<PartyId, PartyEntry> parties,
             InitialConditions initialConditions,
             Function2<StrictMap<MonFieldPosition, MonDecision>, PartyId, StrictSet<MonFieldPosition>> decisionFunction,
             Battle.Listeners<LocalUpdate, LocalContext, GlobalContext> listeners,

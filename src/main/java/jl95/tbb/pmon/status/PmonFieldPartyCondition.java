@@ -7,16 +7,14 @@ import jl95.lang.variadic.Function1;
 import jl95.util.AutoHashcoded;
 import jl95.util.StrictMap;
 
-public class PmonGlobalFieldCondition {
+public class PmonFieldPartyCondition {
 
     public static class Id extends AutoHashcoded {}
 
     public final Id id;
     public StrictMap<PmonStatModifierType, Integer> statModifiers = strict(Map());
-    public Integer turnNr = 0;
     public Function1<Double, Integer> cureChanceByTurn = turnNr_ -> 0.0;
-    public Function1<Double, Integer> immobiliseChanceByTurn = turnNr_ -> 0.0;
-    public Boolean allowDecide = true;
+    public Integer turnNr = 0;
 
-    public PmonGlobalFieldCondition(Id id) {this.id = id;}
+    public PmonFieldPartyCondition(Id id) {this.id = id;}
 }

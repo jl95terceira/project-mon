@@ -19,7 +19,7 @@ import java.util.*;
 // that can be implemented case-by-case, to change the rules of the game.
 
 public class PmonRuleset implements MonRuleset<
-        Pmon, PmonFoeView,
+        Pmon, PmonPartyEntry, PmonParty,
         PmonInitialConditions,
         PmonLocalContext,
         PmonGlobalContext,
@@ -80,12 +80,12 @@ public class PmonRuleset implements MonRuleset<
     }
 
     @Override
-    public PmonGlobalContext init(StrictMap<PartyId, MonPartyEntry<Pmon>> parties, PmonInitialConditions initialConditions) {
+    public PmonGlobalContext init(StrictMap<PartyId, PmonPartyEntry> parties, PmonInitialConditions initialConditions) {
         
         var context = new PmonGlobalContext();
         for (var e: parties.entrySet()) {
             var partyId = e.getKey();
-            var party = MonParty.fromEntry(e.getValue());
+            var party = PmonParty.fromEntry(e.getValue());
             context.parties.put(partyId, party);
             for (var i: I.range(howManyMonsAllowedOnField(initialConditions, partyId))) {
                 party.monsOnField.put(new MonFieldPosition(), party.mons.get(i));

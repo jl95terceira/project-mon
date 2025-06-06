@@ -5,7 +5,7 @@ import jl95.tbb.mon.MonRuleset;
 import jl95.tbb.pmon.update.PmonUpdate;
 
 public class PmonBattle extends MonBattle<
-        Pmon, PmonFoeView,
+        Pmon, PmonPartyEntry, PmonParty,
         PmonInitialConditions,
         PmonLocalContext,
         PmonGlobalContext,
@@ -13,7 +13,7 @@ public class PmonBattle extends MonBattle<
         PmonUpdate, PmonUpdate
         > {
 
-    public PmonBattle(MonRuleset<Pmon, PmonFoeView, PmonInitialConditions, PmonLocalContext, PmonGlobalContext, PmonDecision, PmonUpdate, PmonUpdate> ruleset) {
+    public PmonBattle(MonRuleset<Pmon, PmonPartyEntry, PmonParty, PmonInitialConditions, PmonLocalContext, PmonGlobalContext, PmonDecision, PmonUpdate, PmonUpdate> ruleset) {
         super(ruleset);
     }
 }

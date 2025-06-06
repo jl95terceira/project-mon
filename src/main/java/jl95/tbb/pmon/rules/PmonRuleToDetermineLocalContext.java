@@ -5,6 +5,7 @@ import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonGlobalContext;
 import jl95.tbb.pmon.Pmon;
 import jl95.tbb.pmon.PmonFoeView;
+import jl95.tbb.pmon.PmonGlobalContext;
 import jl95.tbb.pmon.PmonLocalContext;
 import jl95.tbb.pmon.PmonRuleset;
 
@@ -18,7 +19,7 @@ public class PmonRuleToDetermineLocalContext {
 
     public PmonRuleToDetermineLocalContext(PmonRuleset ruleset) {this.ruleset = ruleset;}
 
-    public PmonLocalContext detLocalContext(MonGlobalContext<Pmon> context, PartyId ownPartyId) {
+    public PmonLocalContext detLocalContext(PmonGlobalContext context, PartyId ownPartyId) {
 
         var foePartiesView = strict(I
                 .of(context.parties.keySet())

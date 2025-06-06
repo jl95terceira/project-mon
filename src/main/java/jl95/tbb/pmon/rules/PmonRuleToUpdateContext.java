@@ -1,13 +1,13 @@
 package jl95.tbb.pmon.rules;
 
 import jl95.lang.I;
-import jl95.tbb.mon.MonGlobalContext;
 import jl95.tbb.mon.MonFieldPosition;
-import jl95.tbb.pmon.Pmon;
+import jl95.tbb.pmon.PmonGlobalContext;
 import jl95.tbb.pmon.PmonRuleset;
 import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.update.*;
 import jl95.tbb.pmon.update.atomic.*;
+import jl95.util.StrictMap;
 
 import static jl95.lang.SuperPowers.*;
 
@@ -17,19 +17,21 @@ public class PmonRuleToUpdateContext {
 
     public PmonRuleToUpdateContext(PmonRuleset ruleset) {this.ruleset = ruleset;}
 
-    public void update(MonGlobalContext<Pmon> context, PmonUpdate pmonUpdate) {
+    public void update(PmonGlobalContext context, PmonUpdate pmonUpdate) {
 
         pmonUpdate.call(new PmonUpdate.Handlers() {
 
             @Override
             public void move(PmonUpdateByMove moveUpdate) {
 
+                var party = context.parties.get(moveUpdate.partyId);
+                var mon   = party.monsOnField.get(moveUpdate.monId);
                 for (var t: moveUpdate.updatesOnTargets) {
 
-                    var partyId = t.a1;
-                    var party = context.parties.get(partyId);
-                    var monId = t.a2;
-                    var mon = party.monsOnField.get(monId);
+                    var targetPartyId  = t.a1;
+                    var targetParty    = context.parties.get(targetPartyId);
+                    var targetMonId    = t.a2;
+                    var targetMon      = targetParty.monsOnField.get(targetMonId);
                     var updateOnTarget = t.a3;
                     updateOnTarget.call(new PmonUpdateByMove.UpdateOnTarget.Handlers() {
 
@@ -50,14 +52,19 @@ public class PmonRuleToUpdateContext {
                                     public void damage(PmonAtomicEffectByDamage damageUpdate) {
 
                                         // damage
-                                        mon.status.hp = function((Integer hpRemaining) -> hpRemaining > 0 ? hpRemaining : 0).apply(mon.status.hp - damageUpdate.damage);
+                                        targetMon.status.hp = function((Integer hpRemaining) -> hpRemaining > 0? hpRemaining: 0)
+                                            .apply(targetMon.status.hp - damageUpdate.damage);
+                                        if (damageUpdate.healback != null) {
+                                            mon.status.hp = function((Integer hpRemaining) -> hpRemaining < mon.attrs.baseStats.hp? hpRemaining: mon.attrs.baseStats.hp)
+                                                .apply(mon.status.hp + damageUpdate.healback);
+                                        }
                                     }
 
                                     @Override
                                     public void statModify(PmonAtomicEffectByStatModifier statUpdate) {
 
                                         // stat modifiers
-                                        var monStatModifiers = mon.status.statModifiers;
+                                        var monStatModifiers = targetMon.status.statModifiers;
                                         for (var e: statUpdate.increments.entrySet()) {
 
                                             PmonStatModifierType type = e.getKey();
@@ -75,16 +82,16 @@ public class PmonRuleToUpdateContext {
                                         // status conditions
                                         for (var condition: conditionUpdate.statusConditionsApply) {
 
-                                            if (mon.status.statusConditions.containsKey(condition.id)) /* not to apply existing condition */ {
+                                            if (targetMon.status.statusConditions.containsKey(condition.id)) /* not to apply existing condition */ {
 
                                                 continue;
                                             }
-                                            if (I.any(I.of(mon.status.statusConditions.keySet())
+                                            if (I.any(I.of(targetMon.status.statusConditions.keySet())
                                                     .map(sc -> ruleset.areExclusive(sc, condition.id)))) /* not to apply condition that is mutually exclusive with existing */ {
 
                                                 continue;
                                             }
-                                            mon.status.statusConditions.put(condition.id, condition);
+                                            targetMon.status.statusConditions.put(condition.id, condition);
                                         }
                                     }
 
@@ -92,7 +99,7 @@ public class PmonRuleToUpdateContext {
                                     public void switchIn(PmonAtomicEffectBySwitchIn update) {
 
                                         // switch-in
-                                        party.monsOnField.put(monId, party.mons.get(update.monToSwitchInIndex));
+                                        targetParty.monsOnField.put(targetMonId, targetParty.mons.get(update.monToSwitchInIndex));
                                     }
                                 });
                             }
@@ -120,5 +127,20 @@ public class PmonRuleToUpdateContext {
                 party.monsOnField.put(new MonFieldPosition(), party.mons.get(update.monToSwitchInPartyPosition));
             }
         });
+        for (var condition: context.fieldConditions.values()) {
+
+            condition.turnNr += 1;
+        }
+        for (var party: context.parties.values()) {
+
+            for (var condition: party.fieldConditions.values()) {
+
+                condition.turnNr += 1;
+            }
+            for (var condition: I.of(party.fieldConditionsByMon.values()).flatmap(StrictMap::values)) {
+
+                condition.turnNr += 1;
+            }
+        }
     }
 }

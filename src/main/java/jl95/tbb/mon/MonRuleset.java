@@ -7,16 +7,18 @@ import jl95.util.StrictSet;
 import java.util.Optional;
 
 public interface MonRuleset<
-        Mon, FoeMonView,
+        Mon,
+        PartyEntry extends MonPartyEntry<Mon>,
+        Party extends MonParty<Mon>,
         InitialConditions,
-        LocalContext extends MonLocalContext<Mon>,
-        GlobalContext extends MonGlobalContext<Mon>,
+        LocalContext extends MonLocalContext<Mon, Party>,
+        GlobalContext extends MonGlobalContext<Mon, Party>,
         MonDecision,
         GlobalUpdate, LocalUpdate
         > {
 
     GlobalContext
-    init(StrictMap<PartyId, MonPartyEntry<Mon>> parties,
+    init(StrictMap<PartyId, PartyEntry> parties,
          InitialConditions initialConditions);
 
     Iterable<GlobalUpdate>
@@ -51,7 +53,7 @@ public interface MonRuleset<
     allowedToDecide(GlobalContext context);
 
     default jl95.tbb.Ruleset<
-            MonPartyEntry<Mon>,
+            PartyEntry,
             InitialConditions,
             LocalContext,
             GlobalContext,
@@ -62,7 +64,7 @@ public interface MonRuleset<
         return new jl95.tbb.Ruleset<>() {
 
             @Override
-            public GlobalContext init(StrictMap<PartyId, MonPartyEntry<Mon>> parties, InitialConditions initialConditions) {
+            public GlobalContext init(StrictMap<PartyId, PartyEntry> parties, InitialConditions initialConditions) {
                 return MonRuleset.this.init(parties, initialConditions);
             }
 

@@ -23,8 +23,6 @@ import jl95.tbb.pmon.update.atomic.PmonAtomicEffectByStatModifier;
 import jl95.tbb.pmon.update.atomic.PmonAtomicEffectByStatusCondition;
 import jl95.util.StrictMap;
 
-import java.util.List;
-
 import static java.lang.Math.floor;
 import static jl95.lang.SuperPowers.*;
 
@@ -78,16 +76,21 @@ public class PmonRuleToDetermineUpdates {
                             var monSpeed = mon.attrs.baseStats.speed;
                             var move = context.parties.get(partyId).monsOnField.get(monId).moves.get(useMoveDecision.moveIndex);
                             StrictList<Integer> speedModifiers = strict(List());
+                            StrictList<Double> speedFactors = strict(List());
                             if (mon.status.statModifiers.containsKey(PmonStatModifierType.SPEED)) {
 
                                 speedModifiers.add(mon.status.statModifiers.get(PmonStatModifierType.SPEED));
                             }
                             for (var statusCondition: mon.status.statusConditions.values()) {
 
-                                if (statusCondition.attrs.statModifiers.containsKey(PmonStatModifierType.SPEED)) {
+                                if (statusCondition.attrs.statFactors.containsKey(PmonStatModifierType.SPEED)) {
 
-                                    speedModifiers.add(statusCondition.attrs.statModifiers.get(PmonStatModifierType.SPEED));
+                                    speedFactors.add(statusCondition.attrs.statFactors.get(PmonStatModifierType.SPEED));
                                 }
+                            }
+                            for (var speedFactor: speedFactors) {
+
+                                monSpeed = (int) (monSpeed * speedFactor);
                             }
                             for (var speedModifier: speedModifiers) {
 
@@ -169,6 +172,9 @@ public class PmonRuleToDetermineUpdates {
                                         var damageAndEffectiveness = ruleset.detDamage(mon, useMoveDecision.moveIndex, ruleset.constants.CRITICAL_HIT_CHANCE >= ruleset.rng(), targetMon);
                                         if (damageAndEffectiveness.a1) {
                                             damageUpdate.damage = (int) floor(move.attrs.powerReductionFactorByNrTargets.apply(nrTargets) * damageAndEffectiveness.a2);
+                                            if (move.attrs.healbackFactor != null) {
+                                                damageUpdate.healback = (int)(move.attrs.healbackFactor * damageUpdate.damage);
+                                            }
                                             damageUpdate.effectivenessFactor = damageAndEffectiveness.a3;
                                             atomicEffects.add(PmonAtomicEffect.by(damageUpdate));
                                         }

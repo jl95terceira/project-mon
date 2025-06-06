@@ -19,6 +19,7 @@ public class PmonMoveAttributes {
     public PmonMoveType type = PmonMoveType.NORMAL;
     public PmonType pmonType;
     public PmonMovePower power = PmonMovePower.none();
+    public Double healbackFactor = null;
     public Function1<Double, Integer> powerReductionFactorByNrTargets = n -> (1.0 / n);
     public Tuple2<Integer, Integer> hitNrTimesRange = tuple(1,1);
     public Integer accuracy = 0;

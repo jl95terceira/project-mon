@@ -6,6 +6,7 @@ import jl95.tbb.mon.MonGlobalContext;
 import jl95.tbb.mon.MonParty;
 import jl95.tbb.mon.MonFieldPosition;
 import jl95.tbb.pmon.Pmon;
+import jl95.tbb.pmon.PmonGlobalContext;
 import jl95.tbb.pmon.PmonRuleset;
 import jl95.util.StrictMap;
 import jl95.util.StrictSet;
@@ -20,7 +21,7 @@ public class PmoRuleToDetermineAllowedToDecide {
 
     public PmoRuleToDetermineAllowedToDecide(PmonRuleset ruleset) {this.ruleset = ruleset;}
 
-    public StrictMap<PartyId, StrictSet<MonFieldPosition>> allowedToDecide(MonGlobalContext<Pmon> context) {
+    public StrictMap<PartyId, StrictSet<MonFieldPosition>> allowedToDecide(PmonGlobalContext context) {
 
         // If all mons are alive, everyone gets to decide - use move, switch-in, etc.
         // If there are any fainted mons, only switch-ins are allowed and only for the fainted mons.
