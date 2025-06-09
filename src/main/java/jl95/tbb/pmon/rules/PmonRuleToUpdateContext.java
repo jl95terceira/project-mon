@@ -123,8 +123,7 @@ public class PmonRuleToUpdateContext {
             public void switchIn(PmonUpdateBySwitchIn update) {
 
                 var party = context.parties.get(update.partyId);
-                party.monsOnField.remove(update.monFieldPosition);
-                party.monsOnField.put(new MonFieldPosition(), party.mons.get(update.monToSwitchInPartyPosition));
+                party.monsOnField.put(update.monFieldPosition, party.mons.get(update.monToSwitchInPartyPosition));
             }
         });
         for (var condition: context.fieldConditions.values()) {

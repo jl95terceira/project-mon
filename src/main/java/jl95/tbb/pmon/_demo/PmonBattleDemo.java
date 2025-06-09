@@ -127,7 +127,7 @@ public class PmonBattleDemo {
                     var party = globalContextRef.get().parties.get(p);
                     var decision = function((Pmon mon) -> {
 
-                        if (mon.status.hp <= 0) {
+                        if (mon.status.hp <= 0 || I.of(mon.status.statModifiers.values()).any(stages -> stages <= -2)) {
                             var decisionToSwitchIn = new PmonDecisionToSwitchIn();
                             for (var i: I.range(party.mons.size())) {
                                 var monToSwitchIn = party.mons.get(i);
@@ -137,13 +137,10 @@ public class PmonBattleDemo {
                                 return PmonDecision.from(decisionToSwitchIn);
                             }
                         }
-                        else {
-                            var decisionToUseMove = new PmonDecisionToUseMove();
-                            decisionToUseMove.moveIndex = new Random().nextInt(0, mon.moves.size());
-                            decisionToUseMove.targets.put(pFoe, I(localContextRefs.get(p).foeParty.get(pFoe).keySet().iterator().next()));
-                            return PmonDecision.from(decisionToUseMove);
-                        }
-                        throw new UnsupportedOperationException();
+                        var decisionToUseMove = new PmonDecisionToUseMove();
+                        decisionToUseMove.moveIndex = new Random().nextInt(0, mon.moves.size());
+                        decisionToUseMove.targets.put(pFoe, I(localContextRefs.get(p).foeParty.get(pFoe).keySet().iterator().next()));
+                        return PmonDecision.from(decisionToUseMove);
                     });
                     return strict(I.of(monPositionsAble).toMap(id -> id, id -> {
 
