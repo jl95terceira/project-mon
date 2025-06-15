@@ -21,6 +21,7 @@ import jl95.tbb.pmon.update.PmonUpdateBySwitchIn;
 import jl95.util.StrictMap;
 import jl95.util.StrictSet;
 
+import java.util.Map;
 import java.util.Random;
 
 import static jl95.lang.SuperPowers.*;
@@ -120,7 +121,8 @@ public class PmonBattleDemo {
                         tuple(PartyIds.PLAYER1, playerEntry),
                         tuple(PartyIds.PLAYER2, npcEntry))),
                 new PmonInitialConditions(),
-                function((PartyId p, StrictSet<MonFieldPosition> monPositionsAble) -> {
+                function((StrictMap<PartyId, StrictSet<MonFieldPosition>> monPositionsAbleMap) -> strict(I.of(monPositionsAbleMap.entrySet())
+                        .toMap(Map.Entry::getKey, e -> function((PartyId p, StrictSet<MonFieldPosition> monPositionsAble) -> {
 
                     var partyName = PartyIds.namesMap.get(p);
                     var pFoe = localContextRefs.get(p).foeParty.keySet().iterator().next(); // only 1 foe in this demo (1v1) so get single next
@@ -129,7 +131,7 @@ public class PmonBattleDemo {
 
                         if (mon.status.hp <= 0 || I.of(mon.status.statModifiers.values()).any(stages -> stages <= -2)) {
                             var decisionToSwitchIn = new PmonDecisionToSwitchIn();
-                            for (var i: I.range(party.mons.size())) {
+                            for (var i : I.range(party.mons.size())) {
                                 var monToSwitchIn = party.mons.get(i);
                                 if (monToSwitchIn.status.hp <= 0) continue;
                                 if (monToSwitchIn == mon) continue;
@@ -145,12 +147,14 @@ public class PmonBattleDemo {
                     return strict(I.of(monPositionsAble).toMap(id -> id, id -> {
 
                         var mon = party.monsOnField.get(id);
-                        System.out.println(partyName+" is making a decision for "+Pmons.namesMap.get(mon.id)+" ..."); pause();
+                        System.out.println(partyName + " is making a decision for " + Pmons.namesMap.get(mon.id) + " ...");
+                        pause();
                         var d = decision.apply(mon);
-                        System.out.println(partyName+" has decided!"); pause();
+                        System.out.println(partyName + " has decided!");
+                        pause();
                         return d;
                     }));
-                }),
+                }).apply(e.getKey(), e.getValue())))),
                 new Battle.Listeners<>() {
                     @Override
                     public void onGlobalContext(PmonGlobalContext context) {

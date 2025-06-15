@@ -2,6 +2,7 @@ package jl95.tbb.mon;
 
 import jl95.lang.Ref;
 import jl95.lang.variadic.Function0;
+import jl95.lang.variadic.Function1;
 import jl95.lang.variadic.Function2;
 import jl95.tbb.Battle;
 import jl95.tbb.PartyId;
@@ -10,6 +11,7 @@ import jl95.util.StrictMap;
 import jl95.util.StrictSet;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import static jl95.lang.SuperPowers.*;
@@ -55,7 +57,7 @@ public class MonBattle<
     public Optional<PartyId> spawn(
             StrictMap<PartyId, PartyEntry> parties,
             InitialConditions initialConditions,
-            Function2<StrictMap<MonFieldPosition, MonDecision>, PartyId, StrictSet<MonFieldPosition>> decisionFunction,
+            Function1<StrictMap<PartyId, StrictMap<MonFieldPosition, MonDecision>>, StrictMap<PartyId, StrictSet<MonFieldPosition>>> decisionFunction,
             Battle.Listeners<LocalUpdate, LocalContext, GlobalContext> listeners,
             Function0<Boolean> toInterrupt
     ) {
@@ -78,15 +80,15 @@ public class MonBattle<
                 listeners.onLocalUpdate(id, localUpdate);
             }
         };
-        return this.upcastBattle.spawn(parties, initialConditions, () -> strict(I.of(parties.keySet()).toMap(partyId -> partyId, partyId -> {
+        return this.upcastBattle.spawn(parties, initialConditions, () -> {
 
-            var partyDecision = new MonPartyDecision<MonDecision>();
             var allowedToDecide = ruleset.allowedToDecide(globalContextRef.get());
-            var monDecisions = decisionFunction.apply(partyId, strict(I.of(globalContextRef.get().parties.get(partyId).monsOnField.keySet())
-                    .filter(monId -> (allowedToDecide.containsKey(partyId) && allowedToDecide.get(partyId).contains(monId)))
-                    .toSet()));
-            partyDecision.monDecisions.putAll(monDecisions);
-            return partyDecision;
-        })), extendedCallbacks, toInterrupt);
+            var partyDecisionsMap = decisionFunction.apply(allowedToDecide);
+            return strict(I.of(partyDecisionsMap.entrySet()).toMap(Map.Entry::getKey, e -> {
+                var partyDecision = new MonPartyDecision<MonDecision>();
+                partyDecision.monDecisions.putAll(e.getValue());
+                return partyDecision;
+            }));
+        }, extendedCallbacks, toInterrupt);
     }
 }
