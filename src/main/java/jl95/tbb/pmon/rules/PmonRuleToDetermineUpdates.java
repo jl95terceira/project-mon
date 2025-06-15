@@ -17,10 +17,10 @@ import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.update.PmonUpdate;
 import jl95.tbb.pmon.update.PmonUpdateByMove;
 import jl95.tbb.pmon.update.PmonUpdateBySwitchIn;
-import jl95.tbb.pmon.update.atomic.PmonAtomicEffect;
-import jl95.tbb.pmon.update.atomic.PmonAtomicEffectByDamage;
-import jl95.tbb.pmon.update.atomic.PmonAtomicEffectByStatModifier;
-import jl95.tbb.pmon.update.atomic.PmonAtomicEffectByStatusCondition;
+import jl95.tbb.pmon.effect.PmonEffect;
+import jl95.tbb.pmon.effect.PmonEffectByDamage;
+import jl95.tbb.pmon.effect.PmonEffectByStatModifier;
+import jl95.tbb.pmon.effect.PmonEffectByStatusCondition;
 import jl95.util.StrictMap;
 
 import static java.lang.Math.floor;
@@ -164,11 +164,11 @@ public class PmonRuleToDetermineUpdates {
                                 }
                                 else if (ruleset.roll100(move.attrs.accuracy)) {
 
-                                    StrictList<PmonAtomicEffect> atomicEffects = strict(List());
+                                    StrictList<PmonEffect> atomicEffects = strict(List());
                                     for (var n: I.range(ruleset.rngBetweenInclusive(move.attrs.hitNrTimesRange))) {
 
                                         // damage
-                                        var damageUpdate = new PmonAtomicEffectByDamage();
+                                        var damageUpdate = new PmonEffectByDamage();
                                         var damageAndEffectiveness = ruleset.detDamage(mon, useMoveDecision.moveIndex, ruleset.constants.CRITICAL_HIT_CHANCE >= ruleset.rng(), targetMon);
                                         if (damageAndEffectiveness.a1) {
                                             damageUpdate.damage = (int) floor(move.attrs.powerReductionFactorByNrTargets.apply(nrTargets) * damageAndEffectiveness.a2);
@@ -176,10 +176,10 @@ public class PmonRuleToDetermineUpdates {
                                                 damageUpdate.healback = (int)(move.attrs.healbackFactor * damageUpdate.damage);
                                             }
                                             damageUpdate.effectivenessFactor = damageAndEffectiveness.a3;
-                                            atomicEffects.add(PmonAtomicEffect.by(damageUpdate));
+                                            atomicEffects.add(PmonEffect.by(damageUpdate));
                                         }
                                         // stat modify
-                                        var statUpdate = new PmonAtomicEffectByStatModifier();
+                                        var statUpdate = new PmonEffectByStatModifier();
                                         for (var e: move.attrs.statModifiers.entrySet()) {
                                             PmonStatModifierType type = e.getKey();
                                             Chanced<Integer> chancedStatModify = e.getValue();
@@ -188,17 +188,17 @@ public class PmonRuleToDetermineUpdates {
                                             }
                                         }
                                         if (!(statUpdate.increments.isEmpty() && statUpdate.resets.isEmpty())) {
-                                            atomicEffects.add(PmonAtomicEffect.by(statUpdate));
+                                            atomicEffects.add(PmonEffect.by(statUpdate));
                                         }
                                         // status conditions
-                                        var conditionUpdate = new PmonAtomicEffectByStatusCondition();
+                                        var conditionUpdate = new PmonEffectByStatusCondition();
                                         for (var chancedStatusConditionSupplier: move.attrs.statusConditions) {
                                             if (ruleset.roll100(chancedStatusConditionSupplier.chance)) {
                                                 conditionUpdate.statusConditionsApply.add(chancedStatusConditionSupplier.value.apply());
                                             }
                                         }
                                         if (!(conditionUpdate.statusConditionsApply.isEmpty() && conditionUpdate.statusConditionsRemove.isEmpty())) {
-                                            atomicEffects.add(PmonAtomicEffect.by(conditionUpdate));
+                                            atomicEffects.add(PmonEffect.by(conditionUpdate));
                                         }
                                     }
                                     updateOnTarget = PmonUpdateByMove.UpdateOnTarget.hit(atomicEffects);

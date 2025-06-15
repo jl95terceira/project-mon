@@ -7,6 +7,7 @@ import jl95.tbb.Battle;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonFieldPosition;
 import jl95.tbb.pmon.*;
+import jl95.tbb.pmon.effect.*;
 import jl95.tbb.pmon.attrs.PmonMoveEffectivenessType;
 import jl95.tbb.pmon.attrs.PmonMovePower;
 import jl95.tbb.pmon.attrs.PmonType;
@@ -17,7 +18,6 @@ import jl95.tbb.pmon.update.PmonUpdate;
 import jl95.tbb.pmon.update.PmonUpdateByMove;
 import jl95.tbb.pmon.update.PmonUpdateByPass;
 import jl95.tbb.pmon.update.PmonUpdateBySwitchIn;
-import jl95.tbb.pmon.update.atomic.*;
 import jl95.util.StrictMap;
 import jl95.util.StrictSet;
 
@@ -218,13 +218,13 @@ public class PmonBattleDemo {
                                         }
 
                                         @Override
-                                        public void hit(Iterable<PmonAtomicEffect> atomicUpdates) {
+                                        public void hit(Iterable<PmonEffect> atomicUpdates) {
                                             var foePartyName = PartyIds.namesMap.get(foePartyId);
                                             var foeMonName = Pmons.namesMap.get(foeMon.id);
                                             for (var atomicUpdate: atomicUpdates) {
-                                                atomicUpdate.call(new PmonAtomicEffect.Handlers() {
+                                                atomicUpdate.call(new PmonEffect.Handlers() {
                                                     @Override
-                                                    public void damage(PmonAtomicEffectByDamage update) {
+                                                    public void damage(PmonEffectByDamage update) {
                                                         if (update.criticalHit) {
                                                             System.out.println("It's a critical hit!");
                                                         }
@@ -235,17 +235,17 @@ public class PmonBattleDemo {
                                                     }
 
                                                     @Override
-                                                    public void statModify(PmonAtomicEffectByStatModifier update) {
+                                                    public void statModify(PmonEffectByStatModifier update) {
                                                         System.out.printf("It modified the stats of %s's %s!%n", foePartyName, foeMonName);
                                                     }
 
                                                     @Override
-                                                    public void statusCondition(PmonAtomicEffectByStatusCondition update) {
+                                                    public void statusCondition(PmonEffectByStatusCondition update) {
                                                         System.out.printf("It applied a status condition on %s's %s!%n", foePartyName, foeMonName);
                                                     }
 
                                                     @Override
-                                                    public void switchIn(PmonAtomicEffectBySwitchIn update) {
+                                                    public void switchIn(PmonEffectBySwitchIn update) {
                                                         System.out.printf("???%n");
                                                     }
                                                 });

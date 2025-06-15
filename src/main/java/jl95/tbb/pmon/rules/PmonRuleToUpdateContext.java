@@ -1,12 +1,11 @@
 package jl95.tbb.pmon.rules;
 
 import jl95.lang.I;
-import jl95.tbb.mon.MonFieldPosition;
 import jl95.tbb.pmon.PmonGlobalContext;
 import jl95.tbb.pmon.PmonRuleset;
+import jl95.tbb.pmon.effect.*;
 import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.update.*;
-import jl95.tbb.pmon.update.atomic.*;
 import jl95.util.StrictMap;
 
 import static jl95.lang.SuperPowers.*;
@@ -42,14 +41,14 @@ public class PmonRuleToUpdateContext {
                         }
 
                         @Override
-                        public void hit(Iterable<PmonAtomicEffect> updates) {
+                        public void hit(Iterable<PmonEffect> updates) {
 
                             for (var update: updates) {
 
-                                update.call(new PmonAtomicEffect.Handlers() {
+                                update.call(new PmonEffect.Handlers() {
 
                                     @Override
-                                    public void damage(PmonAtomicEffectByDamage damageUpdate) {
+                                    public void damage(PmonEffectByDamage damageUpdate) {
 
                                         // damage
                                         targetMon.status.hp = function((Integer hpRemaining) -> hpRemaining > 0? hpRemaining: 0)
@@ -61,7 +60,7 @@ public class PmonRuleToUpdateContext {
                                     }
 
                                     @Override
-                                    public void statModify(PmonAtomicEffectByStatModifier statUpdate) {
+                                    public void statModify(PmonEffectByStatModifier statUpdate) {
 
                                         // stat modifiers
                                         var monStatModifiers = targetMon.status.statModifiers;
@@ -77,7 +76,7 @@ public class PmonRuleToUpdateContext {
                                     }
 
                                     @Override
-                                    public void statusCondition(PmonAtomicEffectByStatusCondition conditionUpdate) {
+                                    public void statusCondition(PmonEffectByStatusCondition conditionUpdate) {
 
                                         // status conditions
                                         for (var condition: conditionUpdate.statusConditionsApply) {
@@ -96,7 +95,7 @@ public class PmonRuleToUpdateContext {
                                     }
 
                                     @Override
-                                    public void switchIn(PmonAtomicEffectBySwitchIn update) {
+                                    public void switchIn(PmonEffectBySwitchIn update) {
 
                                         // switch-in
                                         targetParty.monsOnField.put(targetMonId, targetParty.mons.get(update.monToSwitchInIndex));

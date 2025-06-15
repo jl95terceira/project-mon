@@ -42,7 +42,7 @@ public class Battle<
 
     public Optional<PartyId> spawn(StrictMap<PartyId, PartyEntry> parties,
                                    InitialConditions initialConditions,
-                                   Function1<Decision, PartyId> decisionFunction,
+                                   Function0<StrictMap<PartyId, Decision>> decisionFunction,
                                    Listeners<LocalUpdate, LocalContext, GlobalContext> listeners,
                                    Function0<Boolean> toInterrupt) {
 
@@ -68,7 +68,6 @@ public class Battle<
             }
         });
         tellLocalContexts.accept();
-        var decisionsThreadPool = new ScheduledThreadPoolExecutor(parties.size());
         var handleUpdates = method((Iterable<GlobalUpdate> updates) -> {
             for (GlobalUpdate globalUpdate: updates) {
                 tellLocalUpdates.accept(globalUpdate);
@@ -92,25 +91,7 @@ public class Battle<
             for (var e: localContextsMap.entrySet()) {
                 listeners.onLocalContext(e.getKey(), e.getValue());
             }
-            StrictMap<PartyId, CompletableFuture<Decision>> decisionPromisesMap = strict(I.of(partyIds).toMap(p -> p, p -> new CompletableFuture<>()));
-            for (var partyId: partyIds) {
-                decisionsThreadPool.execute(() -> {
-
-                    try {
-                        while (!toStop.apply()) {
-                            var decision = decisionFunction.apply(partyId);
-                            if (ruleset.isValid(globalContext, partyId, decision)) {
-                                decisionPromisesMap.get(partyId).complete(decision);
-                                break;
-                            }
-                        }
-                    }
-                    catch (Exception ex) {
-                        decisionPromisesMap.get(partyId).complete(null);
-                    }
-                });
-            }
-            StrictMap<PartyId, Decision> decisionsMap = strict(I.of(decisionPromisesMap.entrySet()).toMap(e -> e.getKey(), e -> uncheck(() -> e.getValue().get())));
+            var decisionsMap = decisionFunction.apply();
             for (var decision: decisionsMap.values()) {
                 if (decision == null) {
                     throw new BadDecisionException();

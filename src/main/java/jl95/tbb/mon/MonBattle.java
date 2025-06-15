@@ -78,7 +78,7 @@ public class MonBattle<
                 listeners.onLocalUpdate(id, localUpdate);
             }
         };
-        return this.upcastBattle.spawn(parties, initialConditions, function(partyId -> {
+        return this.upcastBattle.spawn(parties, initialConditions, () -> strict(I.of(parties.keySet()).toMap(partyId -> partyId, partyId -> {
 
             var partyDecision = new MonPartyDecision<MonDecision>();
             var allowedToDecide = ruleset.allowedToDecide(globalContextRef.get());
@@ -87,6 +87,6 @@ public class MonBattle<
                     .toSet()));
             partyDecision.monDecisions.putAll(monDecisions);
             return partyDecision;
-        }), extendedCallbacks, toInterrupt);
+        })), extendedCallbacks, toInterrupt);
     }
 }

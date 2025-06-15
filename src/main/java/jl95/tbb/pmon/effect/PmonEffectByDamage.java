@@ -1,6 +1,6 @@
-package jl95.tbb.pmon.update.atomic;
+package jl95.tbb.pmon.effect;
 
-public class PmonAtomicEffectByDamage {
+public class PmonEffectByDamage {
 
     public Integer damage = null;
     public Integer healback = null;
