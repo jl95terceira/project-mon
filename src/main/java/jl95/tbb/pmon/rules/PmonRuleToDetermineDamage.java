@@ -11,8 +11,12 @@ import jl95.tbb.pmon.PmonRuleset;
 import jl95.tbb.pmon.attrs.PmonMovePower;
 import jl95.tbb.pmon.attrs.PmonMoveType;
 import jl95.tbb.pmon.attrs.PmonStats;
+import jl95.tbb.pmon.effect.PmonEffectByDamage;
 import jl95.tbb.pmon.status.PmonStatModifierType;
+import jl95.tbb.pmon.update.PmonUpdateOnTarget;
+import jl95.tbb.pmon.update.PmonUpdateOnTargetByDamage;
 
+import static java.lang.Math.floor;
 import static jl95.lang.SuperPowers.*;
 
 public class PmonRuleToDetermineDamage {
@@ -21,43 +25,42 @@ public class PmonRuleToDetermineDamage {
 
     public PmonRuleToDetermineDamage(PmonRuleset ruleset) {this.ruleset = ruleset;}
 
-    public Tuple3<Boolean, Integer, Double> detDamage(Pmon mon,
-                                                      Integer moveIndex,
-                                                      Boolean critical,
-                                                      Pmon targetMon) {
+    public PmonUpdateOnTargetByDamage detDamage(Pmon mon,
+                                                PmonEffectByDamage effect,
+                                                Boolean critical,
+                                                Pmon targetMon) {
 
-        var move = mon.moves.get(moveIndex);
-        var isDamaging = new Ref<>(true);
+        var isDamagingR = new Ref<>(true);
         var damageR = new Ref<>(0);
         var effectivenessFactorR = new Ref<>(1.0);
-        move.attrs.power.call(new PmonMovePower.Handlers() {
+        effect.power.call(new PmonMovePower.Handlers() {
             @Override
             public void none() {
-                isDamaging.set(false);
+                isDamagingR.set(false);
             }
             @Override
             public void typed(Integer power) {
-                var sourceAttack = function((PmonStats stats) -> move.attrs.type == PmonMoveType.NORMAL
+                var sourceAttack = function((PmonStats stats) -> effect.type == PmonMoveType.NORMAL
                         ? stats.attack
                         : stats.specialAttack).apply(mon.attrs.baseStats);
-                var sourceAttackStatModifierType = move.attrs.type == PmonMoveType.NORMAL
+                var sourceAttackStatModifierType = effect.type == PmonMoveType.NORMAL
                         ? PmonStatModifierType.ATTACK
                         : PmonStatModifierType.SPECIAL_ATTACK;
                 sourceAttack = (int)(sourceAttack * ruleset.constants.STAT_MODIFIER_FACTOR.apply(sourceAttackStatModifierType, mon.status.statModifiers.getOrDefault(sourceAttackStatModifierType, 0)));
-                var targetDefense = function((PmonStats stats) -> move.attrs.type == PmonMoveType.NORMAL
+                var targetDefense = function((PmonStats stats) -> effect.type == PmonMoveType.NORMAL
                         ? stats.defense
                         : stats.specialDefense).apply(targetMon.attrs.baseStats);
-                var targetDefenseStatModifierType = move.attrs.type == PmonMoveType.NORMAL
+                var targetDefenseStatModifierType = effect.type == PmonMoveType.NORMAL
                         ? PmonStatModifierType.DEFENSE
                         : PmonStatModifierType.SPECIAL_DEFENSE;
                 targetDefense = (int)(targetDefense * ruleset.constants.STAT_MODIFIER_FACTOR.apply(targetDefenseStatModifierType, targetMon.status.statModifiers.getOrDefault(targetDefenseStatModifierType, 0)));
                 for (var targetMonType: targetMon.attrs.types.values()) {
-                    effectivenessFactorR.set(effectivenessFactorR.get() * ruleset.constants.POWER_FACTOR_MAP.get(move.attrs.pmonType.effectivenessAgainst(targetMonType)));
+                    effectivenessFactorR.set(effectivenessFactorR.get() * ruleset.constants.POWER_FACTOR_MAP.get(effect.pmonType.effectivenessAgainst(targetMonType)));
                 }
                 damageR.set((int)(0.44
                                * power
                                * sourceAttack / targetDefense
-                               * (mon.attrs.types.containsKey(move.attrs.pmonType.id)? ruleset.constants.STAB_FACTOR: 1.0)
+                               * (mon.attrs.types.containsKey(effect.pmonType.id)? ruleset.constants.STAB_FACTOR: 1.0)
                                * (critical? ruleset.constants.CRITICAL_HIT_POWER_FACTOR: 1.0)));
 
                 //TODO: consider abilities, status conditions, screen effects, etc.
@@ -79,6 +82,16 @@ public class PmonRuleToDetermineDamage {
                 damageR.set((int) (percent * targetMon.attrs.baseStats.hp));
             }
         });
-        return tuple(isDamaging.get(), damageR.get(), effectivenessFactorR.get());
+        if (!isDamagingR.get()) {
+            return null;
+        }
+        var update = new PmonUpdateOnTargetByDamage();
+        update.damage = damageR.get();
+        update.effectivenessFactor = effectivenessFactorR.get();
+        if (effect.healbackFactor != null) {
+            update.healback = (int)(effect.healbackFactor * update.damage);
+        }
+        update.criticalHit = critical;
+        return update;
     }
 }

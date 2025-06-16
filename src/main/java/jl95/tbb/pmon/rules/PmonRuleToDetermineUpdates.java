@@ -168,14 +168,10 @@ public class PmonRuleToDetermineUpdates {
                                     for (var n: I.range(ruleset.rngBetweenInclusive(move.attrs.hitNrTimesRange))) {
 
                                         // damage
-                                        var damageUpdate = new PmonUpdateOnTargetByDamage();
-                                        var damageAndEffectiveness = ruleset.detDamage(mon, useMoveDecision.moveIndex, ruleset.constants.CRITICAL_HIT_CHANCE >= ruleset.rng(), targetMon);
-                                        if (damageAndEffectiveness.a1) {
-                                            damageUpdate.damage = (int) floor(move.attrs.powerReductionFactorByNrTargets.apply(nrTargets) * damageAndEffectiveness.a2);
-                                            if (move.attrs.healbackFactor != null) {
-                                                damageUpdate.healback = (int)(move.attrs.healbackFactor * damageUpdate.damage);
-                                            }
-                                            damageUpdate.effectivenessFactor = damageAndEffectiveness.a3;
+                                        var damageUpdate = ruleset.detDamage(mon, mon.moves.get(useMoveDecision.moveIndex).attrs.damageEffect, ruleset.constants.CRITICAL_HIT_CHANCE >= ruleset.rng(), targetMon);
+                                        if (damageUpdate != null) {
+                                            System.out.printf("Critical hit = %s%n", damageUpdate.criticalHit);
+                                            damageUpdate.damage = (int) floor(move.attrs.powerReductionFactorByNrTargets.apply(nrTargets) * damageUpdate.damage);
                                             atomicEffects.add(PmonUpdateOnTarget.by(damageUpdate));
                                         }
                                         // stat modify

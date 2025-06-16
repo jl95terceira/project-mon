@@ -7,6 +7,7 @@ import jl95.lang.I;
 import jl95.lang.variadic.*;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.*;
+import jl95.tbb.pmon.effect.PmonEffectByDamage;
 import jl95.tbb.pmon.rules.*;
 import jl95.tbb.pmon.status.PmonStatusCondition;
 import jl95.tbb.pmon.update.*;
@@ -52,13 +53,13 @@ public class PmonRuleset implements MonRuleset<
         return chance >= (100 * rng());
     }
 
-    public Tuple3<Boolean, Integer, Double>
+    public PmonUpdateOnTargetByDamage
     detDamage(Pmon mon,
-              Integer moveIndex,
+              PmonEffectByDamage effect,
               Boolean critical,
               Pmon targetMon) {
 
-        return new PmonRuleToDetermineDamage(this).detDamage(mon, moveIndex, critical, targetMon);
+        return new PmonRuleToDetermineDamage(this).detDamage(mon, effect, critical, targetMon);
     }
 
     public Boolean
