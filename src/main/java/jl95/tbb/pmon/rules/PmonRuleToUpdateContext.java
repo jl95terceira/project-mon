@@ -3,7 +3,6 @@ package jl95.tbb.pmon.rules;
 import jl95.lang.I;
 import jl95.tbb.pmon.PmonGlobalContext;
 import jl95.tbb.pmon.PmonRuleset;
-import jl95.tbb.pmon.effect.*;
 import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.update.*;
 import jl95.util.StrictMap;
@@ -41,14 +40,14 @@ public class PmonRuleToUpdateContext {
                         }
 
                         @Override
-                        public void hit(Iterable<PmonEffect> updates) {
+                        public void hit(Iterable<PmonUpdateOnTarget> updates) {
 
                             for (var update: updates) {
 
-                                update.call(new PmonEffect.Handlers() {
+                                update.call(new PmonUpdateOnTarget.Handlers() {
 
                                     @Override
-                                    public void damage(PmonEffectByDamage damageUpdate) {
+                                    public void damage(PmonUpdateOnTargetByDamage damageUpdate) {
 
                                         // damage
                                         targetMon.status.hp = function((Integer hpRemaining) -> hpRemaining > 0? hpRemaining: 0)
@@ -60,7 +59,7 @@ public class PmonRuleToUpdateContext {
                                     }
 
                                     @Override
-                                    public void statModify(PmonEffectByStatModifier statUpdate) {
+                                    public void statModify(PmonUpdateOnTargetByStatModifier statUpdate) {
 
                                         // stat modifiers
                                         var monStatModifiers = targetMon.status.statModifiers;
@@ -76,7 +75,7 @@ public class PmonRuleToUpdateContext {
                                     }
 
                                     @Override
-                                    public void statusCondition(PmonEffectByStatusCondition conditionUpdate) {
+                                    public void statusCondition(PmonUpdateOnTargetByStatusCondition conditionUpdate) {
 
                                         // status conditions
                                         for (var condition: conditionUpdate.statusConditionsApply) {
@@ -95,7 +94,7 @@ public class PmonRuleToUpdateContext {
                                     }
 
                                     @Override
-                                    public void switchIn(PmonEffectBySwitchIn update) {
+                                    public void switchIn(PmonUpdateOnTargetBySwitchIn update) {
 
                                         // switch-in
                                         targetParty.monsOnField.put(targetMonId, targetParty.mons.get(update.monToSwitchInIndex));

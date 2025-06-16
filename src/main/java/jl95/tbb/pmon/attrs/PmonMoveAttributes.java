@@ -16,16 +16,16 @@ import static jl95.lang.SuperPowers.*;
 public class PmonMoveAttributes {
 
     public PmonMoveTargettingType targetType = PmonMoveTargettingType.FOE_SINGLE_MON;
+    public Integer accuracy = 0;
+    public Integer priorityModifier = 0;
+    public Boolean pursuit = false;
     public PmonMoveType type = PmonMoveType.NORMAL;
     public PmonType pmonType;
     public PmonMovePower power = PmonMovePower.none();
     public Double healbackFactor = null;
     public Function1<Double, Integer> powerReductionFactorByNrTargets = n -> (1.0 / n);
     public Tuple2<Integer, Integer> hitNrTimesRange = tuple(1,1);
-    public Integer accuracy = 0;
     public StrictMap<PmonStatModifierType, Chanced<Integer>> statModifiers = strict(Map());
-    public Integer priorityModifier = 0;
-    public Boolean pursuit = false;
     public StrictList<Chanced<Function0<PmonStatusCondition>>> statusConditions = strict(List());
     public Boolean disableLastMove = false;
 

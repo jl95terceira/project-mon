@@ -1,13 +1,14 @@
 package jl95.tbb.pmon.effect;
 
-import jl95.lang.StrictList;
-import jl95.tbb.pmon.status.PmonStatusCondition;
-import jl95.util.StrictSet;
+import static jl95.lang.SuperPowers.List;
+import static jl95.lang.SuperPowers.strict;
 
-import static jl95.lang.SuperPowers.*;
+import jl95.lang.StrictList;
+import jl95.lang.variadic.Function0;
+import jl95.tbb.pmon.Chanced;
+import jl95.tbb.pmon.status.PmonStatusCondition;
 
 public class PmonEffectByStatusCondition {
 
-    public StrictList<PmonStatusCondition> statusConditionsApply = strict(List());
-    public StrictSet<PmonStatusCondition.Id> statusConditionsRemove = strict(Set());
+    public StrictList<Chanced<Function0<PmonStatusCondition>>> statusConditions = strict(List());
 }

@@ -4,7 +4,6 @@ import jl95.lang.StrictList;
 import jl95.lang.variadic.Tuple3;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonFieldPosition;
-import jl95.tbb.pmon.effect.PmonEffect;
 
 import static jl95.lang.SuperPowers.List;
 import static jl95.lang.SuperPowers.strict;
@@ -17,14 +16,14 @@ public class PmonUpdateByMove {
 
         interface Handlers {
             void miss();
-            void hit(Iterable<PmonEffect> atomicUpdates);
+            void hit(Iterable<PmonUpdateOnTarget> atomicUpdates);
             void noTarget();
         }
 
         void call(Handlers handlers);
 
         static UpdateOnTarget miss() { return handlers -> handlers.miss(); }
-        static UpdateOnTarget hit(Iterable<PmonEffect> atomicUpdates) { return handlers -> handlers.hit(atomicUpdates); }
+        static UpdateOnTarget hit(Iterable<PmonUpdateOnTarget> atomicUpdates) { return handlers -> handlers.hit(atomicUpdates); }
         static UpdateOnTarget noTarget() { return handlers -> handlers.noTarget(); }
     }
 
