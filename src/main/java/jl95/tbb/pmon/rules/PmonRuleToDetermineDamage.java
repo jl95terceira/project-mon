@@ -1,19 +1,13 @@
 package jl95.tbb.pmon.rules;
 
 import jl95.lang.Ref;
-import jl95.lang.variadic.Tuple2;
-import jl95.lang.variadic.Tuple3;
-import jl95.tbb.PartyId;
-import jl95.tbb.mon.MonParty;
 import jl95.tbb.pmon.Pmon;
-import jl95.tbb.pmon.PmonGlobalContext;
 import jl95.tbb.pmon.PmonRuleset;
 import jl95.tbb.pmon.attrs.PmonMovePower;
 import jl95.tbb.pmon.attrs.PmonMoveType;
 import jl95.tbb.pmon.attrs.PmonStats;
 import jl95.tbb.pmon.effect.PmonEffectByDamage;
 import jl95.tbb.pmon.status.PmonStatModifierType;
-import jl95.tbb.pmon.update.PmonUpdateOnTarget;
 import jl95.tbb.pmon.update.PmonUpdateOnTargetByDamage;
 
 import static java.lang.Math.floor;
@@ -27,6 +21,7 @@ public class PmonRuleToDetermineDamage {
 
     public PmonUpdateOnTargetByDamage detDamage(Pmon mon,
                                                 PmonEffectByDamage effect,
+                                                Integer nrTargets,
                                                 Boolean critical,
                                                 Pmon targetMon) {
 
@@ -55,7 +50,7 @@ public class PmonRuleToDetermineDamage {
                         : PmonStatModifierType.SPECIAL_DEFENSE;
                 targetDefense = (int)(targetDefense * ruleset.constants.STAT_MODIFIER_FACTOR.apply(targetDefenseStatModifierType, targetMon.status.statModifiers.getOrDefault(targetDefenseStatModifierType, 0)));
                 for (var targetMonType: targetMon.attrs.types.values()) {
-                    effectivenessFactorR.set(effectivenessFactorR.get() * ruleset.constants.POWER_FACTOR_MAP.get(effect.pmonType.effectivenessAgainst(targetMonType)));
+                    effectivenessFactorR.set(effectivenessFactorR.get() * ruleset.constants.EFFECTIVENESS_POWER_FACTOR_MAP.get(effect.pmonType.effectivenessAgainst(targetMonType)));
                 }
                 damageR.set((int)(0.44
                                * power
@@ -86,7 +81,7 @@ public class PmonRuleToDetermineDamage {
             return null;
         }
         var update = new PmonUpdateOnTargetByDamage();
-        update.damage = damageR.get();
+        update.damage = (int) floor(effect.powerReductionFactorByNrTargets.apply(nrTargets) * damageR.get());
         update.effectivenessFactor = effectivenessFactorR.get();
         if (effect.healbackFactor != null) {
             update.healback = (int)(effect.healbackFactor * update.damage);

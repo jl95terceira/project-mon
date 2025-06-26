@@ -56,10 +56,11 @@ public class PmonRuleset implements MonRuleset<
     public PmonUpdateOnTargetByDamage
     detDamage(Pmon mon,
               PmonEffectByDamage effect,
+              Integer nrTargets,
               Boolean critical,
               Pmon targetMon) {
 
-        return new PmonRuleToDetermineDamage(this).detDamage(mon, effect, critical, targetMon);
+        return new PmonRuleToDetermineDamage(this).detDamage(mon, effect, nrTargets, critical, targetMon);
     }
 
     public Boolean

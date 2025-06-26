@@ -21,7 +21,6 @@ public class PmonMoveAttributes {
     public Integer priorityModifier = 0;
     public Boolean pursuit = false;
     public PmonEffectByDamage damageEffect = new PmonEffectByDamage();
-    public Function1<Double, Integer> powerReductionFactorByNrTargets = n -> (1.0 / n);
     public Tuple2<Integer, Integer> hitNrTimesRange = tuple(1,1);
     public StrictMap<PmonStatModifierType, Chanced<Integer>> statModifiers = strict(Map());
     public StrictList<Chanced<Function0<PmonStatusCondition>>> statusConditions = strict(List());

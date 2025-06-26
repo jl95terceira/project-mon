@@ -37,7 +37,7 @@ public class PmonRulesetConstants {
     public final Double
             POWER_FACTOR_OF_TYPE_DOES_NOT_AFFECT = 0.0;
     public final StrictMap<PmonMoveEffectivenessType, Double>
-            POWER_FACTOR_MAP = strict(Map(
+            EFFECTIVENESS_POWER_FACTOR_MAP = strict(Map(
                 tuple(PmonMoveEffectivenessType.SUPER_EFFECTIVE   , POWER_FACTOR_OF_TYPE_SUPER_EFFECTIVE),
                 tuple(PmonMoveEffectivenessType.NOT_VERY_EFFECTIVE, POWER_FACTOR_OF_TYPE_NOT_VERY_EFFECTIVE),
                 tuple(PmonMoveEffectivenessType.DOES_NOT_AFFECT   , POWER_FACTOR_OF_TYPE_DOES_NOT_AFFECT)
