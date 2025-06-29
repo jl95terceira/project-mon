@@ -1,16 +1,9 @@
 package jl95.tbb.pmon.attrs;
 
-import jl95.lang.StrictList;
-import jl95.lang.variadic.Function0;
-import jl95.lang.variadic.Function1;
 import jl95.lang.variadic.Tuple2;
-import jl95.tbb.pmon.Chanced;
 import jl95.tbb.pmon.effect.PmonEffectByDamage;
-import jl95.tbb.pmon.status.PmonStatModifierType;
-import jl95.tbb.pmon.status.PmonStatusCondition;
-import jl95.util.StrictMap;
-
-import java.util.List;
+import jl95.tbb.pmon.effect.PmonEffectByStatModify;
+import jl95.tbb.pmon.effect.PmonEffectByStatusCondition;
 
 import static jl95.lang.SuperPowers.*;
 
@@ -22,8 +15,8 @@ public class PmonMoveAttributes {
     public Boolean pursuit = false;
     public PmonEffectByDamage damageEffect = new PmonEffectByDamage();
     public Tuple2<Integer, Integer> hitNrTimesRange = tuple(1,1);
-    public StrictMap<PmonStatModifierType, Chanced<Integer>> statModifiers = strict(Map());
-    public StrictList<Chanced<Function0<PmonStatusCondition>>> statusConditions = strict(List());
+    public PmonEffectByStatModify statModifierEffect = new PmonEffectByStatModify();
+    public PmonEffectByStatusCondition statusConditionEffect = new PmonEffectByStatusCondition();
     public Boolean disableLastMove = false;
 
     public PmonMoveAttributes(PmonType pmonType) {

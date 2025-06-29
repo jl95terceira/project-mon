@@ -18,12 +18,10 @@ import jl95.tbb.pmon.update.PmonUpdate;
 import jl95.tbb.pmon.update.PmonUpdateByMove;
 import jl95.tbb.pmon.update.PmonUpdateBySwitchIn;
 import jl95.tbb.pmon.update.PmonUpdateOnTarget;
-import jl95.tbb.pmon.update.PmonUpdateOnTargetByDamage;
 import jl95.tbb.pmon.update.PmonUpdateOnTargetByStatModifier;
 import jl95.tbb.pmon.update.PmonUpdateOnTargetByStatusCondition;
 import jl95.util.StrictMap;
 
-import static java.lang.Math.floor;
 import static jl95.lang.SuperPowers.*;
 
 public class PmonRuleToDetermineUpdates {
@@ -174,7 +172,7 @@ public class PmonRuleToDetermineUpdates {
                                         }
                                         // stat modify
                                         var statUpdate = new PmonUpdateOnTargetByStatModifier();
-                                        for (var e: move.attrs.statModifiers.entrySet()) {
+                                        for (var e: move.attrs.statModifierEffect.statModifiers.entrySet()) {
                                             PmonStatModifierType type = e.getKey();
                                             Chanced<Integer> chancedStatModify = e.getValue();
                                             if (ruleset.roll100(chancedStatModify.chance)) {
@@ -186,7 +184,7 @@ public class PmonRuleToDetermineUpdates {
                                         }
                                         // status conditions
                                         var conditionUpdate = new PmonUpdateOnTargetByStatusCondition();
-                                        for (var chancedStatusConditionSupplier: move.attrs.statusConditions) {
+                                        for (var chancedStatusConditionSupplier: move.attrs.statusConditionEffect.statusConditions) {
                                             if (ruleset.roll100(chancedStatusConditionSupplier.chance)) {
                                                 conditionUpdate.statusConditionsApply.add(chancedStatusConditionSupplier.value.apply());
                                             }
