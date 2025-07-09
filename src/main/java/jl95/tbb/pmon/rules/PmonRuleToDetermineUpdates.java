@@ -166,13 +166,13 @@ public class PmonRuleToDetermineUpdates {
                                     for (var n: I.range(ruleset.rngBetweenInclusive(move.attrs.hitNrTimesRange))) {
 
                                         // damage
-                                        var damageUpdate = ruleset.detDamage(mon, mon.moves.get(useMoveDecision.moveIndex).attrs.damageEffect, nrTargets, ruleset.constants.CRITICAL_HIT_CHANCE >= ruleset.rng(), targetMon);
+                                        var damageUpdate = ruleset.detDamage(mon, mon.moves.get(useMoveDecision.moveIndex).attrs.effects.damage, nrTargets, ruleset.constants.CRITICAL_HIT_CHANCE >= ruleset.rng(), targetMon);
                                         if (damageUpdate != null) {
                                             atomicEffects.add(PmonUpdateOnTarget.by(damageUpdate));
                                         }
                                         // stat modify
                                         var statUpdate = new PmonUpdateOnTargetByStatModifier();
-                                        for (var e: move.attrs.statModifierEffect.statModifiers.entrySet()) {
+                                        for (var e: move.attrs.effects.stats.statModifiers.entrySet()) {
                                             PmonStatModifierType type = e.getKey();
                                             Chanced<Integer> chancedStatModify = e.getValue();
                                             if (ruleset.roll100(chancedStatModify.chance)) {
@@ -184,7 +184,7 @@ public class PmonRuleToDetermineUpdates {
                                         }
                                         // status conditions
                                         var conditionUpdate = new PmonUpdateOnTargetByStatusCondition();
-                                        for (var chancedStatusConditionSupplier: move.attrs.statusConditionEffect.statusConditions) {
+                                        for (var chancedStatusConditionSupplier: move.attrs.effects.status.statusConditions) {
                                             if (ruleset.roll100(chancedStatusConditionSupplier.chance)) {
                                                 conditionUpdate.statusConditionsApply.add(chancedStatusConditionSupplier.value.apply());
                                             }

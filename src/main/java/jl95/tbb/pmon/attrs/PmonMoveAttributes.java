@@ -4,6 +4,7 @@ import jl95.lang.variadic.Tuple2;
 import jl95.tbb.pmon.effect.PmonEffectByDamage;
 import jl95.tbb.pmon.effect.PmonEffectByStatModify;
 import jl95.tbb.pmon.effect.PmonEffectByStatusCondition;
+import jl95.tbb.pmon.effect.PmonEffects;
 
 import static jl95.lang.SuperPowers.*;
 
@@ -13,12 +14,10 @@ public class PmonMoveAttributes {
     public Integer accuracy = 0;
     public Integer priorityModifier = 0;
     public Boolean interceptsSwitch = false;
-    public PmonEffectByDamage damageEffect = new PmonEffectByDamage();
+    public PmonEffects effects = new PmonEffects();
     public Tuple2<Integer, Integer> hitNrTimesRange = tuple(1,1);
-    public PmonEffectByStatModify statModifierEffect = new PmonEffectByStatModify();
-    public PmonEffectByStatusCondition statusConditionEffect = new PmonEffectByStatusCondition();
 
     public PmonMoveAttributes(PmonType pmonType) {
-        this.damageEffect.pmonType = pmonType;
+        this.effects.damage.pmonType = pmonType;
     }
 }
