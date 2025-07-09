@@ -11,7 +11,8 @@ import jl95.util.StrictMap;
 public class PmonStatusConditionAttributes {
 
     public StrictMap<PmonStatModifierType, Double> statFactors = strict(Map());
-    public Function0<Double> cureChance = () -> 0.0;
-    public Function0<Double> immobiliseChance = () -> 0.0;
-    public Boolean allowDecide = true;
+    public Function0<Double> cureChance = () -> 0.0; //TODO: use this
+    public Function0<Double> immobiliseChance = () -> 0.0; //TODO: use this
+    public Boolean allowDecide = true; //TODO: use this
+    public Boolean allowSwitchOut = true; //TODO: use this
 }

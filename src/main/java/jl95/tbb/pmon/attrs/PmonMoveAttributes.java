@@ -9,15 +9,14 @@ import static jl95.lang.SuperPowers.*;
 
 public class PmonMoveAttributes {
 
-    public PmonMoveTargettingType targetType = PmonMoveTargettingType.FOE_SINGLE_MON;
+    public PmonMoveTargettingType targetType = PmonMoveTargettingType.FOE_SINGLE_MON; //TODO: validate move target(s) against targeting type, in PmonRuleToValidateDecision
     public Integer accuracy = 0;
     public Integer priorityModifier = 0;
-    public Boolean pursuit = false;
+    public Boolean interceptsSwitch = false;
     public PmonEffectByDamage damageEffect = new PmonEffectByDamage();
     public Tuple2<Integer, Integer> hitNrTimesRange = tuple(1,1);
     public PmonEffectByStatModify statModifierEffect = new PmonEffectByStatModify();
     public PmonEffectByStatusCondition statusConditionEffect = new PmonEffectByStatusCondition();
-    public Boolean disableLastMove = false;
 
     public PmonMoveAttributes(PmonType pmonType) {
         this.damageEffect.pmonType = pmonType;

@@ -41,29 +41,29 @@ public class PmonRuleToValidateDecision {
                 public void switchIn(PmonDecisionToSwitchIn decision) {
 
                     if (!I.range(party.mons.size()).toSet().contains(decision.monSwitchInIndex)) {
-                        ref.set(false);
+                        ref.set(false); return;
                     }
-                    else {
-                        var monToSwitchIn = party.mons.get(decision.monSwitchInIndex);
-                        if (!ruleset.isAlive(monToSwitchIn)) {
-                            ref.set(false);
+                    for (var condition: mon.status.statusConditions.values()) {
+                        if (!condition.attrs.allowSwitchOut) {
+                            ref.set(false); return;
                         }
+                    }
+                    var monToSwitchIn = party.mons.get(decision.monSwitchInIndex);
+                    if (!ruleset.isAlive(monToSwitchIn)) {
+                        ref.set(false); return;
                     }
                 }
                 @Override
                 public void useMove(PmonDecisionToUseMove decision) {
                     if (!ruleset.isAlive(mon)) {
-                        ref.set(false); // mon fainted - must NOT use move
+                        ref.set(false); return; // mon fainted - must NOT use move
                     }
-                    else {
-                        if  (!I.range(mon.moves.size()).toSet().contains(decision.moveIndex)) {
-                            ref.set(false);
-                        } else {
-                            var move = mon.moves.get(decision.moveIndex);
-                            if (move.status.disabled || move.status.pp <= 0) {
-                                ref.set(false);
-                            }
-                        }
+                    if  (!I.range(mon.moves.size()).toSet().contains(decision.moveIndex)) {
+                        ref.set(false); return;
+                    }
+                    var move = mon.moves.get(decision.moveIndex);
+                    if (move.status.disabled || move.status.pp <= 0) {
+                        ref.set(false); return;
                     }
                 }
             });

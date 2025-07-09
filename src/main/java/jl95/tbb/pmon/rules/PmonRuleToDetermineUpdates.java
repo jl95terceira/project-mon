@@ -94,7 +94,7 @@ public class PmonRuleToDetermineUpdates {
 
                                 monSpeed = (int) (monSpeed * ruleset.constants.STAT_MODIFIER_FACTOR.apply(PmonStatModifierType.SPEED, speedModifier));
                             }
-                            moveList.add(new DecisionSorting.MoveInfo(partyId, monId, useMoveDecision.moveIndex, monSpeed, move.attrs.priorityModifier, useMoveDecision.targets, move.attrs.pursuit));
+                            moveList.add(new DecisionSorting.MoveInfo(partyId, monId, useMoveDecision.moveIndex, monSpeed, move.attrs.priorityModifier, useMoveDecision.targets, move.attrs.interceptsSwitch));
                         }
                     });
                 }

@@ -13,7 +13,7 @@ public class PmonStatusCondition {
     public static class Id extends AutoHashcoded {}
 
     public final Id id;
-    public Integer turnNr = 0;
+    public Integer turnNr = 0; //TODO: use this
     public PmonStatusConditionAttributes attrs = new PmonStatusConditionAttributes();
 
     public PmonStatusCondition(Id id) {
