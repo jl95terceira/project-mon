@@ -14,5 +14,5 @@ public class PmonStatusConditionAttributes {
     public Function0<Double> cureChance = () -> 0.0; //TODO: use this
     public Function0<Double> immobiliseChance = () -> 0.0; //TODO: use this
     public Boolean allowDecide = true; //TODO: use this
-    public Boolean allowSwitchOut = true; //TODO: use this
+    public Boolean allowSwitchOut = true;
 }
