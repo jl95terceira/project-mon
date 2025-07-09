@@ -27,11 +27,11 @@ import static jl95.lang.SuperPowers.*;
 public class PmonRuleToDetermineUpdates {
 
     public static class DecisionSorting {
-        public record MoveInfo(PartyId partyId, MonFieldPosition monId, Integer moveIndex, Integer speed, Integer priorityModifier, StrictMap<PartyId, ? extends Iterable<MonFieldPosition>> targets, Boolean pursuit) {}
+        public record MoveInfo(PartyId partyId, MonFieldPosition monId, Integer moveIndex, Integer speed, Integer priorityModifier, StrictMap<PartyId, ? extends Iterable<MonFieldPosition>> targets, Boolean interceptsSwitch) {}
         public record SwitchInInfo(PartyId partyId, MonFieldPosition monId, Integer monSwitchInIndex) {}
-        public StrictList<SwitchInInfo>             switchInList    = strict(List());
-        public StrictList<DecisionSorting.MoveInfo> moveNormalList  = strict(List());
-        public StrictList<DecisionSorting.MoveInfo> movePursuitList = strict(List());
+        public StrictList<SwitchInInfo>             switchInList      = strict(List());
+        public StrictList<DecisionSorting.MoveInfo> moveNormalList    = strict(List());
+        public StrictList<DecisionSorting.MoveInfo> moveInterceptList = strict(List());
         public StrictMap<Tuple2<PartyId, MonFieldPosition>, Integer> switchInMap = strict(Map());
     }
 
@@ -108,9 +108,9 @@ public class PmonRuleToDetermineUpdates {
                     for (var targetMonId: targetMons.getValue()) {
 
                         var targetMonAbsId = tuple(targetPartyId, targetMonId);
-                        if (move.pursuit && s.switchInMap.containsKey(targetMonAbsId)) {
+                        if (move.interceptsSwitch && s.switchInMap.containsKey(targetMonAbsId)) {
 
-                            s.movePursuitList.add(move);
+                            s.moveInterceptList.add(move);
                             return;
                         }
                     }
@@ -122,7 +122,7 @@ public class PmonRuleToDetermineUpdates {
                 sortMove.accept(move);
             }
             // sort decisions
-            for (var list: I(s.moveNormalList, s.movePursuitList)) {
+            for (var list: I(s.moveNormalList, s.moveInterceptList)) {
 
                 list.sort((m1, m2) -> m1.priorityModifier > m2.priorityModifier?  1
                                     : m1.priorityModifier < m2.priorityModifier? -1
@@ -207,8 +207,8 @@ public class PmonRuleToDetermineUpdates {
                 updates.add(PmonUpdate.by(updateByMove));
             });
 
-            // pursuit-switch-in moves
-            for (var moveInfo: s.movePursuitList) {
+            // interceptsSwitch-switch-in moves
+            for (var moveInfo: s.moveInterceptList) {
                 moveInfoToUpdate.accept(moveInfo);
             }
 
