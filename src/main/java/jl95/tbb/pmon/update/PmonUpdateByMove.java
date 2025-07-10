@@ -15,20 +15,21 @@ public class PmonUpdateByMove {
     public interface UpdateOnTarget {
 
         interface Handlers {
-            void miss();
-            void hit(Iterable<PmonUpdateOnTarget> atomicUpdates);
+            void miss    ();
+            void hit     (Iterable<PmonUpdateOnTarget> atomicUpdates);
             void noTarget();
         }
 
         void call(Handlers handlers);
 
-        static UpdateOnTarget miss() { return handlers -> handlers.miss(); }
-        static UpdateOnTarget hit(Iterable<PmonUpdateOnTarget> atomicUpdates) { return handlers -> handlers.hit(atomicUpdates); }
-        static UpdateOnTarget noTarget() { return handlers -> handlers.noTarget(); }
+        static UpdateOnTarget miss    ()                                           { return handlers -> handlers.miss(); }
+        static UpdateOnTarget hit     (Iterable<PmonUpdateOnTarget> atomicUpdates) { return handlers -> handlers.hit(atomicUpdates); }
+        static UpdateOnTarget noTarget()                                           { return handlers -> handlers.noTarget(); }
     }
 
-    public PartyId partyId = NO_PARTY;
-    public MonFieldPosition monId = NO_FIELD_POSITION;
-    public Integer moveIndex = -1;
-    public StrictList<Tuple3<PartyId, MonFieldPosition, UpdateOnTarget>> updatesOnTargets = strict(List());
+    public PartyId          partyId   = NO_PARTY;
+    public MonFieldPosition monId     = NO_FIELD_POSITION;
+    public Integer          moveIndex = -1;
+    public StrictList<Tuple3<PartyId, MonFieldPosition, UpdateOnTarget>>
+                            updatesOnTargets = strict(List());
 }

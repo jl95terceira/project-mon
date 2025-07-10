@@ -162,13 +162,13 @@ public class PmonRuleToDetermineUpdates {
                                 }
                                 else if (ruleset.roll100(move.attrs.accuracy)) {
 
-                                    StrictList<PmonUpdateOnTarget> atomicEffects = strict(List());
+                                    StrictList<PmonUpdateOnTarget> atomicUpdates = strict(List());
                                     for (var n: I.range(ruleset.rngBetweenInclusive(move.attrs.hitNrTimesRange))) {
 
                                         // damage
                                         var damageUpdate = ruleset.detDamage(mon, mon.moves.get(useMoveDecision.moveIndex).attrs.effects.damage, nrTargets, ruleset.constants.CRITICAL_HIT_CHANCE >= ruleset.rng(), targetMon);
                                         if (damageUpdate != null) {
-                                            atomicEffects.add(PmonUpdateOnTarget.by(damageUpdate));
+                                            atomicUpdates.add(PmonUpdateOnTarget.by(damageUpdate));
                                         }
                                         // stat modify
                                         var statUpdate = new PmonUpdateOnTargetByStatModifier();
@@ -180,7 +180,7 @@ public class PmonRuleToDetermineUpdates {
                                             }
                                         }
                                         if (!(statUpdate.increments.isEmpty() && statUpdate.resets.isEmpty())) {
-                                            atomicEffects.add(PmonUpdateOnTarget.by(statUpdate));
+                                            atomicUpdates.add(PmonUpdateOnTarget.by(statUpdate));
                                         }
                                         // status conditions
                                         var conditionUpdate = new PmonUpdateOnTargetByStatusCondition();
@@ -190,10 +190,10 @@ public class PmonRuleToDetermineUpdates {
                                             }
                                         }
                                         if (!(conditionUpdate.statusConditionsApply.isEmpty() && conditionUpdate.statusConditionsRemove.isEmpty())) {
-                                            atomicEffects.add(PmonUpdateOnTarget.by(conditionUpdate));
+                                            atomicUpdates.add(PmonUpdateOnTarget.by(conditionUpdate));
                                         }
                                     }
-                                    updateOnTarget = PmonUpdateByMove.UpdateOnTarget.hit(atomicEffects);
+                                    updateOnTarget = PmonUpdateByMove.UpdateOnTarget.hit(atomicUpdates);
                                 }
                                 else {
 
