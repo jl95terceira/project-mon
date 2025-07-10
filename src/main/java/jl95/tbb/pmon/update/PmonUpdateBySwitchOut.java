@@ -5,7 +5,7 @@ import jl95.tbb.mon.MonFieldPosition;
 
 import static jl95.tbb.pmon.attrs.PmonDefaults.*;
 
-public class PmonUpdateBySwitchIn {
+public class PmonUpdateBySwitchOut {
 
         public PartyId partyId = NO_PARTY;
         public MonFieldPosition monFieldPosition = NO_FIELD_POSITION;

@@ -8,7 +8,7 @@ import jl95.tbb.pmon.PmonDecision;
 import jl95.tbb.pmon.PmonGlobalContext;
 import jl95.tbb.pmon.PmonRuleset;
 import jl95.tbb.pmon.decision.PmonDecisionToPass;
-import jl95.tbb.pmon.decision.PmonDecisionToSwitchIn;
+import jl95.tbb.pmon.decision.PmonDecisionToSwitchOut;
 import jl95.tbb.pmon.decision.PmonDecisionToUseMove;
 
 public class PmonRuleToValidateDecision {
@@ -38,7 +38,7 @@ public class PmonRuleToValidateDecision {
                     }
                 }
                 @Override
-                public void switchIn(PmonDecisionToSwitchIn decision) {
+                public void switchOut(PmonDecisionToSwitchOut decision) {
 
                     if (!I.range(party.mons.size()).toSet().contains(decision.monSwitchInIndex)) {
                         ref.set(false); return;

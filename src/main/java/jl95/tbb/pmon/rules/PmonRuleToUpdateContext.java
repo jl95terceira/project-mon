@@ -94,7 +94,7 @@ public class PmonRuleToUpdateContext {
                                     }
 
                                     @Override
-                                    public void switchIn(PmonUpdateOnTargetBySwitchIn update) {
+                                    public void switchOut(PmonUpdateOnTargetBySwitchOut update) {
 
                                         // switch-in
                                         targetParty.monsOnField.put(targetMonId, targetParty.mons.get(update.monToSwitchInIndex));
@@ -118,7 +118,7 @@ public class PmonRuleToUpdateContext {
             }
 
             @Override
-            public void switchIn(PmonUpdateBySwitchIn update) {
+            public void switchOut(PmonUpdateBySwitchOut update) {
 
                 var party = context.parties.get(update.partyId);
                 party.monsOnField.put(update.monFieldPosition, party.mons.get(update.monToSwitchInPartyPosition));
