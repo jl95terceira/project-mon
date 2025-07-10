@@ -32,7 +32,7 @@ public class PmonRuleToDetermineUpdates {
         public StrictList<SwitchInInfo>             switchInList      = strict(List());
         public StrictList<DecisionSorting.MoveInfo> moveNormalList    = strict(List());
         public StrictList<DecisionSorting.MoveInfo> moveInterceptList = strict(List());
-        public StrictMap<Tuple2<PartyId, MonFieldPosition>, Integer> switchInMap = strict(Map());
+        public StrictMap<Tuple2<PartyId, MonFieldPosition>, Integer> switchOutMap = strict(Map());
     }
 
     public final PmonRuleset ruleset;
@@ -99,7 +99,7 @@ public class PmonRuleToDetermineUpdates {
                     });
                 }
             }
-            s.switchInMap = strict(I.of(s.switchInList).enumer(0).toMap(t -> tuple(t.a2.partyId(), t.a2.monId()), t -> t.a1));
+            s.switchOutMap = strict(I.of(s.switchInList).enumer(0).toMap(t -> tuple(t.a2.partyId(), t.a2.monId()), t -> t.a1));
             var sortMove = method((DecisionSorting.MoveInfo move) -> {
 
                 for (var targetMons: move.targets.entrySet()) {
@@ -108,7 +108,7 @@ public class PmonRuleToDetermineUpdates {
                     for (var targetMonId: targetMons.getValue()) {
 
                         var targetMonAbsId = tuple(targetPartyId, targetMonId);
-                        if (move.interceptsSwitch && s.switchInMap.containsKey(targetMonAbsId)) {
+                        if (move.interceptsSwitch && s.switchOutMap.containsKey(targetMonAbsId)) {
 
                             s.moveInterceptList.add(move);
                             return;
