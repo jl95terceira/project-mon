@@ -165,33 +165,7 @@ public class PmonRuleToDetermineUpdates {
                                     StrictList<PmonUpdateOnTarget> atomicUpdates = strict(List());
                                     for (var n: I.range(ruleset.rngBetweenInclusive(move.attrs.hitNrTimesRange))) {
 
-                                        // damage
-                                        var damageUpdate = ruleset.detDamage(mon, mon.moves.get(useMoveDecision.moveIndex).attrs.effects.damage, nrTargets, ruleset.constants.CRITICAL_HIT_CHANCE >= ruleset.rng(), targetMon);
-                                        if (damageUpdate != null) {
-                                            atomicUpdates.add(PmonUpdateOnTarget.by(damageUpdate));
-                                        }
-                                        // stat modify
-                                        var statUpdate = new PmonUpdateOnTargetByStatModifier();
-                                        for (var e: move.attrs.effects.stats.statModifiers.entrySet()) {
-                                            PmonStatModifierType type = e.getKey();
-                                            Chanced<Integer> chancedStatModify = e.getValue();
-                                            if (ruleset.roll100(chancedStatModify.chance)) {
-                                                statUpdate.increments.put(type, chancedStatModify.value);
-                                            }
-                                        }
-                                        if (!(statUpdate.increments.isEmpty() && statUpdate.resets.isEmpty())) {
-                                            atomicUpdates.add(PmonUpdateOnTarget.by(statUpdate));
-                                        }
-                                        // status conditions
-                                        var conditionUpdate = new PmonUpdateOnTargetByStatusCondition();
-                                        for (var chancedStatusConditionSupplier: move.attrs.effects.status.statusConditions) {
-                                            if (ruleset.roll100(chancedStatusConditionSupplier.chance)) {
-                                                conditionUpdate.statusConditionsApply.add(chancedStatusConditionSupplier.value.apply());
-                                            }
-                                        }
-                                        if (!(conditionUpdate.statusConditionsApply.isEmpty() && conditionUpdate.statusConditionsRemove.isEmpty())) {
-                                            atomicUpdates.add(PmonUpdateOnTarget.by(conditionUpdate));
-                                        }
+                                        atomicUpdates.addAll(new PmonRuleToDetermineUpdatesFromEffects(ruleset).detUpdates(mon, targetMon, move.attrs.effects, nrTargets));
                                     }
                                     updateOnTarget = PmonUpdateByMove.UpdateOnTarget.hit(atomicUpdates);
                                 }
