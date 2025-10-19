@@ -3,11 +3,10 @@ package jl95.tbb.pmon;
 import jl95.tbb.pmon.attrs.PmonMoveAttributes;
 import jl95.tbb.pmon.attrs.PmonType;
 import jl95.tbb.pmon.status.PmonMoveStatus;
-import jl95.util.AutoHashcoded;
 
 public class PmonMove {
 
-    public static class Id extends AutoHashcoded {}
+    public static class Id {}
 
     public final Id id;
     public PmonMoveAttributes attrs;

@@ -1,13 +1,11 @@
 package jl95.tbb.pmon.rules;
 
-import jl95.lang.I;
 import jl95.lang.StrictList;
 import jl95.tbb.pmon.Chanced;
 import jl95.tbb.pmon.Pmon;
 import jl95.tbb.pmon.PmonRuleset;
 import jl95.tbb.pmon.effect.PmonEffects;
 import jl95.tbb.pmon.status.PmonStatModifierType;
-import jl95.tbb.pmon.update.PmonUpdateByMove;
 import jl95.tbb.pmon.update.PmonUpdateOnTarget;
 import jl95.tbb.pmon.update.PmonUpdateOnTargetByStatModifier;
 import jl95.tbb.pmon.update.PmonUpdateOnTargetByStatusCondition;
@@ -25,7 +23,7 @@ public class PmonRuleToDetermineUpdatesFromEffects {
 
         StrictList<PmonUpdateOnTarget> atomicUpdates = strict(List());
         // damage
-        var damageUpdate = ruleset.detDamage(mon, effects.damage, nrTargets, ruleset.constants.CRITICAL_HIT_CHANCE >= ruleset.rng(), targetMon);
+        var damageUpdate = ruleset.detDamage(mon, effects.damage, nrTargets, ruleset.constants.CRITICAL_HIT_CHANCE >= ruleset.rngCritical.get(), targetMon);
         if (damageUpdate != null) {
             atomicUpdates.add(PmonUpdateOnTarget.by(damageUpdate));
         }
@@ -34,7 +32,7 @@ public class PmonRuleToDetermineUpdatesFromEffects {
         for (var e: effects.stats.statModifiers.entrySet()) {
             PmonStatModifierType type = e.getKey();
             Chanced<Integer> chancedStatModify = e.getValue();
-            if (ruleset.roll100(chancedStatModify.chance)) {
+            if (ruleset.rngStatModify.roll100(chancedStatModify.chance)) {
                 statUpdate.increments.put(type, chancedStatModify.value);
             }
         }
@@ -44,7 +42,7 @@ public class PmonRuleToDetermineUpdatesFromEffects {
         // status conditions
         var conditionUpdate = new PmonUpdateOnTargetByStatusCondition();
         for (var chancedStatusConditionSupplier: effects.status.statusConditions) {
-            if (ruleset.roll100(chancedStatusConditionSupplier.chance)) {
+            if (ruleset.rngStatusCondition.roll100(chancedStatusConditionSupplier.chance)) {
                 conditionUpdate.statusConditionsApply.add(chancedStatusConditionSupplier.value.apply());
             }
         }

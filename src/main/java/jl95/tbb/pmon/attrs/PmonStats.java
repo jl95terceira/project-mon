@@ -2,10 +2,10 @@ package jl95.tbb.pmon.attrs;
 
 public class PmonStats {
 
-    public Integer hp = 0;
-    public Integer attack = 0;
-    public Integer defense = 0;
-    public Integer specialAttack = 0;
-    public Integer specialDefense = 0;
-    public Integer speed = 0;
+    public int hp             = 0;
+    public int attack         = 0;
+    public int defense        = 0;
+    public int specialDefense = 0;
+    public int specialAttack  = 0;
+    public int speed          = 0;
 }

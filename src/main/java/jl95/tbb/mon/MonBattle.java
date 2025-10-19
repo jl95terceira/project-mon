@@ -57,7 +57,8 @@ public class MonBattle<
     public Optional<PartyId> spawn(
             StrictMap<PartyId, PartyEntry> parties,
             InitialConditions initialConditions,
-            Function1<StrictMap<PartyId, StrictMap<MonFieldPosition, MonDecision>>, StrictMap<PartyId, StrictSet<MonFieldPosition>>> decisionFunction,
+            Function1<StrictMap<PartyId, StrictMap<MonFieldPosition, MonDecision>>,
+                      StrictMap<PartyId, StrictSet<MonFieldPosition>>> decisionFunction,
             Battle.Listeners<LocalUpdate, LocalContext, GlobalContext> listeners,
             Function0<Boolean> toInterrupt
     ) {

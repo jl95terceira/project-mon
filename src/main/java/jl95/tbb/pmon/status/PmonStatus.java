@@ -6,8 +6,8 @@ import static jl95.lang.SuperPowers.*;
 
 public class PmonStatus {
 
-    public Integer hp = 0;
-    public Integer lastMoveUsedIndex = null;
+    public int hp = 0;
+    public Integer lastMoveUsedIndex = null; //TODO: use this
     public StrictMap<PmonStatModifierType, Integer> statModifiers = strict(Map());
     public StrictMap<PmonStatusCondition.Id, PmonStatusCondition> statusConditions = strict(Map());
 }

@@ -1,9 +1,6 @@
 package jl95.tbb.pmon.attrs;
 
 import jl95.lang.variadic.Tuple2;
-import jl95.tbb.pmon.effect.PmonEffectByDamage;
-import jl95.tbb.pmon.effect.PmonEffectByStatModify;
-import jl95.tbb.pmon.effect.PmonEffectByStatusCondition;
 import jl95.tbb.pmon.effect.PmonEffects;
 
 import static jl95.lang.SuperPowers.*;
@@ -11,7 +8,7 @@ import static jl95.lang.SuperPowers.*;
 public class PmonMoveAttributes {
 
     public PmonMoveTargettingType targetType = PmonMoveTargettingType.FOE_SINGLE_MON; //TODO: validate move target(s) against targeting type, in PmonRuleToValidateDecision
-    public Integer accuracy = 0;
+    public Integer accuracy = 100;
     public Integer priorityModifier = 0;
     public Boolean interceptsSwitch = false;
     public PmonEffects effects = new PmonEffects();

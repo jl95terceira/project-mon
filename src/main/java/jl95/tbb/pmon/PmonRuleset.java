@@ -28,30 +28,44 @@ public class PmonRuleset implements MonRuleset<
         PmonUpdate, PmonUpdate
         > {
 
+    private static Rng RNG = new Rng();
+
     public static PartyId NO_WINNER = new PartyId();
 
-    public final PmonRulesetConstants constants = new PmonRulesetConstants();
-    public Function0<Double> rng = new Random()::nextDouble; // to return a number between 0 and 1
+    public static class Rng {
 
-    public Double rng() {
-        
-        return rng.apply(); 
+        private Function0<Double> source;
+
+        public Rng(Function0<Double> source) {this.source = source;}
+        public Rng() {this(new Random()::nextDouble);}
+
+        public Double  get() {
+            return source.apply();
+        }
+        public Integer between(Integer a, Integer b) {
+            return Math.min((int) floor(get()*(b + 1 - a) + a), b);
+        }
+        public Integer between(Tuple2<Integer, Integer> ab) {
+            return between(ab.a1, ab.a2);
+        }
+        public Integer betweenInclusive(Tuple2<Integer, Integer> ab) {
+            return between(ab.a1, ab.a2);
+        }
+        public Boolean roll(Double chance) {
+            return chance >= get();
+        }
+        public Boolean roll100(Integer chance) {
+            return chance >= (100 * get());
+        }
     }
-    public Integer rngBetween(Integer a, Integer b) {
-        return (int) floor(rng()*(a - b) + b);
-    }
-    public Integer rngBetween(Tuple2<Integer, Integer> ab) {
-        return rngBetween(ab.a1, ab.a2);
-    }
-    public Integer rngBetweenInclusive(Tuple2<Integer, Integer> ab) {
-        return rngBetween(ab.a1, ab.a2 + 1);
-    }
-    public Boolean roll(Double chance) {
-        return chance >= rng();
-    }
-    public Boolean roll100(Integer chance) {
-        return chance >= (100 * rng());
-    }
+
+    public PmonRulesetConstants constants = new PmonRulesetConstants();
+    public Rng rngSpeed           = RNG;
+    public Rng rngStatModify      = RNG;
+    public Rng rngStatusCondition = RNG;
+    public Rng rngAccuracy        = RNG;
+    public Rng rngHitNrTimes      = RNG;
+    public Rng rngCritical        = RNG;
 
     public PmonUpdateOnTargetByDamage
     detDamage(Pmon mon,
@@ -59,7 +73,6 @@ public class PmonRuleset implements MonRuleset<
               Integer nrTargets,
               Boolean critical,
               Pmon targetMon) {
-
         return new PmonRuleToDetermineDamage(this).detDamage(mon, effect, nrTargets, critical, targetMon);
     }
 
@@ -71,19 +84,16 @@ public class PmonRuleset implements MonRuleset<
     public Boolean
     areExclusive(PmonStatusCondition.Id condition1Id,
                  PmonStatusCondition.Id condition2Id) {
-
         return false;
     }
 
     public Integer
     howManyMonsAllowedOnField(PmonInitialConditions pmonInitialConditions, PartyId partyId) {
-
         return 1;
     }
 
     @Override
     public PmonGlobalContext init(StrictMap<PartyId, PmonPartyEntry> parties, PmonInitialConditions initialConditions) {
-        
         var context = new PmonGlobalContext();
         for (var e: parties.entrySet()) {
             var partyId = e.getKey();
@@ -98,44 +108,37 @@ public class PmonRuleset implements MonRuleset<
 
     @Override
     public Iterable<PmonUpdate> detInitialUpdates(PmonGlobalContext context, PmonInitialConditions pmonInitialConditions) {
-
         return I();
         //TODO 2.0: allow for starting the battle under field conditions (weather), handicaps, initial status conditions, etc
     }
 
     @Override
     public PmonLocalContext detLocalContext(PmonGlobalContext context, PartyId ownPartyId) {
-        
         return new PmonRuleToDetermineLocalContext(this).detLocalContext(context, ownPartyId);
     }
 
     @Override
     public Boolean isValid(PmonGlobalContext context, PartyId partyId, MonPartyDecision<PmonDecision> decision) {
-
         return new PmonRuleToValidateDecision(this).isValid(context, partyId, decision);
     }
 
     @Override
     public Iterable<PmonUpdate> detUpdates(PmonGlobalContext context, StrictMap<PartyId, MonPartyDecision<PmonDecision>> decisionsMap) {
-
         return new PmonRuleToDetermineUpdates(this).detUpdates(context, decisionsMap);
     }
 
     @Override
     public void update(PmonGlobalContext context, PmonUpdate pmonUpdate) {
-
         new PmonRuleToUpdateContext(this).update(context, pmonUpdate);
     }
 
     @Override
     public Iterable<PmonUpdate> detLocalUpdates(PmonUpdate pmonUpdate, PartyId partyId) {
-        
         return List.of(pmonUpdate);
     }
 
     @Override
     public Optional<PartyId> detWinner(PmonGlobalContext context) {
-        
         Set<PartyId> partiesRemaining = Set();
         for (var e: context.parties.entrySet()) {
             var partyId = e.getKey();
@@ -158,7 +161,6 @@ public class PmonRuleset implements MonRuleset<
 
     @Override
     public StrictMap<PartyId, StrictSet<MonFieldPosition>> allowedToDecide(PmonGlobalContext context) {
-
         return new PmoRuleToDetermineAllowedToDecide(this).allowedToDecide(context);
     }
 }

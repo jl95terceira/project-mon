@@ -6,7 +6,6 @@ import jl95.lang.variadic.Tuple2;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonPartyDecision;
 import jl95.tbb.mon.MonFieldPosition;
-import jl95.tbb.pmon.Chanced;
 import jl95.tbb.pmon.PmonDecision;
 import jl95.tbb.pmon.PmonGlobalContext;
 import jl95.tbb.pmon.PmonRuleset;
@@ -18,8 +17,6 @@ import jl95.tbb.pmon.update.PmonUpdate;
 import jl95.tbb.pmon.update.PmonUpdateByMove;
 import jl95.tbb.pmon.update.PmonUpdateBySwitchOut;
 import jl95.tbb.pmon.update.PmonUpdateOnTarget;
-import jl95.tbb.pmon.update.PmonUpdateOnTargetByStatModifier;
-import jl95.tbb.pmon.update.PmonUpdateOnTargetByStatusCondition;
 import jl95.util.StrictMap;
 
 import static jl95.lang.SuperPowers.*;
@@ -160,10 +157,11 @@ public class PmonRuleToDetermineUpdates {
 
                                     updateOnTarget = PmonUpdateByMove.UpdateOnTarget.noTarget();
                                 }
-                                else if (ruleset.roll100(move.attrs.accuracy)) {
+                                else if (ruleset.rngAccuracy.roll100(move.attrs.accuracy)) {
 
                                     StrictList<PmonUpdateOnTarget> atomicUpdates = strict(List());
-                                    for (var n: I.range(ruleset.rngBetweenInclusive(move.attrs.hitNrTimesRange))) {
+                                    Integer nrHits = ruleset.rngHitNrTimes.betweenInclusive(move.attrs.hitNrTimesRange);
+                                    for (var i: I.range(nrHits)) {
 
                                         atomicUpdates.addAll(new PmonRuleToDetermineUpdatesFromEffects(ruleset).detUpdates(mon, targetMon, move.attrs.effects, nrTargets));
                                     }
@@ -204,6 +202,6 @@ public class PmonRuleToDetermineUpdates {
 
     public Integer speedDiffWithRng(Integer speedDiff) {
 
-        return ((int)((2*ruleset.constants.SPEED_RNG_BREADTH) * ruleset.rng() - ruleset.constants.SPEED_RNG_BREADTH)) + speedDiff;
+        return ((int)((2*ruleset.constants.SPEED_RNG_BREADTH) * ruleset.rngSpeed.get() - ruleset.constants.SPEED_RNG_BREADTH)) + speedDiff;
     }
 }

@@ -35,6 +35,18 @@ public class Battle<
         void onGlobalContext(GlobalContext context);
         void onLocalContext(PartyId id, LocalContext context);
         void onLocalUpdate(PartyId id, LocalUpdate update);
+
+        static class Editable<LU, LC, GC> implements Listeners<LU, LC, GC> {
+
+            public Method1<GC> onGlobalContext = gc -> {};
+            public Method1<LC> onLocalContext = lc -> {};
+            public Method2<PartyId,LU> onLocalUpdate = (p,lu) -> {};
+
+            @Override public void onGlobalContext(GC gc) {onGlobalContext.accept(gc);}
+            @Override public void onLocalContext(PartyId id, LC lc) {onLocalContext.accept(lc);}
+            @Override public void onLocalUpdate(PartyId id, LU lu) {onLocalUpdate.accept(id,lu);}
+        }
+        static <LU, LC, GC> Listeners<LU, LC, GC> ignore() { return new Editable<>(); }
     }
 
     public static class InterruptedException extends RuntimeException {}
@@ -96,9 +108,6 @@ public class Battle<
                 if (decision == null) {
                     throw new BadDecisionException();
                 }
-            }
-            if (toStop.apply()) {
-                throw new Battle.InterruptedException();
             }
             var updates = I.of(ruleset.detUpdates(globalContext, decisionsMap)).toList();
             handleUpdates.accept(updates);
