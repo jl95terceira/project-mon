@@ -1,6 +1,6 @@
 package jl95.tbb.pmon;
 
-import jl95.lang.Ref;
+import jl95.lang.P;
 import jl95.lang.StrictList;
 import jl95.lang.variadic.Function2;
 import jl95.lang.variadic.Method1;
@@ -67,7 +67,7 @@ public class MovesTest {
         var party2 = makePartyEntry(moves.a2);
         var decisionsIterator = decisions.iterator();
         PmonBattle.Listeners.Editable listeners = new PmonBattle.Listeners.Editable();
-        Ref<PmonGlobalContext> gcRef = new Ref<>();
+        P<PmonGlobalContext> gcRef = new P<>(null);
         listeners.onGlobalContext = gcRef::set;
         try {
             battle.spawn(

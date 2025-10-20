@@ -1,6 +1,6 @@
 package jl95.tbb.pmon.rules;
 
-import jl95.lang.Ref;
+import jl95.lang.P;
 import jl95.tbb.pmon.Pmon;
 import jl95.tbb.pmon.PmonRuleset;
 import jl95.tbb.pmon.attrs.PmonMovePower;
@@ -25,9 +25,9 @@ public class PmonRuleToDetermineDamage {
                                                 Boolean critical,
                                                 Pmon targetMon) {
 
-        var isDamagingR = new Ref<>(true);
-        var damageR = new Ref<>(0);
-        var effectivenessFactorR = new Ref<>(1.0);
+        var isDamagingR = new P<>(true);
+        var damageR = new P<>(0);
+        var effectivenessFactorR = new P<>(1.0);
         effect.power.call(new PmonMovePower.Handlers() {
             @Override
             public void none() {

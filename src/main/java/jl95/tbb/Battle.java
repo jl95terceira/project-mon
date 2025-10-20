@@ -58,7 +58,7 @@ public class Battle<
                                    Listeners<LocalUpdate, LocalContext, GlobalContext> listeners,
                                    Function0<Boolean> toInterrupt) {
 
-        var shuttindDown = new Ref<>(false);
+        var shuttindDown = new P<>(false);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> shuttindDown.set(true)));
         var partyIds = strict(parties.keySet());
         var globalContext = ruleset.init(parties, initialConditions);

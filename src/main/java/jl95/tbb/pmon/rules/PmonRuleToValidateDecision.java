@@ -1,7 +1,7 @@
 package jl95.tbb.pmon.rules;
 
 import jl95.lang.I;
-import jl95.lang.Ref;
+import jl95.lang.P;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonPartyDecision;
 import jl95.tbb.pmon.PmonDecision;
@@ -19,7 +19,7 @@ public class PmonRuleToValidateDecision {
 
     public Boolean isValid(PmonGlobalContext context, PartyId partyId, MonPartyDecision<PmonDecision> decision) {
 
-        var ref = new Ref<>(true);
+        var ref = new P<>(true);
         var party = context.parties.get(partyId);
         for (var e: decision.monDecisions.entrySet()) {
             var monId = e.getKey();

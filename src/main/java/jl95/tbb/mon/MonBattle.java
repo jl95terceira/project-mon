@@ -1,9 +1,8 @@
 package jl95.tbb.mon;
 
-import jl95.lang.Ref;
+import jl95.lang.P;
 import jl95.lang.variadic.Function0;
 import jl95.lang.variadic.Function1;
-import jl95.lang.variadic.Function2;
 import jl95.tbb.Battle;
 import jl95.tbb.PartyId;
 import jl95.lang.I;
@@ -63,7 +62,7 @@ public class MonBattle<
             Function0<Boolean> toInterrupt
     ) {
 
-        var globalContextRef = new Ref<GlobalContext>();
+        var globalContextRef = new P<GlobalContext>(null);
         var localContextsMap = strict(new HashMap<PartyId, LocalContext>());
         var extendedCallbacks = new Battle.Listeners<LocalUpdate, LocalContext, GlobalContext>() {
 
