@@ -17,6 +17,7 @@ public class PmonBattle extends MonBattle<
     public interface Listeners extends Battle.Listeners<PmonUpdate, PmonLocalContext, PmonGlobalContext> {
 
         static class Editable extends Battle.Listeners.Editable<PmonUpdate, PmonLocalContext, PmonGlobalContext> implements Listeners {}
+        static class Extendable extends Battle.Listeners.Extendable<PmonUpdate, PmonLocalContext, PmonGlobalContext> implements Listeners {}
         static PmonBattle.Listeners ignore() { return new Editable(); }
     }
 

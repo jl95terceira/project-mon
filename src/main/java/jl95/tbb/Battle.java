@@ -5,8 +5,6 @@ import jl95.lang.variadic.*;
 import jl95.util.StrictMap;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import static jl95.lang.SuperPowers.*;
 
@@ -39,12 +37,28 @@ public class Battle<
         static class Editable<LU, LC, GC> implements Listeners<LU, LC, GC> {
 
             public Method1<GC> onGlobalContext = gc -> {};
-            public Method1<LC> onLocalContext = lc -> {};
+            public Method2<PartyId,LC> onLocalContext = (p,lc) -> {};
             public Method2<PartyId,LU> onLocalUpdate = (p,lu) -> {};
 
             @Override public void onGlobalContext(GC gc) {onGlobalContext.accept(gc);}
-            @Override public void onLocalContext(PartyId id, LC lc) {onLocalContext.accept(lc);}
+            @Override public void onLocalContext(PartyId id, LC lc) {onLocalContext.accept(id,lc);}
             @Override public void onLocalUpdate(PartyId id, LU lu) {onLocalUpdate.accept(id,lu);}
+        }
+        static class Extendable<LU, LC, GC> implements Listeners<LU, LC, GC> {
+
+            public List<Method1<GC>> onGlobalContext = List();
+            public List<Method2<PartyId,LC>> onLocalContext = List();
+            public List<Method2<PartyId,LU>> onLocalUpdate = List();
+
+            public final void add(Listeners<LU,LC,GC> listeners) {
+                onGlobalContext.add(listeners::onGlobalContext);
+                onLocalContext.add(listeners::onLocalContext);
+                onLocalUpdate.add(listeners::onLocalUpdate);
+            }
+
+            @Override public void onGlobalContext(GC gc) {onGlobalContext.forEach(cb -> cb.accept(gc));}
+            @Override public void onLocalContext(PartyId id, LC lc) {onLocalContext.forEach(cb -> cb.accept(id,lc));}
+            @Override public void onLocalUpdate(PartyId id, LU lu) {onLocalUpdate.forEach(cb -> cb.accept(id,lu));}
         }
         static <LU, LC, GC> Listeners<LU, LC, GC> ignore() { return new Editable<>(); }
     }
