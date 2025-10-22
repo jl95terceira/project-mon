@@ -29,7 +29,7 @@ public class PmonRuleToValidateDecision {
                 return false;
             }
             PmonDecision monDecision = e.getValue();
-            monDecision.call(new PmonDecision.Handlers() {
+            monDecision.call(new PmonDecision.Handler() {
 
                 @Override
                 public void pass(PmonDecisionToPass decision) {
@@ -44,7 +44,7 @@ public class PmonRuleToValidateDecision {
                         ref.set(false); return;
                     }
                     for (var condition: mon.status.statusConditions.values()) {
-                        if (!condition.attrs.allowSwitchOut) {
+                        if (!condition.allowSwitchOut) {
                             ref.set(false); return;
                         }
                     }

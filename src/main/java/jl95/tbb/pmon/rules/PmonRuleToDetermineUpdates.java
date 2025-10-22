@@ -1,7 +1,7 @@
 package jl95.tbb.pmon.rules;
 
 import jl95.lang.I;
-import jl95.lang.StrictList;
+import jl95.util.StrictList;
 import jl95.lang.variadic.Tuple2;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonPartyDecision;
@@ -53,7 +53,7 @@ public class PmonRuleToDetermineUpdates {
                         continue;
                     }
                     var monDecision = f.getValue();
-                    monDecision.call(new PmonDecision.Handlers() {
+                    monDecision.call(new PmonDecision.Handler() {
 
                         @Override
                         public void pass(PmonDecisionToPass passDecision) {
@@ -78,9 +78,9 @@ public class PmonRuleToDetermineUpdates {
                             }
                             for (var statusCondition: mon.status.statusConditions.values()) {
 
-                                if (statusCondition.attrs.statFactors.containsKey(PmonStatModifierType.SPEED)) {
+                                if (statusCondition.statFactors.containsKey(PmonStatModifierType.SPEED)) {
 
-                                    speedFactors.add(statusCondition.attrs.statFactors.get(PmonStatModifierType.SPEED));
+                                    speedFactors.add(statusCondition.statFactors.get(PmonStatModifierType.SPEED));
                                 }
                             }
                             for (var speedFactor: speedFactors) {
@@ -134,7 +134,7 @@ public class PmonRuleToDetermineUpdates {
                 updateByMove.monId = moveInfo.monId;
                 updateByMove.moveIndex = moveInfo.moveIndex;
                 var monDecision = decisionsMap.get(moveInfo.partyId()).monDecisions.get(moveInfo.monId());
-                monDecision.call(new PmonDecision.Handlers() {
+                monDecision.call(new PmonDecision.Handler() {
 
                     @Override
                     public void pass(PmonDecisionToPass passDecision) {throw new AssertionError();}
@@ -163,7 +163,7 @@ public class PmonRuleToDetermineUpdates {
                                     Integer nrHits = ruleset.rngHitNrTimes.betweenInclusive(move.attrs.hitNrTimesRange);
                                     for (var i: I.range(nrHits)) {
 
-                                        atomicUpdates.addAll(new PmonRuleToDetermineUpdatesFromEffects(ruleset).detUpdates(mon, targetMon, move.attrs.effects, nrTargets));
+                                        atomicUpdates.addAll(new PmonRuleToDetermineUpdatesFromEffects(ruleset).detUpdates(context, moveInfo.partyId(), moveInfo.monId(), targetPartyId, targetMonId, move.attrs.effects, nrTargets));
                                     }
                                     updateOnTarget = PmonUpdateByMove.UpdateOnTarget.hit(atomicUpdates);
                                 }

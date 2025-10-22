@@ -1,6 +1,9 @@
 package jl95.tbb.pmon.rules;
 
-import jl95.lang.StrictList;
+import jl95.tbb.PartyId;
+import jl95.tbb.mon.MonFieldPosition;
+import jl95.tbb.pmon.PmonGlobalContext;
+import jl95.util.StrictList;
 import jl95.tbb.pmon.Chanced;
 import jl95.tbb.pmon.Pmon;
 import jl95.tbb.pmon.PmonRuleset;
@@ -9,6 +12,8 @@ import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.update.PmonUpdateOnTarget;
 import jl95.tbb.pmon.update.PmonUpdateOnTargetByStatModifier;
 import jl95.tbb.pmon.update.PmonUpdateOnTargetByStatusCondition;
+
+import java.util.Optional;
 
 import static jl95.lang.SuperPowers.List;
 import static jl95.lang.SuperPowers.strict;
@@ -19,13 +24,18 @@ public class PmonRuleToDetermineUpdatesFromEffects {
 
     public PmonRuleToDetermineUpdatesFromEffects(PmonRuleset ruleset) {this.ruleset = ruleset;}
 
-    public Iterable<PmonUpdateOnTarget> detUpdates(Pmon mon, Pmon targetMon, PmonEffects effects, Integer nrTargets) {
+    public Iterable<PmonUpdateOnTarget> detUpdates(PmonGlobalContext ctx, PartyId originPartyId, MonFieldPosition originMonPos, PartyId targetPartyId, MonFieldPosition targetMonPos, PmonEffects effects, Integer nrTargets) {
 
+        var mon       = ctx.parties.get(originPartyId).monsOnField.get(originMonPos);
+        var targetMon = ctx.parties.get(targetPartyId).monsOnField.get(targetMonPos);
         StrictList<PmonUpdateOnTarget> atomicUpdates = strict(List());
         // damage
         var damageUpdate = ruleset.detDamage(mon, effects.damage, nrTargets, ruleset.constants.CRITICAL_HIT_CHANCE >= ruleset.rngCritical.get(), targetMon);
         if (damageUpdate != null) {
             atomicUpdates.add(PmonUpdateOnTarget.by(damageUpdate));
+            for (var statusCondition: targetMon.status.statusConditions.values()) {
+                statusCondition.onDamage.accept(originPartyId, originMonPos, damageUpdate.damage);
+            }
         }
         // stat modify
         var statUpdate = new PmonUpdateOnTargetByStatModifier();

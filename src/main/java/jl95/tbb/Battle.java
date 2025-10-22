@@ -28,13 +28,13 @@ public class Battle<
         this.ruleset = ruleset;
     }
 
-    public interface Listeners<LocalUpdate, LocalContext, GlobalContext> {
+    public interface Handler<LocalUpdate, LocalContext, GlobalContext> {
 
         void onGlobalContext(GlobalContext context);
         void onLocalContext(PartyId id, LocalContext context);
         void onLocalUpdate(PartyId id, LocalUpdate update);
 
-        static class Editable<LU, LC, GC> implements Listeners<LU, LC, GC> {
+        static class Editable<LU, LC, GC> implements Handler<LU, LC, GC> {
 
             public Method1<GC> onGlobalContext = gc -> {};
             public Method2<PartyId,LC> onLocalContext = (p,lc) -> {};
@@ -44,23 +44,23 @@ public class Battle<
             @Override public void onLocalContext(PartyId id, LC lc) {onLocalContext.accept(id,lc);}
             @Override public void onLocalUpdate(PartyId id, LU lu) {onLocalUpdate.accept(id,lu);}
         }
-        static class Extendable<LU, LC, GC> implements Listeners<LU, LC, GC> {
+        static class Extendable<LU, LC, GC> implements Handler<LU, LC, GC> {
 
             public List<Method1<GC>> onGlobalContext = List();
             public List<Method2<PartyId,LC>> onLocalContext = List();
             public List<Method2<PartyId,LU>> onLocalUpdate = List();
 
-            public final void add(Listeners<LU,LC,GC> listeners) {
-                onGlobalContext.add(listeners::onGlobalContext);
-                onLocalContext.add(listeners::onLocalContext);
-                onLocalUpdate.add(listeners::onLocalUpdate);
+            public final void add(Handler<LU,LC,GC> handler) {
+                onGlobalContext.add(handler::onGlobalContext);
+                onLocalContext.add(handler::onLocalContext);
+                onLocalUpdate.add(handler::onLocalUpdate);
             }
 
             @Override public void onGlobalContext(GC gc) {onGlobalContext.forEach(cb -> cb.accept(gc));}
             @Override public void onLocalContext(PartyId id, LC lc) {onLocalContext.forEach(cb -> cb.accept(id,lc));}
             @Override public void onLocalUpdate(PartyId id, LU lu) {onLocalUpdate.forEach(cb -> cb.accept(id,lu));}
         }
-        static <LU, LC, GC> Listeners<LU, LC, GC> ignore() { return new Editable<>(); }
+        static <LU, LC, GC> Handler<LU, LC, GC> ignore() { return new Editable<>(); }
     }
 
     public static class InterruptedException extends RuntimeException {}
@@ -69,27 +69,27 @@ public class Battle<
     public Optional<PartyId> spawn(StrictMap<PartyId, PartyEntry> parties,
                                    InitialConditions initialConditions,
                                    Function0<StrictMap<PartyId, Decision>> decisionFunction,
-                                   Listeners<LocalUpdate, LocalContext, GlobalContext> listeners,
+                                   Handler<LocalUpdate, LocalContext, GlobalContext> handler,
                                    Function0<Boolean> toInterrupt) {
 
         var shuttindDown = new P<>(false);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> shuttindDown.set(true)));
         var partyIds = strict(parties.keySet());
         var globalContext = ruleset.init(parties, initialConditions);
-        listeners.onGlobalContext(globalContext);
+        handler.onGlobalContext(globalContext);
         var localContextGetter = function(() -> strict(I.of(partyIds)
                                                         .toMap(id -> id,
                                                                id -> ruleset.detLocalContext(globalContext, id))));
         var tellLocalContexts = method(() -> {
             var localContext = localContextGetter.apply();
             for (var partyId: partyIds) {
-                listeners.onLocalContext(partyId, localContext.get(partyId));
+                handler.onLocalContext(partyId, localContext.get(partyId));
             }
         });
         var tellLocalUpdates = method((GlobalUpdate globalUpdate_) -> {
             for (var partyId: partyIds) {
                 for (var localUpdate: ruleset.detLocalUpdates(globalUpdate_, partyId)) {
-                    listeners.onLocalUpdate(partyId, localUpdate);
+                    handler.onLocalUpdate(partyId, localUpdate);
                 }
             }
         });
@@ -98,7 +98,7 @@ public class Battle<
             for (GlobalUpdate globalUpdate: updates) {
                 tellLocalUpdates.accept(globalUpdate);
                 ruleset.update(globalContext, globalUpdate);
-                listeners.onGlobalContext(globalContext);
+                handler.onGlobalContext(globalContext);
                 tellLocalContexts.accept();
             }
         });
@@ -115,7 +115,7 @@ public class Battle<
             }
             var localContextsMap = localContextGetter.apply();
             for (var e: localContextsMap.entrySet()) {
-                listeners.onLocalContext(e.getKey(), e.getValue());
+                handler.onLocalContext(e.getKey(), e.getValue());
             }
             var decisionsMap = decisionFunction.apply();
             for (var decision: decisionsMap.values()) {

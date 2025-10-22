@@ -1,6 +1,6 @@
 package jl95.tbb.pmon;
 
-import jl95.lang.StrictList;
+import jl95.util.StrictList;
 import jl95.tbb.pmon.attrs.PmonAttributes;
 import jl95.tbb.pmon.status.PmonStatus;
 

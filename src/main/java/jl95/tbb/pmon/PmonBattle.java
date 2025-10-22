@@ -14,11 +14,11 @@ public class PmonBattle extends MonBattle<
         PmonUpdate, PmonUpdate
         > {
 
-    public interface Listeners extends Battle.Listeners<PmonUpdate, PmonLocalContext, PmonGlobalContext> {
+    public interface Handler extends Battle.Handler<PmonUpdate, PmonLocalContext, PmonGlobalContext> {
 
-        static class Editable extends Battle.Listeners.Editable<PmonUpdate, PmonLocalContext, PmonGlobalContext> implements Listeners {}
-        static class Extendable extends Battle.Listeners.Extendable<PmonUpdate, PmonLocalContext, PmonGlobalContext> implements Listeners {}
-        static PmonBattle.Listeners ignore() { return new Editable(); }
+        static class Editable extends Battle.Handler.Editable<PmonUpdate, PmonLocalContext, PmonGlobalContext> implements Handler {}
+        static class Extendable extends Battle.Handler.Extendable<PmonUpdate, PmonLocalContext, PmonGlobalContext> implements Handler {}
+        static Handler ignore() { return new Editable(); }
     }
 
     public PmonBattle(MonRuleset<Pmon, PmonPartyEntry, PmonParty, PmonInitialConditions, PmonLocalContext, PmonGlobalContext, PmonDecision, PmonUpdate, PmonUpdate> ruleset) {

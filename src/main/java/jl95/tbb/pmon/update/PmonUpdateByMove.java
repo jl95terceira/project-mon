@@ -1,6 +1,6 @@
 package jl95.tbb.pmon.update;
 
-import jl95.lang.StrictList;
+import jl95.util.StrictList;
 import jl95.lang.variadic.Tuple3;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonFieldPosition;
@@ -14,17 +14,17 @@ public class PmonUpdateByMove {
 
     public interface UpdateOnTarget {
 
-        interface Handlers {
+        interface Handler {
             void miss    ();
             void hit     (Iterable<PmonUpdateOnTarget> atomicUpdates);
             void noTarget();
         }
 
-        void call(Handlers handlers);
+        void call(Handler handler);
 
-        static UpdateOnTarget miss    ()                                           { return handlers -> handlers.miss(); }
-        static UpdateOnTarget hit     (Iterable<PmonUpdateOnTarget> atomicUpdates) { return handlers -> handlers.hit(atomicUpdates); }
-        static UpdateOnTarget noTarget()                                           { return handlers -> handlers.noTarget(); }
+        static UpdateOnTarget miss    ()                                           { return handler -> handler.miss(); }
+        static UpdateOnTarget hit     (Iterable<PmonUpdateOnTarget> atomicUpdates) { return handler -> handler.hit(atomicUpdates); }
+        static UpdateOnTarget noTarget()                                           { return handler -> handler.noTarget(); }
     }
 
     public PartyId          partyId   = NO_PARTY;

@@ -17,7 +17,7 @@ public class PmonRuleToUpdateContext {
 
     public void update(PmonGlobalContext context, PmonUpdate pmonUpdate) {
 
-        pmonUpdate.call(new PmonUpdate.Handlers() {
+        pmonUpdate.call(new PmonUpdate.Handler() {
 
             @Override
             public void move(PmonUpdateByMove moveUpdate) {
@@ -31,7 +31,7 @@ public class PmonRuleToUpdateContext {
                     var targetMonId    = t.a2;
                     var targetMon      = targetParty.monsOnField.get(targetMonId);
                     var updateOnTarget = t.a3;
-                    updateOnTarget.call(new PmonUpdateByMove.UpdateOnTarget.Handlers() {
+                    updateOnTarget.call(new PmonUpdateByMove.UpdateOnTarget.Handler() {
 
                         @Override
                         public void miss() {
@@ -44,7 +44,7 @@ public class PmonRuleToUpdateContext {
 
                             for (var update: updates) {
 
-                                update.call(new PmonUpdateOnTarget.Handlers() {
+                                update.call(new PmonUpdateOnTarget.Handler() {
 
                                     @Override
                                     public void damage(PmonUpdateOnTargetByDamage damageUpdate) {

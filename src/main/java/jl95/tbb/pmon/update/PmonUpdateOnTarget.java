@@ -2,7 +2,7 @@ package jl95.tbb.pmon.update;
 
 public interface PmonUpdateOnTarget {
 
-    interface Handlers {
+    interface Handler {
 
         void damage         (PmonUpdateOnTargetByDamage          update);
         void statModify     (PmonUpdateOnTargetByStatModifier    update);
@@ -10,7 +10,7 @@ public interface PmonUpdateOnTarget {
         void switchOut      (PmonUpdateOnTargetBySwitchOut       update);
     }
 
-    void call(Handlers handlers);
+    void call(Handler handler);
 
     static PmonUpdateOnTarget by(PmonUpdateOnTargetByDamage          update) { return h -> h.damage         (update); }
     static PmonUpdateOnTarget by(PmonUpdateOnTargetByStatModifier    update) { return h -> h.statModify     (update); }

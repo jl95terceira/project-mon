@@ -6,9 +6,9 @@ import jl95.tbb.pmon.decision.PmonDecisionToSwitchOut;
 
 public interface PmonDecision {
 
-    void call(Handlers handlers);
+    void call(Handler handler);
 
-    interface Handlers {
+    interface Handler {
 
         void pass     (PmonDecisionToPass     decision);
         void switchOut(PmonDecisionToSwitchOut decision);
@@ -16,12 +16,12 @@ public interface PmonDecision {
     }
 
     static PmonDecision from(PmonDecisionToPass      decision) {
-        return handlers -> handlers.pass     (decision);
+        return handler -> handler.pass     (decision);
     }
     static PmonDecision from(PmonDecisionToSwitchOut decision) {
-        return handlers -> handlers.switchOut(decision);
+        return handler -> handler.switchOut(decision);
     }
     static PmonDecision from(PmonDecisionToUseMove   decision) {
-        return handlers -> handlers.useMove  (decision);
+        return handler -> handler.useMove  (decision);
     }
 }

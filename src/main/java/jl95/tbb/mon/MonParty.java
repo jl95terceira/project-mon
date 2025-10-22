@@ -1,6 +1,6 @@
 package jl95.tbb.mon;
 
-import jl95.lang.StrictList;
+import jl95.util.StrictList;
 import jl95.util.StrictMap;
 
 import java.util.List;

@@ -58,26 +58,26 @@ public class MonBattle<
             InitialConditions initialConditions,
             Function1<StrictMap<PartyId, StrictMap<MonFieldPosition, MonDecision>>,
                       StrictMap<PartyId, StrictSet<MonFieldPosition>>> decisionFunction,
-            Battle.Listeners<LocalUpdate, LocalContext, GlobalContext> listeners,
+            Battle.Handler<LocalUpdate, LocalContext, GlobalContext> handler,
             Function0<Boolean> toInterrupt
     ) {
 
         var globalContextRef = new P<GlobalContext>(null);
         var localContextsMap = strict(new HashMap<PartyId, LocalContext>());
-        var extendedCallbacks = new Battle.Listeners<LocalUpdate, LocalContext, GlobalContext>() {
+        var extendedCallbacks = new Battle.Handler<LocalUpdate, LocalContext, GlobalContext>() {
 
             @Override
             public void onGlobalContext(GlobalContext globalContext) {
                 globalContextRef.set(globalContext);
-                listeners.onGlobalContext(globalContext);
+                handler.onGlobalContext(globalContext);
             }
 
             @Override public void onLocalContext(PartyId id, LocalContext monLocalContext) {
                 localContextsMap.put(id, monLocalContext);
-                listeners.onLocalContext(id, monLocalContext);
+                handler.onLocalContext(id, monLocalContext);
             }
             @Override public void onLocalUpdate(PartyId id, LocalUpdate localUpdate) {
-                listeners.onLocalUpdate(id, localUpdate);
+                handler.onLocalUpdate(id, localUpdate);
             }
         };
         return this.upcastBattle.spawn(parties, initialConditions, () -> {
