@@ -9,7 +9,6 @@ import jl95.tbb.pmon.PmonRuleset;
 import jl95.tbb.pmon.attrs.PmonMoveAttributes;
 import jl95.tbb.pmon.attrs.PmonMovePower;
 import jl95.tbb.pmon.effect.PmonEffects;
-import jl95.tbb.pmon.effect.PmonEndOfTurnEffects;
 import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.status.PmonStatusCondition;
 import org.junit.After;
@@ -118,10 +117,10 @@ public class Gen1 {
     public void testMultiHitsMax() {
         testMultiHits(1.0, 4);
     }
-    enum BIDE_TEST {
-        ALLOW_COUNTERATTACK, STOP_EARLY;
+    enum BIDE_TEST_FLAG {
+        STOP_EARLY, STOP_LATE;
     }
-    private void _testBide(BIDE_TEST t) {
+    private void _testBide(BIDE_TEST_FLAG t) {
         class BideStatus extends PmonStatusCondition {
 
             public BideStatus() {super(new Id());}
@@ -134,46 +133,69 @@ public class Gen1 {
         bideStatus.afterTurn = () -> bideStatus.turnNr.set(bideStatus.turnNr.get()+1);
         bideStatus.onDamage = (partyId, monFieldPosition, damage) -> {
             bideStatus.damage.set(bideStatus.damage.get() + damage);
+            bideStatus.foe.set(tuple(partyId, monFieldPosition));
         };
         bideStatus.afterTurnEffects = () -> {
-            if (bideStatus.foe.get() == null) return strict(List());
-            var effects = new PmonEndOfTurnEffects();
-            effects.damage.power = 2 * bideStatus.damage.get();
-            return strict(List(tuple(
-                    bideStatus.foe.get().a1,
-                    bideStatus.foe.get().a2,
+            if (bideStatus.turnNr.get() < 3) {
+                return strict(Map());
+            }
+            if (bideStatus.foe.get() == null) {
+                return strict(Map());
+            }
+            var effects = new PmonEffects();
+            effects.damage.power = PmonMovePower.constant(2 * bideStatus.damage.get());
+            return strict(Map(tuple(
+                    tuple(bideStatus.foe.get().a1, bideStatus.foe.get().a2),
                     effects)));
         };
         bideStatus.cureChanceAfterTurn = () -> bideStatus.turnNr.get().equals(3)? 100: 0;
         attrs.effects.status.statusConditions = strict(List(Chanced.certain(constant(bideStatus))));
         attrs2.effects.damage.power = PmonMovePower.typed(20);
+        var nrHitsOnPmon1 = new P<>(0);
+        var nrHitsOnPmon2 = new P<>(0);
         run1v1(
                 pmon1And2HaveMoves(attrs2, attrs),
-                t == BIDE_TEST.ALLOW_COUNTERATTACK
+                t == BIDE_TEST_FLAG.STOP_EARLY
                 ? I(
-                        tuple(useMove(TARGET.FOE), useMove(TARGET.SELF)),
-                        tuple(useMove(TARGET.FOE), pass()),
+                        tuple(pass(), useMove(TARGET.SELF)),
                         tuple(useMove(TARGET.FOE), pass()))
+                :
+                t == BIDE_TEST_FLAG.STOP_LATE
+                ? I(
+                        tuple(pass(), useMove(TARGET.SELF)),
+                        tuple(useMove(TARGET.FOE), pass()),
+                        tuple(useMove(TARGET.FOE), pass()),
+                        tuple(pass(), pass()))
                 : I(
-                        tuple(useMove(TARGET.FOE), useMove(TARGET.SELF)),
+                        tuple(pass(), useMove(TARGET.SELF)),
+                        tuple(useMove(TARGET.FOE), pass()),
                         tuple(useMove(TARGET.FOE), pass())),
-                ignoreUpdates(),
+                multiple(I(
+                        checkHitsOnPmon1(() -> nrHitsOnPmon1.set(nrHitsOnPmon1.get()+1)),
+                        checkHitsOnPmon2(() -> nrHitsOnPmon2.set(nrHitsOnPmon2.get()+1))
+                )),
                 c -> {
                     assertTrue(c.pmon2().status.hp < HP0);
-                    if (t == BIDE_TEST.ALLOW_COUNTERATTACK) {
-                        assertTrue(c.pmon1().status.hp < HP0);
+                    if (t == BIDE_TEST_FLAG.STOP_EARLY) {
+                        assertEquals(Integer.valueOf(1), nrHitsOnPmon2.get());
+                        assertTrue(c.pmon1().status.hp == HP0);
                     }
                     else {
-                        assertTrue(c.pmon1().status.hp == HP0);
+                        assertEquals(Integer.valueOf(2), nrHitsOnPmon2.get());
+                        assertTrue(c.pmon1().status.hp < HP0);
                     }
                 });
     }
     @Test
     public void testBide() {
-        _testBide(BIDE_TEST.ALLOW_COUNTERATTACK);
+        _testBide(null);
     }
     @Test
     public void testBideStopEarly() {
-        _testBide(BIDE_TEST.STOP_EARLY);
+        _testBide(BIDE_TEST_FLAG.STOP_EARLY);
+    }
+    @Test
+    public void testBideStopLate() {
+        _testBide(BIDE_TEST_FLAG.STOP_LATE);
     }
 }

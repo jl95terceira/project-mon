@@ -24,7 +24,7 @@ public class PmonRuleToDetermineUpdatesFromEffects {
 
     public PmonRuleToDetermineUpdatesFromEffects(PmonRuleset ruleset) {this.ruleset = ruleset;}
 
-    public Iterable<PmonUpdateOnTarget> detUpdates(PmonGlobalContext ctx, PartyId originPartyId, MonFieldPosition originMonPos, PartyId targetPartyId, MonFieldPosition targetMonPos, PmonEffects effects, Integer nrTargets) {
+    public Iterable<PmonUpdateOnTarget> detUpdates(PmonGlobalContext ctx, PartyId originPartyId, MonFieldPosition originMonPos, PartyId targetPartyId, MonFieldPosition targetMonPos, PmonEffects effects, Integer nrTargets, Boolean followUp) {
 
         var mon       = ctx.parties.get(originPartyId).monsOnField.get(originMonPos);
         var targetMon = ctx.parties.get(targetPartyId).monsOnField.get(targetMonPos);
@@ -33,8 +33,15 @@ public class PmonRuleToDetermineUpdatesFromEffects {
         var damageUpdate = ruleset.detDamage(mon, effects.damage, nrTargets, ruleset.constants.CRITICAL_HIT_CHANCE >= ruleset.rngCritical.get(), targetMon);
         if (damageUpdate != null) {
             atomicUpdates.add(PmonUpdateOnTarget.by(damageUpdate));
-            for (var statusCondition: targetMon.status.statusConditions.values()) {
-                statusCondition.onDamage.accept(originPartyId, originMonPos, damageUpdate.damage);
+            if (followUp) {
+                var damage = damageUpdate.damage;
+                for (var statusCondition : targetMon.status.statusConditions.values()) {
+                    statusCondition.onDamage.accept(originPartyId, originMonPos, damage);
+                    var effectsOnFoe = statusCondition.onDamageEffectsOnFoe.apply(damage);
+                    if (effectsOnFoe != null) {
+                        atomicUpdates.addAll(detUpdates(ctx, targetPartyId, targetMonPos, originPartyId, originMonPos, effectsOnFoe, 1, false));
+                    }
+                }
             }
         }
         // stat modify

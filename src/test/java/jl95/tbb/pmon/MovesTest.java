@@ -1,9 +1,7 @@
 package jl95.tbb.pmon;
 
-import jl95.lang.I;
 import jl95.lang.P;
 import jl95.lang.variadic.*;
-import jl95.util.StrictList;
 import jl95.tbb.Battle;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonFieldPosition;
@@ -172,17 +170,17 @@ public class MovesTest {
     public static PmonBattle.Handler ignoreUpdates() {
         return new PmonBattle.Handler.Editable();
     }
-    public static PmonBattle.Handler checkHitsOnPmon2(Method0 onHit) {
+    public static PmonBattle.Handler checkHitsOnPmonOfGivenParty(Method0 onHit, PartyId partyId) {
         var handler = new PmonBattle.Handler.Extendable();
-        handler.onLocalUpdate.add((partyId, pmonUpdate) -> {
-            if (partyId != PARTY_1_ID) return;
+        handler.onLocalUpdate.add((partyId_, pmonUpdate) -> {
+            if (partyId_ != PARTY_1_ID) return;
             pmonUpdate.call(new PmonUpdate.Handler() {
                 @Override public void pass(PmonUpdateByPass update) {}
                 @Override public void switchOut(PmonUpdateBySwitchOut update) {}
                 @Override public void move(PmonUpdateByMove update) {
-                    for (var updateOnTarget: update.updatesOnTargets) {
-                        if (updateOnTarget.a1 != PARTY_2_ID) return;
-                        updateOnTarget.a3.call(new PmonUpdateByMove.UpdateOnTarget.Handler() {
+                    for (var updateOnTarget: update.statuses) {
+                        if (updateOnTarget.a1 != partyId) return;
+                        updateOnTarget.a3.call(new PmonUpdateByMove.UsageResult.Handler() {
                             @Override public void miss() {}
                             @Override public void hit(Iterable<PmonUpdateOnTarget> atomicUpdates) {
                                 for (var atomicUpdate: atomicUpdates) {
@@ -200,9 +198,18 @@ public class MovesTest {
                         });
                     }
                 }
+                @Override public void other(PmonUpdateByOther update) {
+
+                }
             });
         });
         return handler;
+    }
+    public static PmonBattle.Handler checkHitsOnPmon1(Method0 onHit) {
+        return checkHitsOnPmonOfGivenParty(onHit, PARTY_1_ID);
+    }
+    public static PmonBattle.Handler checkHitsOnPmon2(Method0 onHit) {
+        return checkHitsOnPmonOfGivenParty(onHit, PARTY_2_ID);
     }
     public static Method1<Context> ignoreAfter() {
         return c -> {};

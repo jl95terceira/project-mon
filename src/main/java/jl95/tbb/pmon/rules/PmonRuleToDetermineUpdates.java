@@ -1,6 +1,7 @@
 package jl95.tbb.pmon.rules;
 
 import jl95.lang.I;
+import jl95.tbb.pmon.update.*;
 import jl95.util.StrictList;
 import jl95.lang.variadic.Tuple2;
 import jl95.tbb.PartyId;
@@ -13,10 +14,6 @@ import jl95.tbb.pmon.decision.PmonDecisionToPass;
 import jl95.tbb.pmon.decision.PmonDecisionToSwitchOut;
 import jl95.tbb.pmon.decision.PmonDecisionToUseMove;
 import jl95.tbb.pmon.status.PmonStatModifierType;
-import jl95.tbb.pmon.update.PmonUpdate;
-import jl95.tbb.pmon.update.PmonUpdateByMove;
-import jl95.tbb.pmon.update.PmonUpdateBySwitchOut;
-import jl95.tbb.pmon.update.PmonUpdateOnTarget;
 import jl95.util.StrictMap;
 
 import static jl95.lang.SuperPowers.*;
@@ -152,10 +149,10 @@ public class PmonRuleToDetermineUpdates {
                             for (var targetMonId: x.getValue()) {
 
                                 var targetMon = context.parties.get(targetPartyId).monsOnField.get(targetMonId);
-                                PmonUpdateByMove.UpdateOnTarget updateOnTarget;
+                                PmonUpdateByMove.UsageResult usageResult;
                                 if (!ruleset.isAlive(targetMon)) {
 
-                                    updateOnTarget = PmonUpdateByMove.UpdateOnTarget.noTarget();
+                                    usageResult = PmonUpdateByMove.UsageResult.noTarget();
                                 }
                                 else if (ruleset.rngAccuracy.roll100(move.attrs.accuracy)) {
 
@@ -163,15 +160,15 @@ public class PmonRuleToDetermineUpdates {
                                     Integer nrHits = ruleset.rngHitNrTimes.betweenInclusive(move.attrs.hitNrTimesRange);
                                     for (var i: I.range(nrHits)) {
 
-                                        atomicUpdates.addAll(new PmonRuleToDetermineUpdatesFromEffects(ruleset).detUpdates(context, moveInfo.partyId(), moveInfo.monId(), targetPartyId, targetMonId, move.attrs.effects, nrTargets));
+                                        atomicUpdates.addAll(new PmonRuleToDetermineUpdatesFromEffects(ruleset).detUpdates(context, moveInfo.partyId(), moveInfo.monId(), targetPartyId, targetMonId, move.attrs.effects, nrTargets, true));
                                     }
-                                    updateOnTarget = PmonUpdateByMove.UpdateOnTarget.hit(atomicUpdates);
+                                    usageResult = PmonUpdateByMove.UsageResult.hit(atomicUpdates);
                                 }
                                 else {
 
-                                    updateOnTarget = PmonUpdateByMove.UpdateOnTarget.miss();
+                                    usageResult = PmonUpdateByMove.UsageResult.miss();
                                 }
-                                updateByMove.updatesOnTargets.add(tuple(targetPartyId, targetMonId, updateOnTarget));
+                                updateByMove.statuses.add(tuple(targetPartyId, targetMonId, usageResult));
                             }
                         }
                     }
@@ -197,6 +194,30 @@ public class PmonRuleToDetermineUpdates {
             for (var moveInfo: s.moveNormalList) {
                 moveInfoToUpdate.accept(moveInfo);
             }
+
+            // after-turn effects
+            for (var e1: context.parties.entrySet()) {
+                var partyId = e1.getKey();
+                var party = e1.getValue();
+                for (var e2: party.monsOnField.entrySet()) {
+                    var monId = e2.getKey();
+                    var mon = e2.getValue();
+                    for (var statusCondition: mon.status.statusConditions.values()) {
+                        statusCondition.afterTurn.accept();
+                        var afterTurnUpdate = new PmonUpdateByOther();
+                        afterTurnUpdate.origin = tuple(partyId, monId);
+                        for (var e3: statusCondition.afterTurnEffects.apply().entrySet()) {
+                            var target = e3.getKey();
+                            var effects = e3.getValue();
+                            afterTurnUpdate.atomicUpdates.put(target, new PmonRuleToDetermineUpdatesFromEffects(ruleset).detUpdates(context, partyId, monId, target.a1, target.a2, effects, 1, false));
+                        }
+                        if (!afterTurnUpdate.atomicUpdates.isEmpty()) {
+                            updates.add(PmonUpdate.by(afterTurnUpdate));
+                        }
+                    }
+                }
+            }
+
             return updates;
         }
 
