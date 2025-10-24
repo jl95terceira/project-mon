@@ -60,12 +60,15 @@ public class PmonRuleset implements MonRuleset<
     }
 
     public PmonRulesetConstants constants = new PmonRulesetConstants();
+    /* By default, all random events share the same source of randomness.
+     * This may be changed for testing purposes etc. */
     public Rng rngSpeed           = RNG;
     public Rng rngStatModify      = RNG;
     public Rng rngStatusCondition = RNG;
     public Rng rngAccuracy        = RNG;
     public Rng rngHitNrTimes      = RNG;
     public Rng rngCritical        = RNG;
+    public Rng rngImmobilise      = RNG;
 
     public PmonUpdateOnTargetByDamage
     detDamage(Pmon mon,
@@ -107,8 +110,7 @@ public class PmonRuleset implements MonRuleset<
     }
 
     @Override
-    public Iterable<PmonUpdate> detInitialUpdates(PmonGlobalContext context, PmonInitialConditions pmonInitialConditions) {
-        return I();
+    public void detInitialUpdates(PmonGlobalContext context, PmonInitialConditions pmonInitialConditions, Method1<PmonUpdate> updateHandler) {
         //TODO 2.0: allow for starting the battle under field conditions (weather), handicaps, initial status conditions, etc
     }
 
@@ -123,8 +125,8 @@ public class PmonRuleset implements MonRuleset<
     }
 
     @Override
-    public Iterable<PmonUpdate> detUpdates(PmonGlobalContext context, StrictMap<PartyId, MonPartyDecision<PmonDecision>> decisionsMap) {
-        return new PmonRuleToDetermineUpdates(this).detUpdates(context, decisionsMap);
+    public void handleUpdates(PmonGlobalContext context, StrictMap<PartyId, MonPartyDecision<PmonDecision>> decisionsMap, Method1<PmonUpdate> updateHandler) {
+        new PmonRuleToDetermineUpdates(this).handleUpdates(context, decisionsMap, updateHandler);
     }
 
     @Override

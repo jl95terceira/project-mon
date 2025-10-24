@@ -67,12 +67,13 @@ public class MovesTest {
         }
         public static PmonRuleset rulesDefaults() {
             var rules  = new PmonRuleset();
-            rules.rngSpeed           = new PmonRuleset.Rng(constant(0.0));
-            rules.rngAccuracy        = new PmonRuleset.Rng(constant(0.0)); // never miss
-            rules.rngCritical        = new PmonRuleset.Rng(constant(1.0)); // no critical strikes
-            rules.rngHitNrTimes      = new PmonRuleset.Rng(constant(0.0)); // least hits
-            rules.rngStatModify      = new PmonRuleset.Rng(constant(0.0)); // always stat modify
-            rules.rngStatusCondition = new PmonRuleset.Rng(constant(0.0)); // always apply status condition
+            var RNG_0 = new PmonRuleset.Rng(constant(0.0));
+            var RNG_1 = new PmonRuleset.Rng(constant(1.0));
+            rules.rngSpeed           = RNG_1; // no speed variability
+            rules.rngCritical        = RNG_1; // no critical strikes
+            rules.rngHitNrTimes      = RNG_0; // least hits
+            rules.rngStatModify      = RNG_0; // always stat modify
+            rules.rngStatusCondition = RNG_0; // always apply status condition
             return rules;
         }
 
@@ -93,6 +94,7 @@ public class MovesTest {
             var battle = new PmonBattle(_rules);
             var party1 = makePartyEntry(moves.a1);
             var party2 = makePartyEntry(moves.a2);
+            party1.mons.iterator().next().attrs.baseStats.speed += 1; // so that pmon 1 always moves first, to ensure reproducibility when testing
             var decisionsIterator = decisions.iterator();
             P<PmonGlobalContext> gcRef = new P<>(null);
             var parentHandler = new PmonBattle.Handler.Extendable();
@@ -182,6 +184,7 @@ public class MovesTest {
                         if (updateOnTarget.a1 != partyId) return;
                         updateOnTarget.a3.call(new PmonUpdateByMove.UsageResult.Handler() {
                             @Override public void miss() {}
+                            @Override public void immobilised() {}
                             @Override public void hit(Iterable<PmonUpdateOnTarget> atomicUpdates) {
                                 for (var atomicUpdate: atomicUpdates) {
                                     atomicUpdate.call(new PmonUpdateOnTarget.Handler() {
@@ -194,13 +197,10 @@ public class MovesTest {
                                     });
                                 }
                             }
-                            @Override public void noTarget() {}
                         });
                     }
                 }
-                @Override public void other(PmonUpdateByOther update) {
-
-                }
+                @Override public void other(PmonUpdateByOther update) {}
             });
         });
         return handler;

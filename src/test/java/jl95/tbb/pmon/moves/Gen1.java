@@ -123,33 +123,34 @@ public class Gen1 {
     private void _testBide(BIDE_TEST_FLAG t) {
         class BideStatus extends PmonStatusCondition {
 
-            public BideStatus() {super(new Id());}
+            public BideStatus() {
+                super(new Id());
+                allowDecide = false;
+                afterTurn = () -> turnNr.set(turnNr.get()+1);
+                onDamage = (partyId, monFieldPosition, damage) -> {
+                    damageAccum.set(damageAccum.get() + damage);
+                    foe.set(tuple(partyId, monFieldPosition));
+                };
+                afterTurnEffects = () -> {
+                    if (turnNr.get() < 3) {
+                        return strict(Map());
+                    }
+                    if (foe.get() == null) {
+                        return strict(Map());
+                    }
+                    var effects = new PmonEffects();
+                    effects.damage.power = PmonMovePower.constant(2 * damageAccum.get());
+                    return strict(Map(tuple(
+                            tuple(foe.get().a1, foe.get().a2),
+                            effects)));
+                };
+                cureChanceAfterTurn = () -> turnNr.get().equals(3)? 100: 0;
+            }
             public final P<Integer> turnNr = new P<>(0);
             public final P<Tuple2<PartyId, MonFieldPosition>> foe = new P<>(null);
-            public final P<Integer> damage = new P<>(0);
+            public final P<Integer> damageAccum = new P<>(0);
         }
-        var bideStatus = new BideStatus();
-        bideStatus.allowDecide = false;
-        bideStatus.afterTurn = () -> bideStatus.turnNr.set(bideStatus.turnNr.get()+1);
-        bideStatus.onDamage = (partyId, monFieldPosition, damage) -> {
-            bideStatus.damage.set(bideStatus.damage.get() + damage);
-            bideStatus.foe.set(tuple(partyId, monFieldPosition));
-        };
-        bideStatus.afterTurnEffects = () -> {
-            if (bideStatus.turnNr.get() < 3) {
-                return strict(Map());
-            }
-            if (bideStatus.foe.get() == null) {
-                return strict(Map());
-            }
-            var effects = new PmonEffects();
-            effects.damage.power = PmonMovePower.constant(2 * bideStatus.damage.get());
-            return strict(Map(tuple(
-                    tuple(bideStatus.foe.get().a1, bideStatus.foe.get().a2),
-                    effects)));
-        };
-        bideStatus.cureChanceAfterTurn = () -> bideStatus.turnNr.get().equals(3)? 100: 0;
-        attrs.effects.status.statusConditions = strict(List(Chanced.certain(constant(bideStatus))));
+        attrs.effects.status.statusConditions = strict(List(Chanced.certain(BideStatus::new)));
         attrs2.effects.damage.power = PmonMovePower.typed(20);
         var nrHitsOnPmon1 = new P<>(0);
         var nrHitsOnPmon2 = new P<>(0);
@@ -165,6 +166,7 @@ public class Gen1 {
                         tuple(pass(), useMove(TARGET.SELF)),
                         tuple(useMove(TARGET.FOE), pass()),
                         tuple(useMove(TARGET.FOE), pass()),
+                        tuple(pass(), pass()),
                         tuple(pass(), pass()))
                 : I(
                         tuple(pass(), useMove(TARGET.SELF)),
@@ -197,5 +199,37 @@ public class Gen1 {
     @Test
     public void testBideStopLate() {
         _testBide(BIDE_TEST_FLAG.STOP_LATE);
+    }
+    @Test
+    public void testFlinch() {
+        attrs.effects.damage.power = PmonMovePower.typed(10);
+        class FlinchableStatus extends PmonStatusCondition {
+
+            public FlinchableStatus() {
+                super(new Id());
+                immobiliseChanceOnMove = constant(50);
+                cureChanceAfterTurn = constant(100);
+            }
+        }
+        attrs.effects.status.statusConditions = strict(List(Chanced.certain(FlinchableStatus::new)));
+        attrs2.effects.damage.power = PmonMovePower.typed(50);
+        for (var toFlinch: I(false,true)) {
+            var rules = Runner.rulesDefaults();
+            rules.rngImmobilise = new PmonRuleset.Rng(constant(!toFlinch? 1.: 0.));
+            new Runner(rules).run1v1(
+                    pmon1And2HaveMoves(attrs, attrs2),
+                    I(
+                            tuple(useMove(TARGET.FOE), useMove(TARGET.FOE))),
+                    ignoreUpdates(),
+                    c -> {
+                        assertTrue(c.pmon2().status.hp < HP0);
+                        if (!toFlinch) {
+                            assertTrue(c.pmon1().status.hp < HP0);
+                        }
+                        else {
+                            assertEquals(HP0, c.pmon1().status.hp);
+                        }
+                    });
+        }
     }
 }

@@ -14,5 +14,5 @@ import static jl95.tbb.pmon.attrs.PmonDefaults.NO_PARTY;
 public class PmonUpdateByOther {
 
     public Tuple2<PartyId,MonFieldPosition> origin;
-    public StrictMap<Tuple2<PartyId, MonFieldPosition>,Iterable<PmonUpdateOnTarget>> atomicUpdates = strict(Map());
+    public StrictMap<Tuple2<PartyId, MonFieldPosition>,StrictList<PmonUpdateOnTarget>> atomicUpdates = strict(Map());
 }

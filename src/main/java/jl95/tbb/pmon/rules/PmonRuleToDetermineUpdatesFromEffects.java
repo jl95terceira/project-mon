@@ -1,5 +1,6 @@
 package jl95.tbb.pmon.rules;
 
+import jl95.lang.variadic.Method1;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonFieldPosition;
 import jl95.tbb.pmon.PmonGlobalContext;
@@ -24,22 +25,25 @@ public class PmonRuleToDetermineUpdatesFromEffects {
 
     public PmonRuleToDetermineUpdatesFromEffects(PmonRuleset ruleset) {this.ruleset = ruleset;}
 
-    public Iterable<PmonUpdateOnTarget> detUpdates(PmonGlobalContext ctx, PartyId originPartyId, MonFieldPosition originMonPos, PartyId targetPartyId, MonFieldPosition targetMonPos, PmonEffects effects, Integer nrTargets, Boolean followUp) {
+    public void detUpdates(PmonGlobalContext ctx, PartyId originPartyId, MonFieldPosition originMonPos, PartyId targetPartyId, MonFieldPosition targetMonPos, PmonEffects effects, Integer nrTargets, Boolean followUp, Method1<PmonUpdateOnTarget> updateHandler) {
 
         var mon       = ctx.parties.get(originPartyId).monsOnField.get(originMonPos);
         var targetMon = ctx.parties.get(targetPartyId).monsOnField.get(targetMonPos);
-        StrictList<PmonUpdateOnTarget> atomicUpdates = strict(List());
         // damage
-        var damageUpdate = ruleset.detDamage(mon, effects.damage, nrTargets, ruleset.constants.CRITICAL_HIT_CHANCE >= ruleset.rngCritical.get(), targetMon);
+        var damageUpdate = ruleset.detDamage(mon, effects.damage, nrTargets, ruleset.rngCritical.roll(ruleset.constants.CRITICAL_HIT_CHANCE), targetMon);
         if (damageUpdate != null) {
-            atomicUpdates.add(PmonUpdateOnTarget.by(damageUpdate));
+            updateHandler.accept(PmonUpdateOnTarget.by(damageUpdate));
             if (followUp) {
                 var damage = damageUpdate.damage;
                 for (var statusCondition : targetMon.status.statusConditions.values()) {
                     statusCondition.onDamage.accept(originPartyId, originMonPos, damage);
                     var effectsOnFoe = statusCondition.onDamageEffectsOnFoe.apply(damage);
                     if (effectsOnFoe != null) {
-                        atomicUpdates.addAll(detUpdates(ctx, targetPartyId, targetMonPos, originPartyId, originMonPos, effectsOnFoe, 1, false));
+                        detUpdates(ctx, targetPartyId, targetMonPos, originPartyId, originMonPos, effectsOnFoe, 1, false, updateHandler);
+                    }
+                    var effectsOnSelf = statusCondition.onDamageEffectsOnSelf.apply(damage);
+                    if (effectsOnSelf != null) {
+                        detUpdates(ctx, originPartyId, originMonPos, originPartyId, originMonPos, effectsOnSelf, 1, false, updateHandler);
                     }
                 }
             }
@@ -54,7 +58,7 @@ public class PmonRuleToDetermineUpdatesFromEffects {
             }
         }
         if (!(statUpdate.increments.isEmpty() && statUpdate.resets.isEmpty())) {
-            atomicUpdates.add(PmonUpdateOnTarget.by(statUpdate));
+            updateHandler.accept(PmonUpdateOnTarget.by(statUpdate));
         }
         // status conditions
         var conditionUpdate = new PmonUpdateOnTargetByStatusCondition();
@@ -64,8 +68,7 @@ public class PmonRuleToDetermineUpdatesFromEffects {
             }
         }
         if (!(conditionUpdate.statusConditionsApply.isEmpty() && conditionUpdate.statusConditionsRemove.isEmpty())) {
-            atomicUpdates.add(PmonUpdateOnTarget.by(conditionUpdate));
+            updateHandler.accept(PmonUpdateOnTarget.by(conditionUpdate));
         }
-        return atomicUpdates;
     }
 }

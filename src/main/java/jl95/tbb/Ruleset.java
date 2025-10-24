@@ -1,5 +1,6 @@
 package jl95.tbb;
 
+import jl95.lang.variadic.Method1;
 import jl95.util.StrictMap;
 
 import java.util.Optional;
@@ -18,9 +19,10 @@ public interface Ruleset<
     init(StrictMap<PartyId, PartyEntry> parties,
          InitialConditions initialConditions);
 
-    Iterable<GlobalUpdate>
+    void
     detInitialUpdates(GlobalContext context,
-                      InitialConditions initialConditions);
+                      InitialConditions initialConditions,
+                      Method1<GlobalUpdate> updateHandler);
 
     LocalContext
     detLocalContext(GlobalContext context,
@@ -31,9 +33,10 @@ public interface Ruleset<
             PartyId partyId,
             Decision decision);
 
-    Iterable<GlobalUpdate>
-    detUpdates(GlobalContext context,
-               StrictMap<PartyId, Decision> decisionsMap);
+    void
+    handleUpdates(GlobalContext context,
+                  StrictMap<PartyId, Decision> decisionsMap,
+                  Method1<GlobalUpdate> updateHandler);
 
     Iterable<LocalUpdate>
     detLocalUpdates(GlobalUpdate globalUpdate,

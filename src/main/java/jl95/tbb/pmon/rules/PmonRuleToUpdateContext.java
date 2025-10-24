@@ -32,22 +32,21 @@ public class PmonRuleToUpdateContext {
                     var updateOnTarget = t.a3;
                     updateOnTarget.call(new PmonUpdateByMove.UsageResult.Handler() {
 
-                        @Override public void miss() {
-
-                            /* haw haw! */
-                        }
                         @Override public void hit(Iterable<PmonUpdateOnTarget> updates) {
                             new PmonRuleToUpdateContextByUpdateOnTarget(ruleset).update(context, updates, tuple(moveUpdate.partyId, moveUpdate.monId), tuple(targetPartyId, targetMonId));
                         }
-                        @Override public void noTarget() {
-
-                            /* nothing to do */
+                        @Override public void miss() {
+                            /* haw haw! */
                         }
+                        @Override public void immobilised() {
+                            /* OOF */
+                        }
+
                     });
                 }
             }
             @Override public void pass(PmonUpdateByPass update) {
-
+                // no update, since pass
             }
             @Override public void switchOut(PmonUpdateBySwitchOut update) {
 

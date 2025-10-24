@@ -1,6 +1,7 @@
 package jl95.tbb.pmon.rules;
 
 import jl95.lang.I;
+import jl95.lang.variadic.Method1;
 import jl95.tbb.pmon.update.*;
 import jl95.util.StrictList;
 import jl95.lang.variadic.Tuple2;
@@ -33,7 +34,7 @@ public class PmonRuleToDetermineUpdates {
 
     public PmonRuleToDetermineUpdates(PmonRuleset ruleset) {this.ruleset = ruleset;}
 
-    public Iterable<PmonUpdate> detUpdates(PmonGlobalContext context, StrictMap<PartyId, MonPartyDecision<PmonDecision>> decisionsMap) {
+    public void handleUpdates(PmonGlobalContext context, StrictMap<PartyId, MonPartyDecision<PmonDecision>> decisionsMap, Method1<PmonUpdate> updateHandler) {
             // group decisions and calculate speeds + priorities
             var s = new DecisionSorting();
             StrictList<DecisionSorting.MoveInfo> moveList = strict(List());
@@ -123,7 +124,6 @@ public class PmonRuleToDetermineUpdates {
                                     : speedDiffWithRng(m1.speed - m2.speed));
             }
             // evaluate decisions into updates - where THE GOOD STUFF happens
-            StrictList<PmonUpdate> updates = strict(List());
             var moveInfoToUpdate = method((DecisionSorting.MoveInfo moveInfo) -> {
 
                 var updateByMove = new PmonUpdateByMove();
@@ -143,6 +143,13 @@ public class PmonRuleToDetermineUpdates {
                         var mon = context.parties.get(moveInfo.partyId()).monsOnField.get(moveInfo.monId());
                         var move = mon.moves.get(useMoveDecision.moveIndex);
                         var nrTargets = I.of(moveInfo.targets.values()).flatmap(x -> x).reduce(0, (a,b) -> (a+1));
+                        for (var statusCondition: mon.status.statusConditions.values()) {
+                            if (ruleset.rngImmobilise.roll100(statusCondition.immobiliseChanceOnMove.apply())) {
+                                updateByMove.statuses.add(tuple(moveInfo.partyId, moveInfo.monId, PmonUpdateByMove.UsageResult.immobilised()));
+                                return; // no other effects
+                            }
+                        }
+                        // move (no immobilise)
                         for (var x: moveInfo.targets().entrySet()) {
 
                             var targetPartyId = x.getKey();
@@ -152,7 +159,7 @@ public class PmonRuleToDetermineUpdates {
                                 PmonUpdateByMove.UsageResult usageResult;
                                 if (!ruleset.isAlive(targetMon)) {
 
-                                    usageResult = PmonUpdateByMove.UsageResult.noTarget();
+                                    usageResult = PmonUpdateByMove.UsageResult.miss();
                                 }
                                 else if (ruleset.rngAccuracy.roll100(move.attrs.accuracy)) {
 
@@ -160,7 +167,7 @@ public class PmonRuleToDetermineUpdates {
                                     Integer nrHits = ruleset.rngHitNrTimes.betweenInclusive(move.attrs.hitNrTimesRange);
                                     for (var i: I.range(nrHits)) {
 
-                                        atomicUpdates.addAll(new PmonRuleToDetermineUpdatesFromEffects(ruleset).detUpdates(context, moveInfo.partyId(), moveInfo.monId(), targetPartyId, targetMonId, move.attrs.effects, nrTargets, true));
+                                        new PmonRuleToDetermineUpdatesFromEffects(ruleset).detUpdates(context, moveInfo.partyId(), moveInfo.monId(), targetPartyId, targetMonId, move.attrs.effects, nrTargets, true, atomicUpdates::add);
                                     }
                                     usageResult = PmonUpdateByMove.UsageResult.hit(atomicUpdates);
                                 }
@@ -173,7 +180,7 @@ public class PmonRuleToDetermineUpdates {
                         }
                     }
                 });
-                updates.add(PmonUpdate.by(updateByMove));
+                updateHandler.accept(PmonUpdate.by(updateByMove));
             });
 
             // interceptsSwitch-switch-in moves
@@ -187,7 +194,7 @@ public class PmonRuleToDetermineUpdates {
                 switchInUpdate.partyId = switchInInfo.partyId();
                 switchInUpdate.monFieldPosition = switchInInfo.monId();
                 switchInUpdate.monToSwitchInPartyPosition = switchInInfo.monSwitchInIndex();
-                updates.add(PmonUpdate.by(switchInUpdate));
+                updateHandler.accept(PmonUpdate.by(switchInUpdate));
             }
 
             // normal moves
@@ -209,16 +216,17 @@ public class PmonRuleToDetermineUpdates {
                         for (var e3: statusCondition.afterTurnEffects.apply().entrySet()) {
                             var target = e3.getKey();
                             var effects = e3.getValue();
-                            afterTurnUpdate.atomicUpdates.put(target, new PmonRuleToDetermineUpdatesFromEffects(ruleset).detUpdates(context, partyId, monId, target.a1, target.a2, effects, 1, false));
+                            StrictList<PmonUpdateOnTarget> atomicUpdates = strict(List());
+                            afterTurnUpdate.atomicUpdates.put(target, atomicUpdates);
+                            new PmonRuleToDetermineUpdatesFromEffects(ruleset)
+                                    .detUpdates(context, partyId, monId, target.a1, target.a2, effects, 1, false, atomicUpdates::add);
                         }
                         if (!afterTurnUpdate.atomicUpdates.isEmpty()) {
-                            updates.add(PmonUpdate.by(afterTurnUpdate));
+                            updateHandler.accept(PmonUpdate.by(afterTurnUpdate));
                         }
                     }
                 }
             }
-
-            return updates;
         }
 
     public Integer speedDiffWithRng(Integer speedDiff) {

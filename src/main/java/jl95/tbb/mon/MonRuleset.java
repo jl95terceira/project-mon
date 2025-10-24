@@ -1,5 +1,6 @@
 package jl95.tbb.mon;
 
+import jl95.lang.variadic.Method1;
 import jl95.tbb.PartyId;
 import jl95.util.StrictMap;
 import jl95.util.StrictSet;
@@ -21,9 +22,10 @@ public interface MonRuleset<
     init(StrictMap<PartyId, PartyEntry> parties,
          InitialConditions initialConditions);
 
-    Iterable<GlobalUpdate>
+    void
     detInitialUpdates(GlobalContext context,
-                      InitialConditions initialConditions);
+                      InitialConditions initialConditions,
+                      Method1<GlobalUpdate> updateHandler);
 
     LocalContext
     detLocalContext(GlobalContext context,
@@ -34,9 +36,10 @@ public interface MonRuleset<
             PartyId partyId,
             MonPartyDecision<MonDecision> decision);
 
-    Iterable<GlobalUpdate>
-    detUpdates(GlobalContext monGlobalContext,
-               StrictMap<PartyId, MonPartyDecision<MonDecision>> decisionsMap);
+    void
+    handleUpdates(GlobalContext monGlobalContext,
+                  StrictMap<PartyId, MonPartyDecision<MonDecision>> decisionsMap,
+                  Method1<GlobalUpdate> updateHandler);
 
     void
     update(GlobalContext context,
@@ -69,8 +72,8 @@ public interface MonRuleset<
             }
 
             @Override
-            public Iterable<GlobalUpdate> detInitialUpdates(GlobalContext monGlobalContext, InitialConditions initialConditions) {
-                return MonRuleset.this.detInitialUpdates(monGlobalContext, initialConditions);
+            public void detInitialUpdates(GlobalContext monGlobalContext, InitialConditions initialConditions, Method1<GlobalUpdate> updateHandler) {
+                MonRuleset.this.detInitialUpdates(monGlobalContext, initialConditions, updateHandler);
             }
 
             @Override
@@ -84,8 +87,8 @@ public interface MonRuleset<
             }
 
             @Override
-            public Iterable<GlobalUpdate> detUpdates(GlobalContext monGlobalContext, StrictMap<PartyId, MonPartyDecision<MonDecision>> decisionsMap) {
-                return MonRuleset.this.detUpdates(monGlobalContext, decisionsMap);
+            public void handleUpdates(GlobalContext monGlobalContext, StrictMap<PartyId, MonPartyDecision<MonDecision>> decisionsMap, Method1<GlobalUpdate> updateHandler) {
+                MonRuleset.this.handleUpdates(monGlobalContext, decisionsMap, updateHandler);
             }
 
             @Override

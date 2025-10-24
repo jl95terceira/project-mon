@@ -15,16 +15,16 @@ public class PmonUpdateByMove {
     public interface UsageResult {
 
         interface Handler {
-            void miss    ();
             void hit     (Iterable<PmonUpdateOnTarget> atomicUpdates);
-            void noTarget();
+            void miss    ();
+            void immobilised();
         }
 
         void call(Handler handler);
 
-        static UsageResult miss    ()                                           { return handler -> handler.miss(); }
         static UsageResult hit     (Iterable<PmonUpdateOnTarget> atomicUpdates) { return handler -> handler.hit(atomicUpdates); }
-        static UsageResult noTarget()                                           { return handler -> handler.noTarget(); }
+        static UsageResult miss    ()                                           { return handler -> handler.miss(); }
+        static UsageResult immobilised()                                        { return handler -> handler.immobilised(); }
     }
 
     public PartyId          partyId   = NO_PARTY;

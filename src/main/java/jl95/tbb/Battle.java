@@ -94,16 +94,13 @@ public class Battle<
             }
         });
         tellLocalContexts.accept();
-        var handleUpdates = method((Iterable<GlobalUpdate> updates) -> {
-            for (GlobalUpdate globalUpdate: updates) {
-                tellLocalUpdates.accept(globalUpdate);
-                ruleset.update(globalContext, globalUpdate);
-                handler.onGlobalContext(globalContext);
-                tellLocalContexts.accept();
-            }
+        var handleUpdate = method((GlobalUpdate update) -> {
+            tellLocalUpdates.accept(update);
+            ruleset.update(globalContext, update);
+            handler.onGlobalContext(globalContext);
+            tellLocalContexts.accept();
         });
-        var updatesAtStart = ruleset.detInitialUpdates(globalContext, initialConditions);
-        handleUpdates.accept(updatesAtStart);
+        ruleset.detInitialUpdates(globalContext, initialConditions, handleUpdate);
         var toStop = function(() -> shuttindDown.get() || toInterrupt.apply());
         while (true) {
             if (toStop.apply()) {
@@ -123,8 +120,7 @@ public class Battle<
                     throw new BadDecisionException();
                 }
             }
-            var updates = I.of(ruleset.detUpdates(globalContext, decisionsMap)).toList();
-            handleUpdates.accept(updates);
+            ruleset.handleUpdates(globalContext, decisionsMap, handleUpdate);
         }
     }
 }
