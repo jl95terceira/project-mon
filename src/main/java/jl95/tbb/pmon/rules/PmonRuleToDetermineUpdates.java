@@ -119,9 +119,9 @@ public class PmonRuleToDetermineUpdates {
             // sort decisions
             for (var list: I(s.moveNormalList, s.moveInterceptList)) {
 
-                list.sort((m1, m2) -> m1.priorityModifier > m2.priorityModifier?  1
-                                    : m1.priorityModifier < m2.priorityModifier? -1
-                                    : speedDiffWithRng(m1.speed - m2.speed));
+                list.sort((m1, m2) -> m1.priorityModifier > m2.priorityModifier? -1
+                                    : m1.priorityModifier < m2.priorityModifier? 1
+                                    : speedDiffWithRng(m2.speed - m1.speed));
             }
             // evaluate decisions into updates - where THE GOOD STUFF happens
             var moveInfoToUpdate = method((DecisionSorting.MoveInfo moveInfo) -> {
@@ -144,7 +144,7 @@ public class PmonRuleToDetermineUpdates {
                         var move = mon.moves.get(useMoveDecision.moveIndex);
                         var nrTargets = I.of(moveInfo.targets.values()).flatmap(x -> x).reduce(0, (a,b) -> (a+1));
                         for (var statusCondition: mon.status.statusConditions.values()) {
-                            if (ruleset.rngImmobilise.roll100(statusCondition.immobiliseChanceOnMove.apply())) {
+                            if (ruleset.rngImmobilise.roll(statusCondition.immobiliseChanceOnMove.apply())) {
                                 updateByMove.statuses.add(tuple(moveInfo.partyId, moveInfo.monId, PmonUpdateByMove.UsageResult.immobilised()));
                                 return; // no other effects
                             }
@@ -161,7 +161,7 @@ public class PmonRuleToDetermineUpdates {
 
                                     usageResult = PmonUpdateByMove.UsageResult.miss();
                                 }
-                                else if (ruleset.rngAccuracy.roll100(move.attrs.accuracy)) {
+                                else if (ruleset.rngAccuracy.roll(move.attrs.accuracy)) {
 
                                     StrictList<PmonUpdateOnTarget> atomicUpdates = strict(List());
                                     Integer nrHits = ruleset.rngHitNrTimes.betweenInclusive(move.attrs.hitNrTimesRange);
@@ -206,6 +206,7 @@ public class PmonRuleToDetermineUpdates {
             for (var e1: context.parties.entrySet()) {
                 var partyId = e1.getKey();
                 var party = e1.getValue();
+                var localContext = new PmonRuleToDetermineLocalContext(ruleset).detLocalContext(context,partyId);
                 for (var e2: party.monsOnField.entrySet()) {
                     var monId = e2.getKey();
                     var mon = e2.getValue();
@@ -213,7 +214,7 @@ public class PmonRuleToDetermineUpdates {
                         statusCondition.afterTurn.accept();
                         var afterTurnUpdate = new PmonUpdateByOther();
                         afterTurnUpdate.origin = tuple(partyId, monId);
-                        for (var e3: statusCondition.afterTurnEffects.apply().entrySet()) {
+                        for (var e3: statusCondition.afterTurnEffects.apply(partyId,monId,localContext).entrySet()) {
                             var target = e3.getKey();
                             var effects = e3.getValue();
                             StrictList<PmonUpdateOnTarget> atomicUpdates = strict(List());
@@ -231,6 +232,6 @@ public class PmonRuleToDetermineUpdates {
 
     public Integer speedDiffWithRng(Integer speedDiff) {
 
-        return ((int)((2*ruleset.constants.SPEED_RNG_BREADTH) * ruleset.rngSpeed.get() - ruleset.constants.SPEED_RNG_BREADTH)) + speedDiff;
+        return ((int)(ruleset.constants.SPEED_RNG_BREADTH * (ruleset.rngSpeed.get() - ruleset.rngSpeed.get()))) + speedDiff;
     }
 }

@@ -28,13 +28,13 @@ public class PmonRuleset implements MonRuleset<
         PmonUpdate, PmonUpdate
         > {
 
-    private static Rng RNG = new Rng();
+    private static final Rng RNG = new Rng();
 
-    public static PartyId NO_WINNER = new PartyId();
+    public static final PartyId NO_WINNER = new PartyId();
 
     public static class Rng {
 
-        private Function0<Double> source;
+        private final Function0<Double> source;
 
         public Rng(Function0<Double> source) {this.source = source;}
         public Rng() {this(new Random()::nextDouble);}
@@ -54,7 +54,7 @@ public class PmonRuleset implements MonRuleset<
         public Boolean roll(Double chance) {
             return chance >= get();
         }
-        public Boolean roll100(Integer chance) {
+        public Boolean roll(Integer chance) {
             return chance >= (100 * get());
         }
     }

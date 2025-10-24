@@ -4,9 +4,7 @@ import jl95.lang.variadic.Method1;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonFieldPosition;
 import jl95.tbb.pmon.PmonGlobalContext;
-import jl95.util.StrictList;
 import jl95.tbb.pmon.Chanced;
-import jl95.tbb.pmon.Pmon;
 import jl95.tbb.pmon.PmonRuleset;
 import jl95.tbb.pmon.effect.PmonEffects;
 import jl95.tbb.pmon.status.PmonStatModifierType;
@@ -14,9 +12,6 @@ import jl95.tbb.pmon.update.PmonUpdateOnTarget;
 import jl95.tbb.pmon.update.PmonUpdateOnTargetByStatModifier;
 import jl95.tbb.pmon.update.PmonUpdateOnTargetByStatusCondition;
 
-import java.util.Optional;
-
-import static jl95.lang.SuperPowers.List;
 import static jl95.lang.SuperPowers.strict;
 
 public class PmonRuleToDetermineUpdatesFromEffects {
@@ -53,7 +48,7 @@ public class PmonRuleToDetermineUpdatesFromEffects {
         for (var e: effects.stats.statModifiers.entrySet()) {
             PmonStatModifierType type = e.getKey();
             Chanced<Integer> chancedStatModify = e.getValue();
-            if (ruleset.rngStatModify.roll100(chancedStatModify.chance)) {
+            if (ruleset.rngStatModify.roll(chancedStatModify.chance)) {
                 statUpdate.increments.put(type, chancedStatModify.value);
             }
         }
@@ -62,12 +57,17 @@ public class PmonRuleToDetermineUpdatesFromEffects {
         }
         // status conditions
         var conditionUpdate = new PmonUpdateOnTargetByStatusCondition();
-        for (var chancedStatusConditionSupplier: effects.status.statusConditions) {
-            if (ruleset.rngStatusCondition.roll100(chancedStatusConditionSupplier.chance)) {
-                conditionUpdate.statusConditionsApply.add(chancedStatusConditionSupplier.value.apply());
+        for (var chancedStatusConditionSupplier: effects.status.statusConditionsInflict) {
+            if (ruleset.rngStatusCondition.roll(chancedStatusConditionSupplier.chance)) {
+                conditionUpdate.statusConditionsInflict.add(chancedStatusConditionSupplier.value.apply());
             }
         }
-        if (!(conditionUpdate.statusConditionsApply.isEmpty() && conditionUpdate.statusConditionsRemove.isEmpty())) {
+        for (var chancedStatusConditionSupplier: effects.status.statusConditionsCure) {
+            if (ruleset.rngStatusCondition.roll(chancedStatusConditionSupplier.chance)) {
+                conditionUpdate.statusConditionsCure.add(chancedStatusConditionSupplier.value);
+            }
+        }
+        if (!(conditionUpdate.statusConditionsInflict.isEmpty() && conditionUpdate.statusConditionsCure.isEmpty())) {
             updateHandler.accept(PmonUpdateOnTarget.by(conditionUpdate));
         }
     }

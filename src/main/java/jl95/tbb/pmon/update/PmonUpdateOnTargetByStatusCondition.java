@@ -8,6 +8,6 @@ import static jl95.lang.SuperPowers.*;
 
 public class PmonUpdateOnTargetByStatusCondition {
 
-    public StrictList<PmonStatusCondition> statusConditionsApply = strict(List());
-    public StrictSet<PmonStatusCondition.Id> statusConditionsRemove = strict(Set());
+    public StrictList<PmonStatusCondition> statusConditionsInflict = strict(List());
+    public StrictSet<PmonStatusCondition.Id> statusConditionsCure = strict(Set());
 }

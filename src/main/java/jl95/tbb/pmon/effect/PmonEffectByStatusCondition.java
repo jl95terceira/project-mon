@@ -10,5 +10,6 @@ import jl95.tbb.pmon.status.PmonStatusCondition;
 
 public class PmonEffectByStatusCondition {
 
-    public StrictList<Chanced<Function0<PmonStatusCondition>>> statusConditions = strict(List());
+    public StrictList<Chanced<Function0<PmonStatusCondition>>> statusConditionsInflict = strict(List());
+    public StrictList<Chanced<PmonStatusCondition.Id>> statusConditionsCure = strict(List());
 }

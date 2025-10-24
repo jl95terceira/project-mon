@@ -4,12 +4,10 @@ import jl95.lang.I;
 import jl95.lang.variadic.Tuple2;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonFieldPosition;
-import jl95.tbb.pmon.Pmon;
 import jl95.tbb.pmon.PmonGlobalContext;
 import jl95.tbb.pmon.PmonRuleset;
 import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.update.*;
-import jl95.util.StrictMap;
 
 import static jl95.lang.SuperPowers.function;
 
@@ -60,18 +58,23 @@ public class PmonRuleToUpdateContextByUpdateOnTarget {
                 public void statusCondition(PmonUpdateOnTargetByStatusCondition conditionUpdate) {
 
                     // status conditions
-                    for (var condition: conditionUpdate.statusConditionsApply) {
+                    for (var condition: conditionUpdate.statusConditionsInflict) {
 
                         if (targetMon.status.statusConditions.containsKey(condition.id)) /* not to apply existing condition */ {
-
                             continue;
                         }
                         if (I.any(I.of(targetMon.status.statusConditions.keySet())
                                 .map(sc -> ruleset.areExclusive(sc, condition.id)))) /* not to apply condition that is mutually exclusive with existing */ {
-
                             continue;
                         }
                         targetMon.status.statusConditions.put(condition.id, condition);
+                    }
+                    for (var conditionId: conditionUpdate.statusConditionsCure) {
+
+                        if (!targetMon.status.statusConditions.containsKey(conditionId)) /* not to apply existing condition */ {
+                            continue;
+                        }
+                        targetMon.status.statusConditions.remove(conditionId);
                     }
                 }
 
