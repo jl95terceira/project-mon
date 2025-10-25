@@ -11,6 +11,7 @@ import jl95.tbb.pmon.attrs.PmonMoveEffectivenessType;
 import jl95.tbb.pmon.attrs.PmonType;
 import jl95.tbb.pmon.decision.PmonDecisionToPass;
 import jl95.tbb.pmon.decision.PmonDecisionToUseMove;
+import jl95.tbb.pmon.status.PmonStatusCondition;
 import jl95.tbb.pmon.update.*;
 
 import static jl95.lang.SuperPowers.*;
@@ -183,8 +184,6 @@ public class MovesTest {
                     for (var updateOnTarget: update.statuses) {
                         if (updateOnTarget.a1 != partyId) return;
                         updateOnTarget.a3.call(new PmonUpdateByMove.UsageResult.Handler() {
-                            @Override public void miss() {}
-                            @Override public void immobilised() {}
                             @Override public void hit(Iterable<PmonUpdateOnTarget> atomicUpdates) {
                                 for (var atomicUpdate: atomicUpdates) {
                                     atomicUpdate.call(new PmonUpdateOnTarget.Handler() {
@@ -197,6 +196,8 @@ public class MovesTest {
                                     });
                                 }
                             }
+                            @Override public void miss(PmonUpdateByMove.UsageResult.MissType type) {}
+                            @Override public void immobilised(PmonStatusCondition.Id id) {}
                         });
                     }
                 }

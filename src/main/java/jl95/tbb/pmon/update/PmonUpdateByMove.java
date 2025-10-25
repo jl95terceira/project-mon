@@ -1,5 +1,6 @@
 package jl95.tbb.pmon.update;
 
+import jl95.tbb.pmon.status.PmonStatusCondition;
 import jl95.util.StrictList;
 import jl95.lang.variadic.Tuple3;
 import jl95.tbb.PartyId;
@@ -14,17 +15,21 @@ public class PmonUpdateByMove {
 
     public interface UsageResult {
 
+        enum MissType {
+            INACCURATE,
+            NO_TARGET;
+        }
         interface Handler {
-            void hit     (Iterable<PmonUpdateOnTarget> atomicUpdates);
-            void miss    ();
-            void immobilised();
+            void hit        (Iterable<PmonUpdateOnTarget> atomicUpdates);
+            void miss       (MissType type);
+            void immobilised(PmonStatusCondition.Id conditionId);
         }
 
         void call(Handler handler);
 
-        static UsageResult hit     (Iterable<PmonUpdateOnTarget> atomicUpdates) { return handler -> handler.hit(atomicUpdates); }
-        static UsageResult miss    ()                                           { return handler -> handler.miss(); }
-        static UsageResult immobilised()                                        { return handler -> handler.immobilised(); }
+        static UsageResult hit        (Iterable<PmonUpdateOnTarget> atomicUpdates) { return handler -> handler.hit(atomicUpdates); }
+        static UsageResult miss       (MissType type)                              { return handler -> handler.miss(type); }
+        static UsageResult immobilised(PmonStatusCondition.Id id)                  { return handler -> handler.immobilised(id); }
     }
 
     public PartyId          partyId   = NO_PARTY;

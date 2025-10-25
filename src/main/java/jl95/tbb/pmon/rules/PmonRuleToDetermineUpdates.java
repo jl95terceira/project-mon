@@ -145,7 +145,7 @@ public class PmonRuleToDetermineUpdates {
                         var nrTargets = I.of(moveInfo.targets.values()).flatmap(x -> x).reduce(0, (a,b) -> (a+1));
                         for (var statusCondition: mon.status.statusConditions.values()) {
                             if (ruleset.rngImmobilise.roll(statusCondition.immobiliseChanceOnMove.apply())) {
-                                updateByMove.statuses.add(tuple(moveInfo.partyId, moveInfo.monId, PmonUpdateByMove.UsageResult.immobilised()));
+                                updateByMove.statuses.add(tuple(moveInfo.partyId, moveInfo.monId, PmonUpdateByMove.UsageResult.immobilised(statusCondition.id)));
                                 return; // no other effects
                             }
                         }
@@ -159,7 +159,7 @@ public class PmonRuleToDetermineUpdates {
                                 PmonUpdateByMove.UsageResult usageResult;
                                 if (!ruleset.isAlive(targetMon)) {
 
-                                    usageResult = PmonUpdateByMove.UsageResult.miss();
+                                    usageResult = PmonUpdateByMove.UsageResult.miss(PmonUpdateByMove.UsageResult.MissType.NO_TARGET);
                                 }
                                 else if (ruleset.rngAccuracy.roll(move.attrs.accuracy)) {
 
@@ -173,7 +173,7 @@ public class PmonRuleToDetermineUpdates {
                                 }
                                 else {
 
-                                    usageResult = PmonUpdateByMove.UsageResult.miss();
+                                    usageResult = PmonUpdateByMove.UsageResult.miss(PmonUpdateByMove.UsageResult.MissType.INACCURATE);
                                 }
                                 updateByMove.statuses.add(tuple(targetPartyId, targetMonId, usageResult));
                             }

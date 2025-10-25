@@ -4,6 +4,7 @@ import jl95.lang.I;
 import jl95.tbb.pmon.PmonGlobalContext;
 import jl95.tbb.pmon.PmonRuleset;
 import jl95.tbb.pmon.status.PmonStatModifierType;
+import jl95.tbb.pmon.status.PmonStatusCondition;
 import jl95.tbb.pmon.update.*;
 import jl95.util.StrictMap;
 
@@ -35,10 +36,10 @@ public class PmonRuleToUpdateContext {
                         @Override public void hit(Iterable<PmonUpdateOnTarget> updates) {
                             new PmonRuleToUpdateContextByUpdateOnTarget(ruleset).update(context, updates, tuple(moveUpdate.partyId, moveUpdate.monId), tuple(targetPartyId, targetMonId));
                         }
-                        @Override public void miss() {
+                        @Override public void miss(PmonUpdateByMove.UsageResult.MissType type) {
                             /* haw haw! */
                         }
-                        @Override public void immobilised() {
+                        @Override public void immobilised(PmonStatusCondition.Id id) {
                             /* OOF */
                         }
 

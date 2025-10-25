@@ -19,12 +19,11 @@ public class PmonStatusCondition {
     public Boolean allowDecide = true; //TODO: use this
     public Boolean allowSwitchOut = true;
     public StrictMap<PmonStatModifierType, Double> statFactors = strict(Map());
-    public Function0<Integer> cureChanceBeforeMove = () -> 0; //TODO: use this
-    public Function0<Integer> immobiliseChanceOnMove = () -> 0; //TODO: use this
+    public Function0<Integer> immobiliseChanceOnMove = () -> 0;
     public Method3<PartyId, MonFieldPosition, Integer> onDamage = (partyId, monId, damage) -> {};
-    public Function1<PmonEffects, Integer> onDamageEffectsOnFoe = (damage) -> null; //TODO: use this
-    public Function1<PmonEffects, Integer> onDamageEffectsOnSelf = (damage) -> null; //TODO: use this
-    public Method0 afterTurn = () -> {}; //TODO: use this
+    public Function1<PmonEffects, Integer> onDamageEffectsOnFoe = (damage) -> null;
+    public Function1<PmonEffects, Integer> onDamageEffectsOnSelf = (damage) -> null;
+    public Method0 afterTurn = () -> {};
     public Function3<StrictMap<Tuple2<PartyId, MonFieldPosition>, PmonEffects>,PartyId,MonFieldPosition,PmonLocalContext>
             afterTurnEffects = (partyId,monId,context) -> strict(Map());
 
