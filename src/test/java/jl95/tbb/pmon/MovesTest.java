@@ -135,6 +135,7 @@ public class MovesTest {
         Runner.defaults()
                 .run1v1(moves, decisions, handler, after);
     }
+    // moves
     public static Tuple2<Iterable<PmonMove>,Iterable<PmonMove>> pmon1HasMove(PmonMoveAttributes moveAttrs) {
         return tuple(
                 I(makeMove(moveAttrs)),
@@ -145,6 +146,7 @@ public class MovesTest {
                 I(makeMove(move1Attrs)),
                 I(makeMove(move2Attrs)));
     }
+    // decisions
     public enum TARGET {
         SELF,FOE;
     }
@@ -165,6 +167,7 @@ public class MovesTest {
         return function((Tuple2<PartyId, MonFieldPosition> selfPosition,
                          Tuple2<PartyId, MonFieldPosition> foePosition) -> PmonDecision.from(new PmonDecisionToPass()));
     }
+    // handlers
     public static PmonBattle.Handler multiple(Iterable<PmonBattle.Handler> handlers) {
         var multipleHandler = new PmonBattle.Handler.Extendable();
         handlers.forEach(multipleHandler::add);
@@ -212,6 +215,7 @@ public class MovesTest {
     public static PmonBattle.Handler checkHitsOnPmon2(Method0 onHit) {
         return checkHitsOnPmonOfGivenParty(onHit, PARTY_2_ID);
     }
+    // after
     public static Method1<Context> ignoreAfter() {
         return c -> {};
     }

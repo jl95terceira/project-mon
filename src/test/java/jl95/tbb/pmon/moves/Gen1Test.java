@@ -160,7 +160,7 @@ public class Gen1Test {
                 super(new Id());
                 allowDecide = false;
                 afterTurn = () -> turnNr.set(turnNr.get()+1);
-                onDamage = (partyId, monFieldPosition, damage) -> {
+                onDamageToSelf = (partyId, monFieldPosition, damage) -> {
                     damageAccum.set(damageAccum.get() + damage);
                     foe.set(tuple(partyId, monFieldPosition));
                 };
@@ -239,11 +239,9 @@ public class Gen1Test {
         attrs.effects.damage.power = PmonMovePower.typed(10);
         class FlinchableStatus extends PmonStatusCondition {
 
-            private P<Integer> turnNr = new P<>(0);
             public FlinchableStatus() {
                 super(new Id());
                 immobiliseChanceOnMove = constant(50);
-                afterTurn = () -> turnNr.set(turnNr.get()+1);
                 afterTurnEffects = (partyId, monId, context) -> {
                     var effectsOnSelf = new PmonEffects();
                     effectsOnSelf.status.statusConditionsCure.add(Chanced.certain(id)); // cure self
@@ -313,5 +311,46 @@ public class Gen1Test {
                     System.out.println(nrHits2.get());
                     assertEquals(Integer.valueOf(0), nrHits2.get());
                 });
+    }
+    @Test
+    public void testConfusion() {
+        class ConfusedStatus extends PmonStatusCondition {
+
+            private P<Integer> turnNr = new P<>(0);
+            public ConfusedStatus() {
+                super(new Id());
+                immobiliseChanceOnMove = constant(50);
+                afterTurn = () -> turnNr.set(turnNr.get()+1);
+                afterTurnEffects = (partyId, monId, context) -> {
+                    if (turnNr.get() < 2) {
+
+                    }
+                    var effectsOnSelf = new PmonEffects();
+                    effectsOnSelf.status.statusConditionsCure.add(Chanced.certain(id)); // cure self
+                    return strict(Map(tuple(tuple(partyId,monId),effectsOnSelf)));
+                };
+            }
+        }
+        attrs.effects.status.statusConditionsInflict = strict(List(Chanced.certain(ConfusedStatus::new)));
+        attrs2.effects.damage.power = PmonMovePower.typed(50);
+        for (var toFlinch: I(true)) {
+            var rules = Runner.rulesDefaults();
+            rules.rngImmobilise = new PmonRuleset.Rng(constant(!toFlinch? 1.: 0.));
+            new Runner(rules).run1v1(
+                    pmon1And2HaveMoves(attrs, attrs2),
+                    I(
+                            tuple(useMove(TARGET.FOE), useMove(TARGET.FOE))),
+                    ignoreUpdates(),
+                    c -> {
+                        assertTrue(c.pmon2().status.hp < HP0);
+                        if (!toFlinch) {
+                            assertTrue(c.pmon1().status.hp < HP0);
+                        }
+                        else {
+                            assertEquals(HP0, c.pmon1().status.hp);
+                        }
+                        assertTrue(c.pmon2().status.statusConditions.isEmpty());
+                    });
+        }
     }
 }

@@ -31,12 +31,12 @@ public class PmonRuleToDetermineUpdatesFromEffects {
             if (followUp) {
                 var damage = damageUpdate.damage;
                 for (var statusCondition : targetMon.status.statusConditions.values()) {
-                    statusCondition.onDamage.accept(originPartyId, originMonPos, damage);
-                    var effectsOnFoe = statusCondition.onDamageEffectsOnFoe.apply(damage);
+                    statusCondition.onDamageToSelf.accept(originPartyId, originMonPos, damage);
+                    var effectsOnFoe = statusCondition.onDamageToSelfEffectsOnFoe.apply(damage);
                     if (effectsOnFoe != null) {
                         detUpdates(ctx, targetPartyId, targetMonPos, originPartyId, originMonPos, effectsOnFoe, 1, false, updateHandler);
                     }
-                    var effectsOnSelf = statusCondition.onDamageEffectsOnSelf.apply(damage);
+                    var effectsOnSelf = statusCondition.onDamageToSelfEffectsOnSelf.apply(damage);
                     if (effectsOnSelf != null) {
                         detUpdates(ctx, originPartyId, originMonPos, originPartyId, originMonPos, effectsOnSelf, 1, false, updateHandler);
                     }
