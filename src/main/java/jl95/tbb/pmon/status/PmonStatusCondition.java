@@ -17,7 +17,9 @@ public class PmonStatusCondition {
     public Boolean allowDecide = true; //TODO: use this
     public Boolean allowSwitchOut = true;
     public StrictMap<PmonStatModifierType, Double> statFactors = strict(Map());
+    public Function0<Integer> cureChanceBeforeMove = () -> 0;
     public Function0<Integer> immobiliseChanceOnMove = () -> 0;
+    public Function0<PmonEffects> onImmobilisedEffectsOnSelf = () -> null;
     public Method3<PartyId, MonFieldPosition, Integer> onDamageToSelf = (partyId, monId, damage) -> {};
     public Function1<PmonEffects, Integer> onDamageToSelfEffectsOnFoe = (damage) -> null;
     public Function1<PmonEffects, Integer> onDamageToSelfEffectsOnSelf = (damage) -> null;

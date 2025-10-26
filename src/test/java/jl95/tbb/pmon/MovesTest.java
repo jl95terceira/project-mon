@@ -63,9 +63,6 @@ public class MovesTest {
 
     public static class Runner {
 
-        public static Runner defaults() {
-            return new Runner(rulesDefaults());
-        }
         public static PmonRuleset rulesDefaults() {
             var rules  = new PmonRuleset();
             var RNG_0 = new PmonRuleset.Rng(constant(0.0));
@@ -83,6 +80,7 @@ public class MovesTest {
         public Runner(PmonRuleset rules) {
             this._rules = rules;
         }
+        public Runner() {this(rulesDefaults());}
 
         public void run1v1(
                 Tuple2<Iterable<PmonMove>,Iterable<PmonMove>> moves,
@@ -124,17 +122,6 @@ public class MovesTest {
         }
     }
 
-    public static void run1v1(
-            Tuple2<Iterable<PmonMove>,Iterable<PmonMove>> moves,
-            Iterable<Tuple2<
-                    Function2<PmonDecision, Tuple2<PartyId, MonFieldPosition>, Tuple2<PartyId, MonFieldPosition>>,
-                    Function2<PmonDecision, Tuple2<PartyId, MonFieldPosition>, Tuple2<PartyId, MonFieldPosition>>>> decisions,
-            PmonBattle.Handler handler,
-            Method1<Context> after) {
-
-        Runner.defaults()
-                .run1v1(moves, decisions, handler, after);
-    }
     // moves
     public static Tuple2<Iterable<PmonMove>,Iterable<PmonMove>> pmon1HasMove(PmonMoveAttributes moveAttrs) {
         return tuple(

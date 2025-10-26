@@ -126,7 +126,7 @@ public class PmonRuleset implements MonRuleset<
 
     @Override
     public void handleUpdates(PmonGlobalContext context, StrictMap<PartyId, MonPartyDecision<PmonDecision>> decisionsMap, Method1<PmonUpdate> updateHandler) {
-        new PmonRuleToDetermineUpdates(this).handleUpdates(context, decisionsMap, updateHandler);
+        new PmonRuleToDetermineUpdatesByDecisions(this).handleUpdates(context, decisionsMap, updateHandler);
     }
 
     @Override

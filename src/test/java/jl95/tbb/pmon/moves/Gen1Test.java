@@ -39,7 +39,7 @@ public class Gen1Test {
     @Test
     public void testDamage() {
         attrs.effects.damage.power = PmonMovePower.typed(20);
-        run1v1(
+        new Runner().run1v1(
                 pmon1HasMove(attrs),
                 I(
                         tuple(useMove(TARGET.FOE), pass())),
@@ -54,7 +54,7 @@ public class Gen1Test {
         attrs.effects.damage.power = PmonMovePower.typed(20);
         attrs2.effects.damage.power = PmonMovePower.typed(20);
         var pmon1WasHit = new P<>(false);
-        run1v1(
+        new Runner().run1v1(
                 pmon1And2HaveMoves(attrs,attrs2),
                 I(
                         tuple(useMove(TARGET.FOE), useMove(TARGET.FOE))),
@@ -71,7 +71,7 @@ public class Gen1Test {
     public void testDrain() {
         attrs.effects.damage.power = PmonMovePower.typed(20);
         attrs.effects.damage.healbackFactor = .5;
-        run1v1(
+        new Runner().run1v1(
                 pmon1HasMove(attrs),
                 I(
                         tuple(useMove(TARGET.FOE), pass())),
@@ -85,7 +85,7 @@ public class Gen1Test {
     public void testDamageAndReduceStat() {
         attrs.effects.damage.power = PmonMovePower.typed(20);
         attrs.effects.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.DEFENSE, new Chanced<>(-1, 10))));
-        run1v1(
+        new Runner().run1v1(
                 pmon1HasMove(attrs),
                 I(
                         tuple(useMove(TARGET.FOE), pass())),
@@ -98,7 +98,7 @@ public class Gen1Test {
     @Test
     public void testRaiseStat() {
         attrs.effects.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.ATTACK, Chanced.certain(2))));
-        run1v1(
+        new Runner().run1v1(
                 pmon1HasMove(attrs),
                 I(
                         tuple(useMove(TARGET.SELF), pass())),
@@ -110,7 +110,7 @@ public class Gen1Test {
     @Test
     public void testRaiseStatTwice() {
         attrs.effects.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.ATTACK, Chanced.certain(2))));
-        run1v1(
+        new Runner().run1v1(
                 pmon1HasMove(attrs),
                 I(
                         tuple(useMove(TARGET.SELF), pass()),
@@ -187,7 +187,7 @@ public class Gen1Test {
         attrs2.effects.damage.power = PmonMovePower.typed(20);
         var nrHitsOnPmon1 = new P<>(0);
         var nrHitsOnPmon2 = new P<>(0);
-        run1v1(
+        new Runner().run1v1(
                 pmon1And2HaveMoves(attrs2, attrs),
                 t == BIDE_TEST_FLAG.STOP_EARLY
                 ? I(
@@ -251,7 +251,7 @@ public class Gen1Test {
         }
         attrs.effects.status.statusConditionsInflict = strict(List(Chanced.certain(FlinchableStatus::new)));
         attrs2.effects.damage.power = PmonMovePower.typed(50);
-        for (var toFlinch: I(true)) {
+        for (var toFlinch: I(false,true)) {
             var rules = Runner.rulesDefaults();
             rules.rngImmobilise = new PmonRuleset.Rng(constant(!toFlinch? 1.: 0.));
             new Runner(rules).run1v1(
@@ -294,7 +294,7 @@ public class Gen1Test {
         attrs2.effects.damage.power = PmonMovePower.typed(20);
         var nrHits1 = new P<>(0);
         var nrHits2 = new P<>(0);
-        run1v1(
+        new Runner().run1v1(
                 pmon1And2HaveMoves(attrs, attrs2),
                 I(
                         tuple(useMove(TARGET.FOE), useMove(TARGET.FOE)),
@@ -306,9 +306,7 @@ public class Gen1Test {
                         checkHitsOnPmon1(() -> nrHits1.set(nrHits1.get()+1)),
                         checkHitsOnPmon2(() -> nrHits2.set(nrHits2.get()+1)))),
                 c -> {
-                    System.out.println(nrHits1.get());
                     assertEquals(Integer.valueOf(2), nrHits1.get());
-                    System.out.println(nrHits2.get());
                     assertEquals(Integer.valueOf(0), nrHits2.get());
                 });
     }
@@ -316,40 +314,35 @@ public class Gen1Test {
     public void testConfusion() {
         class ConfusedStatus extends PmonStatusCondition {
 
-            private P<Integer> turnNr = new P<>(0);
             public ConfusedStatus() {
                 super(new Id());
                 immobiliseChanceOnMove = constant(50);
-                afterTurn = () -> turnNr.set(turnNr.get()+1);
-                afterTurnEffects = (partyId, monId, context) -> {
-                    if (turnNr.get() < 2) {
-
-                    }
-                    var effectsOnSelf = new PmonEffects();
-                    effectsOnSelf.status.statusConditionsCure.add(Chanced.certain(id)); // cure self
-                    return strict(Map(tuple(tuple(partyId,monId),effectsOnSelf)));
+                onImmobilisedEffectsOnSelf = () -> {
+                    var effects = new PmonEffects();
+                    effects.damage.power = PmonMovePower.typed(20);
+                    return effects;
                 };
             }
         }
         attrs.effects.status.statusConditionsInflict = strict(List(Chanced.certain(ConfusedStatus::new)));
         attrs2.effects.damage.power = PmonMovePower.typed(50);
-        for (var toFlinch: I(true)) {
-            var rules = Runner.rulesDefaults();
-            rules.rngImmobilise = new PmonRuleset.Rng(constant(!toFlinch? 1.: 0.));
+        for (var confused: I(false,true)) {
+            var rules = new PmonRuleset();
+            rules.rngImmobilise = new PmonRuleset.Rng(constant(!confused? 1.: 0.));
             new Runner(rules).run1v1(
                     pmon1And2HaveMoves(attrs, attrs2),
                     I(
-                            tuple(useMove(TARGET.FOE), useMove(TARGET.FOE))),
+                            tuple(useMove(TARGET.FOE), useMove(TARGET.FOE))
+                    ),
                     ignoreUpdates(),
                     c -> {
-                        assertTrue(c.pmon2().status.hp < HP0);
-                        if (!toFlinch) {
+                        if (!confused) {
                             assertTrue(c.pmon1().status.hp < HP0);
+                            assertTrue(c.pmon2().status.hp == HP0);
+                        } else {
+                            assertTrue(c.pmon1().status.hp == HP0);
+                            assertTrue(c.pmon2().status.hp < HP0);
                         }
-                        else {
-                            assertEquals(HP0, c.pmon1().status.hp);
-                        }
-                        assertTrue(c.pmon2().status.statusConditions.isEmpty());
                     });
         }
     }
