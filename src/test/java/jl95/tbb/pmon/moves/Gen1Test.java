@@ -9,6 +9,7 @@ import jl95.tbb.pmon.Chanced;
 import jl95.tbb.pmon.PmonRuleset;
 import jl95.tbb.pmon.attrs.PmonMoveAttributes;
 import jl95.tbb.pmon.attrs.PmonMovePower;
+import jl95.tbb.pmon.attrs.PmonType;
 import jl95.tbb.pmon.effect.PmonEffects;
 import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.status.PmonStatusCondition;
@@ -82,7 +83,20 @@ public class Gen1Test {
                 });
     }
     @Test
-    public void testDamageAndReduceStat() {
+    public void testLowerStat() {
+        attrs.effects.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.DEFENSE, new Chanced<>(-1, 10))));
+        new Runner().run1v1(
+                pmon1HasMove(attrs),
+                I(
+                        tuple(useMove(TARGET.FOE), pass())),
+                ignoreUpdates(),
+                c -> {
+                    assertTrue(c.pmon2().status.hp == HP0);
+                    assertEquals(Integer.valueOf(-1), c.pmon2().status.statModifiers.getOrDefault(PmonStatModifierType.DEFENSE, 0));
+                });
+    }
+    @Test
+    public void testDamageAndLowerStat() {
         attrs.effects.damage.power = PmonMovePower.typed(20);
         attrs.effects.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.DEFENSE, new Chanced<>(-1, 10))));
         new Runner().run1v1(
@@ -320,6 +334,7 @@ public class Gen1Test {
                 onImmobilisedEffectsOnSelf = () -> {
                     var effects = new PmonEffects();
                     effects.damage.power = PmonMovePower.typed(20);
+                    effects.damage.pmonType = PMON_TYPE;
                     return effects;
                 };
             }
@@ -327,8 +342,8 @@ public class Gen1Test {
         attrs.effects.status.statusConditionsInflict = strict(List(Chanced.certain(ConfusedStatus::new)));
         attrs2.effects.damage.power = PmonMovePower.typed(50);
         for (var confused: I(false,true)) {
-            var rules = new PmonRuleset();
-            rules.rngImmobilise = new PmonRuleset.Rng(constant(!confused? 1.: 0.));
+            var rules = Runner.rulesDefaults();
+            rules.rngImmobilise = new PmonRuleset.Rng(constant(!confused? 1.0: 0.0));
             new Runner(rules).run1v1(
                     pmon1And2HaveMoves(attrs, attrs2),
                     I(
@@ -336,6 +351,7 @@ public class Gen1Test {
                     ),
                     ignoreUpdates(),
                     c -> {
+                        assertFalse(c.pmon2().status.statusConditions.isEmpty());
                         if (!confused) {
                             assertTrue(c.pmon1().status.hp < HP0);
                             assertTrue(c.pmon2().status.hp == HP0);
