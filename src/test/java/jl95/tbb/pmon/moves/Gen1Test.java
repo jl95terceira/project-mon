@@ -176,9 +176,9 @@ public class Gen1Test {
                 afterTurn = () -> turnNr.set(turnNr.get()+1);
                 onDamageToSelf = (partyId, monFieldPosition, damage) -> {
                     damageAccum.set(damageAccum.get() + damage);
-                    foe.set(tuple(partyId, monFieldPosition));
                 };
                 afterTurnEffects = (partyId,monId,context) -> {
+                    var self = context.ownParty.monsOnField.get(monId);
                     if (turnNr.get() < 3) {
                         return strict(Map());
                     }
@@ -186,15 +186,15 @@ public class Gen1Test {
                     effectsOnFoe.damage.power = PmonMove.Power.constant(2 * damageAccum.get());
                     var effectsOnSelf = new PmonEffects();
                     effectsOnSelf.status.statusConditionsCure.add(Chanced.certain(id)); // cure self
+                    var foe = self.status.lastFoeByDamageOnSelf;
                     return strict(I.flat(
-                            foe.get() != null?
-                            I(tuple(tuple(foe.get().a1, foe.get().a2),effectsOnFoe)): I(),
-                            I(tuple(tuple(partyId     , monId       ),effectsOnSelf))
+                            foe != null?
+                            I(tuple(tuple(foe.a1 , foe.a2),effectsOnFoe)): I(),
+                            I(tuple(tuple(partyId, monId ),effectsOnSelf))
                     ).toMap(t -> t.a1, t -> t.a2));
                 };
             }
             public final P<Integer> turnNr = new P<>(0);
-            public final P<Tuple2<PartyId, MonFieldPosition>> foe = new P<>(null);
             public final P<Integer> damageAccum = new P<>(0);
         }
         attrs.effects.status.statusConditionsInflict = strict(List(Chanced.certain(BideStatus::new)));
@@ -358,6 +358,32 @@ public class Gen1Test {
                         } else {
                             assertTrue(c.pmon1().status.hp == HP0);
                             assertTrue(c.pmon2().status.hp < HP0);
+                        }
+                    });
+        }
+    }
+    @Test
+    public void testCounter() {
+        attrs.effects.damage.power = PmonMove.Power.typed(20);
+        attrs2.effects.damage.power = PmonMove.Power.other(self -> 2*self.status.damageAccumulatedForTheTurn);
+        for (var attack: I(false,true)) {
+            new Runner().run1v1(
+                    pmon1And2HaveMoves(attrs, attrs2),
+                    !attack? I(
+                            tuple(pass(), useMove(TARGET.FOE))
+                    ): I(
+                            tuple(useMove(TARGET.FOE), useMove(TARGET.FOE))
+                    ),
+                    ignoreUpdates(),
+                    c -> {
+                        if (!attack) {
+                            assertEquals(HP0, c.pmon1().status.hp);
+                            assertEquals(HP0, c.pmon2().status.hp);
+                        }
+                        else {
+                            assertTrue(c.pmon1().status.hp < HP0);
+                            assertTrue(c.pmon2().status.hp < HP0);
+                            assertTrue((HP0 - c.pmon1().status.hp) >= 2*(HP0 - c.pmon2().status.hp));
                         }
                     });
         }

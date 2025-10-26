@@ -60,20 +60,5 @@ public class PmonRuleToUpdateContext {
                 }
             }
         });
-        for (var condition: context.fieldConditions.values()) {
-
-            condition.turnNr += 1;
-        }
-        for (var party: context.parties.values()) {
-
-            for (var condition: party.fieldConditions.values()) {
-
-                condition.turnNr += 1;
-            }
-            for (var condition: I.of(party.fieldConditionsByMon.values()).flatmap(StrictMap::values)) {
-
-                condition.turnNr += 1;
-            }
-        }
     }
 }

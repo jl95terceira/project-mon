@@ -1,6 +1,7 @@
 package jl95.tbb.pmon.rules;
 
 import jl95.lang.P;
+import jl95.lang.variadic.Function1;
 import jl95.tbb.pmon.Pmon;
 import jl95.tbb.pmon.PmonMove;
 import jl95.tbb.pmon.PmonRuleset;
@@ -74,6 +75,10 @@ public class PmonRuleToDetermineDamage {
             public void byMaxHp(Double percent) {
 
                 damageR.set((int) (percent * targetMon.baseStats.hp));
+            }
+            @Override
+            public void byOther(Function1<Integer,Pmon> damageFunction) {
+                damageR.set(damageFunction.apply(mon));
             }
         });
         if (!isDamagingR.get()) {

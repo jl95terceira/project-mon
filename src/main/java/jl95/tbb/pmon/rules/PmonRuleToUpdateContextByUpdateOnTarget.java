@@ -30,8 +30,13 @@ public class PmonRuleToUpdateContextByUpdateOnTarget {
                 public void damage(PmonUpdateOnTargetByDamage damageUpdate) {
 
                     // damage
+                    var targetMonHpBeforeDamage = targetMon.status.hp;
                     targetMon.status.hp = function((Integer hpRemaining) -> hpRemaining > 0? hpRemaining: 0)
                             .apply(targetMon.status.hp - damageUpdate.damage);
+                    targetMon.status.lastFoeByDamageOnSelf = origin;
+                    var damageDealt = targetMonHpBeforeDamage - targetMon.status.hp;
+                    targetMon.status.damageByLastFoe = damageDealt;
+                    targetMon.status.damageAccumulatedForTheTurn += damageDealt;
                     if (damageUpdate.healback != null) {
                         mon.status.hp = function((Integer hpRemaining) -> hpRemaining < mon.baseStats.hp? hpRemaining: mon.baseStats.hp)
                                 .apply(mon.status.hp + damageUpdate.healback);

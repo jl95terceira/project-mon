@@ -1,5 +1,6 @@
 package jl95.tbb.pmon;
 
+import jl95.lang.variadic.Function1;
 import jl95.lang.variadic.Tuple2;
 import jl95.tbb.pmon.effect.PmonEffects;
 import jl95.tbb.pmon.status.PmonMoveStatus;
@@ -22,6 +23,7 @@ public class PmonMove {
             void constant(Integer damage);
             void byHp(Double percent);
             void byMaxHp(Double percent);
+            void byOther(Function1<Integer, Pmon> damageFunction);
         }
 
         void call(Handler handler);
@@ -31,6 +33,7 @@ public class PmonMove {
         static Power constant(Integer damage) { return handler -> handler.constant(damage); }
         static Power byHp(Double percent) { return handler -> handler.byHp(percent); }
         static Power byMaxHp(Double percent) { return handler -> handler.byMaxHp(percent); }
+        static Power other(Function1<Integer, Pmon> damageFunction) { return handler -> handler.byOther(damageFunction); }
     }
     public enum TargettingType {
 
