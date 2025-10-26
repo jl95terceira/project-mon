@@ -33,7 +33,7 @@ public class PmonRuleToUpdateContextByUpdateOnTarget {
                     targetMon.status.hp = function((Integer hpRemaining) -> hpRemaining > 0? hpRemaining: 0)
                             .apply(targetMon.status.hp - damageUpdate.damage);
                     if (damageUpdate.healback != null) {
-                        mon.status.hp = function((Integer hpRemaining) -> hpRemaining < mon.attrs.baseStats.hp? hpRemaining: mon.attrs.baseStats.hp)
+                        mon.status.hp = function((Integer hpRemaining) -> hpRemaining < mon.baseStats.hp? hpRemaining: mon.baseStats.hp)
                                 .apply(mon.status.hp + damageUpdate.healback);
                     }
                 }

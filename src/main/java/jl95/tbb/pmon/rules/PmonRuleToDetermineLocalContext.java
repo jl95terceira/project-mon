@@ -29,7 +29,7 @@ public class PmonRuleToDetermineLocalContext {
                         .toMap(Map.Entry::getKey, e -> {
                             var foeMon = e.getValue();
                             var foeMonView = new PmonFoeView(foeMon.id);
-                            foeMonView.types = foeMon.attrs.types;
+                            foeMonView.types = foeMon.types;
                             foeMonView.status = foeMon.status;
                             return foeMonView;
                         }))));

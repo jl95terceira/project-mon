@@ -3,7 +3,7 @@ package jl95.tbb.pmon.update;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonFieldPosition;
 
-import static jl95.tbb.pmon.attrs.PmonDefaults.*;
+import static jl95.tbb.pmon.PmonDefaults.*;
 
 public class PmonUpdateBySwitchOut {
 

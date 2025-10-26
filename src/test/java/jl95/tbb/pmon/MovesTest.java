@@ -5,10 +5,6 @@ import jl95.lang.variadic.*;
 import jl95.tbb.Battle;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonFieldPosition;
-import jl95.tbb.pmon.attrs.PmonAttributes;
-import jl95.tbb.pmon.attrs.PmonMoveAttributes;
-import jl95.tbb.pmon.attrs.PmonMoveEffectivenessType;
-import jl95.tbb.pmon.attrs.PmonType;
 import jl95.tbb.pmon.decision.PmonDecisionToPass;
 import jl95.tbb.pmon.decision.PmonDecisionToUseMove;
 import jl95.tbb.pmon.status.PmonStatusCondition;
@@ -21,8 +17,8 @@ public class MovesTest {
     public static final Pmon.Id PMON_ID = new Pmon.Id();
     public static final PmonType PMON_TYPE = new PmonType(new PmonType.Id()) {
         @Override
-        public PmonMoveEffectivenessType effectivenessAgainst(PmonType other) {
-            return PmonMoveEffectivenessType.NORMAL;
+        public PmonMove.EffectivenessType effectivenessAgainst(PmonType other) {
+            return PmonMove.EffectivenessType.NORMAL;
         }
     };
     public static final int HP_MAX = 95;
@@ -32,32 +28,32 @@ public class MovesTest {
 
     public record Context(PmonGlobalContext gc, Pmon pmon1, Pmon pmon2) {}
 
-    private static void set(PmonAttributes pmonAttributes) {
-        pmonAttributes.baseStats.hp             = HP_MAX;
-        pmonAttributes.baseStats.attack         = 55;
-        pmonAttributes.baseStats.defense        = 40;
-        pmonAttributes.baseStats.specialAttack  = 50;
-        pmonAttributes.baseStats.specialDefense = 50;
-        pmonAttributes.baseStats.speed          = 90;
+    private static void setBaseStats(Pmon pmon) {
+        pmon.baseStats.hp             = HP_MAX;
+        pmon.baseStats.attack         = 55;
+        pmon.baseStats.defense        = 40;
+        pmon.baseStats.specialAttack  = 50;
+        pmon.baseStats.specialDefense = 50;
+        pmon.baseStats.speed          = 90;
     }
     private static PmonPartyEntry makePartyEntry(Iterable<PmonMove> moves) {
         var party = new PmonPartyEntry();
         var pmon = new Pmon(PMON_ID);
-        set(pmon.attrs);
+        setBaseStats(pmon);
         pmon.status.hp = HP0;
         pmon.moves.addAll(moves);
         party.mons.add(pmon);
         return party;
     }
-    public static PmonMove makeMove(PmonMoveAttributes attrs) {
+    public static PmonMove makeMove(Method1<PmonMove> attrs) {
         var move = new PmonMove(new PmonMove.Id(), new PmonType(PMON_TYPE.id) {
 
-            @Override public PmonMoveEffectivenessType effectivenessAgainst(PmonType other) {
-                return PmonMoveEffectivenessType.NORMAL;
+            @Override public PmonMove.EffectivenessType effectivenessAgainst(PmonType other) {
+                return PmonMove.EffectivenessType.NORMAL;
             }
         });
         move.status.pp = 99;
-        move.attrs = attrs;
+        attrs.accept(move);
         return move;
     }
 
@@ -93,7 +89,7 @@ public class MovesTest {
             var battle = new PmonBattle(_rules);
             var party1 = makePartyEntry(moves.a1);
             var party2 = makePartyEntry(moves.a2);
-            party1.mons.iterator().next().attrs.baseStats.speed += 1; // so that pmon 1 always moves first, to ensure reproducibility when testing
+            party1.mons.iterator().next().baseStats.speed += 1; // so that pmon 1 always moves first, to ensure reproducibility when testing
             var decisionsIterator = decisions.iterator();
             P<PmonGlobalContext> gcRef = new P<>(null);
             var parentHandler = new PmonBattle.Handler.Extendable();
@@ -123,15 +119,15 @@ public class MovesTest {
     }
 
     // moves
-    public static Tuple2<Iterable<PmonMove>,Iterable<PmonMove>> pmon1HasMove(PmonMoveAttributes moveAttrs) {
+    public static Tuple2<Iterable<PmonMove>,Iterable<PmonMove>> pmon1HasMove(PmonMove move) {
         return tuple(
-                I(makeMove(moveAttrs)),
+                I(move),
                 I());
     }
-    public static Tuple2<Iterable<PmonMove>,Iterable<PmonMove>> pmon1And2HaveMoves(PmonMoveAttributes move1Attrs, PmonMoveAttributes move2Attrs) {
+    public static Tuple2<Iterable<PmonMove>,Iterable<PmonMove>> pmon1And2HaveMoves(PmonMove move1, PmonMove move2) {
         return tuple(
-                I(makeMove(move1Attrs)),
-                I(makeMove(move2Attrs)));
+                I(move1),
+                I(move2));
     }
     // decisions
     public enum TARGET {

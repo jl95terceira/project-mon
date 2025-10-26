@@ -66,7 +66,7 @@ public class PmonRuleToDetermineUpdatesByDecisions {
                         public void useMove(PmonDecisionToUseMove useMoveDecision) {
 
                             var mon = context.parties.get(partyId).monsOnField.get(monId);
-                            var monSpeed = mon.attrs.baseStats.speed;
+                            var monSpeed = mon.baseStats.speed;
                             var move = context.parties.get(partyId).monsOnField.get(monId).moves.get(useMoveDecision.moveIndex);
                             StrictList<Integer> speedModifiers = strict(List());
                             StrictList<Double> speedFactors = strict(List());
@@ -89,7 +89,7 @@ public class PmonRuleToDetermineUpdatesByDecisions {
 
                                 monSpeed = (int) (monSpeed * ruleset.constants.STAT_MODIFIER_FACTOR.apply(PmonStatModifierType.SPEED, speedModifier));
                             }
-                            moveList.add(new DecisionSorting.MoveInfo(partyId, monId, useMoveDecision.moveIndex, monSpeed, move.attrs.priorityModifier, useMoveDecision.targets, move.attrs.interceptsSwitch));
+                            moveList.add(new DecisionSorting.MoveInfo(partyId, monId, useMoveDecision.moveIndex, monSpeed, move.priorityModifier, useMoveDecision.targets, move.interceptsSwitch));
                         }
                     });
                 }
@@ -173,13 +173,13 @@ public class PmonRuleToDetermineUpdatesByDecisions {
 
                                     usageResult = PmonUpdateByMove.UsageResult.miss(PmonUpdateByMove.UsageResult.MissType.NO_TARGET);
                                 }
-                                else if (ruleset.rngAccuracy.roll(move.attrs.accuracy)) {
+                                else if (ruleset.rngAccuracy.roll(move.accuracy)) {
 
                                     StrictList<PmonUpdateOnTarget> atomicUpdates = strict(List());
-                                    Integer nrHits = ruleset.rngHitNrTimes.betweenInclusive(move.attrs.hitNrTimesRange);
+                                    Integer nrHits = ruleset.rngHitNrTimes.betweenInclusive(move.hitNrTimesRange);
                                     for (var i: I.range(nrHits)) {
 
-                                        new PmonRuleToDetermineUpdateByEffects(ruleset).detUpdates(context, origin, tuple(targetPartyId, targetMonId), move.attrs.effects, nrTargets, true, atomicUpdates::add);
+                                        new PmonRuleToDetermineUpdateByEffects(ruleset).detUpdates(context, origin, tuple(targetPartyId, targetMonId), move.effects, nrTargets, true, atomicUpdates::add);
                                     }
                                     usageResult = PmonUpdateByMove.UsageResult.hit(atomicUpdates);
                                 }

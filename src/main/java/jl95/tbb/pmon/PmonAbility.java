@@ -1,4 +1,4 @@
-package jl95.tbb.pmon.attrs;
+package jl95.tbb.pmon;
 
 public class PmonAbility {
 

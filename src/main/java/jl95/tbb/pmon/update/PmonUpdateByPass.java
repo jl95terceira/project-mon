@@ -1,7 +1,7 @@
 package jl95.tbb.pmon.update;
 
-import static jl95.tbb.pmon.attrs.PmonDefaults.NO_FIELD_POSITION;
-import static jl95.tbb.pmon.attrs.PmonDefaults.NO_PARTY;
+import static jl95.tbb.pmon.PmonDefaults.NO_FIELD_POSITION;
+import static jl95.tbb.pmon.PmonDefaults.NO_PARTY;
 
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonFieldPosition;

@@ -1,4 +1,4 @@
-package jl95.tbb.pmon.attrs;
+package jl95.tbb.pmon;
 
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonFieldPosition;

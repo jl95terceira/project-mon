@@ -1,4 +1,4 @@
-package jl95.tbb.pmon.attrs;
+package jl95.tbb.pmon;
 
 public abstract class PmonType {
 
@@ -9,5 +9,5 @@ public abstract class PmonType {
         this.id = id;
     }
 
-    public abstract PmonMoveEffectivenessType effectivenessAgainst(PmonType other);
+    public abstract PmonMove.EffectivenessType effectivenessAgainst(PmonType other);
 }

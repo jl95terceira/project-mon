@@ -6,10 +6,8 @@ import jl95.lang.variadic.Tuple2;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonFieldPosition;
 import jl95.tbb.pmon.Chanced;
+import jl95.tbb.pmon.PmonMove;
 import jl95.tbb.pmon.PmonRuleset;
-import jl95.tbb.pmon.attrs.PmonMoveAttributes;
-import jl95.tbb.pmon.attrs.PmonMovePower;
-import jl95.tbb.pmon.attrs.PmonType;
 import jl95.tbb.pmon.effect.PmonEffects;
 import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.status.PmonStatusCondition;
@@ -23,13 +21,15 @@ import static org.junit.Assert.*;
 
 public class Gen1Test {
 
-    private PmonMoveAttributes attrs;
-    private PmonMoveAttributes attrs2;
+    private PmonMove attrs;
+    private PmonMove attrs2;
 
     @Before
     public void setup() {
-        attrs  = new PmonMoveAttributes(PMON_TYPE);
-        attrs2 = new PmonMoveAttributes(PMON_TYPE);
+        attrs  = new PmonMove(new PmonMove.Id(), PMON_TYPE);
+        attrs.effects.damage.pmonType = PMON_TYPE;
+        attrs2 = new PmonMove(new PmonMove.Id(), PMON_TYPE);
+        attrs2.effects.damage.pmonType = PMON_TYPE;
     }
     @After
     public void teardown() {
@@ -39,7 +39,7 @@ public class Gen1Test {
 
     @Test
     public void testDamage() {
-        attrs.effects.damage.power = PmonMovePower.typed(20);
+        attrs.effects.damage.power = PmonMove.Power.typed(20);
         new Runner().run1v1(
                 pmon1HasMove(attrs),
                 I(
@@ -52,8 +52,8 @@ public class Gen1Test {
     }
     @Test
     public void testDamageMoveFirst() {
-        attrs.effects.damage.power = PmonMovePower.typed(20);
-        attrs2.effects.damage.power = PmonMovePower.typed(20);
+        attrs.effects.damage.power = PmonMove.Power.typed(20);
+        attrs2.effects.damage.power = PmonMove.Power.typed(20);
         var pmon1WasHit = new P<>(false);
         new Runner().run1v1(
                 pmon1And2HaveMoves(attrs,attrs2),
@@ -70,7 +70,7 @@ public class Gen1Test {
     }
     @Test
     public void testDrain() {
-        attrs.effects.damage.power = PmonMovePower.typed(20);
+        attrs.effects.damage.power = PmonMove.Power.typed(20);
         attrs.effects.damage.healbackFactor = .5;
         new Runner().run1v1(
                 pmon1HasMove(attrs),
@@ -97,7 +97,7 @@ public class Gen1Test {
     }
     @Test
     public void testDamageAndLowerStat() {
-        attrs.effects.damage.power = PmonMovePower.typed(20);
+        attrs.effects.damage.power = PmonMove.Power.typed(20);
         attrs.effects.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.DEFENSE, new Chanced<>(-1, 10))));
         new Runner().run1v1(
                 pmon1HasMove(attrs),
@@ -138,7 +138,7 @@ public class Gen1Test {
     private void testMultiHits(Double rng, Integer nrHitsExpected) {
         var rules = Runner.rulesDefaults();
         rules.rngHitNrTimes = new PmonRuleset.Rng(constant(rng));
-        attrs.effects.damage.power = PmonMovePower.typed(15);
+        attrs.effects.damage.power = PmonMove.Power.typed(15);
         attrs.hitNrTimesRange = tuple(2,4);
         var nrHits = new P<>(0);
         new Runner(rules)
@@ -183,7 +183,7 @@ public class Gen1Test {
                         return strict(Map());
                     }
                     var effectsOnFoe = new PmonEffects();
-                    effectsOnFoe.damage.power = PmonMovePower.constant(2 * damageAccum.get());
+                    effectsOnFoe.damage.power = PmonMove.Power.constant(2 * damageAccum.get());
                     var effectsOnSelf = new PmonEffects();
                     effectsOnSelf.status.statusConditionsCure.add(Chanced.certain(id)); // cure self
                     return strict(I.flat(
@@ -198,7 +198,7 @@ public class Gen1Test {
             public final P<Integer> damageAccum = new P<>(0);
         }
         attrs.effects.status.statusConditionsInflict = strict(List(Chanced.certain(BideStatus::new)));
-        attrs2.effects.damage.power = PmonMovePower.typed(20);
+        attrs2.effects.damage.power = PmonMove.Power.typed(20);
         var nrHitsOnPmon1 = new P<>(0);
         var nrHitsOnPmon2 = new P<>(0);
         new Runner().run1v1(
@@ -250,7 +250,7 @@ public class Gen1Test {
     }
     @Test
     public void testFlinch() {
-        attrs.effects.damage.power = PmonMovePower.typed(10);
+        attrs.effects.damage.power = PmonMove.Power.typed(10);
         class FlinchableStatus extends PmonStatusCondition {
 
             public FlinchableStatus() {
@@ -264,7 +264,7 @@ public class Gen1Test {
             }
         }
         attrs.effects.status.statusConditionsInflict = strict(List(Chanced.certain(FlinchableStatus::new)));
-        attrs2.effects.damage.power = PmonMovePower.typed(50);
+        attrs2.effects.damage.power = PmonMove.Power.typed(50);
         for (var toFlinch: I(false,true)) {
             var rules = Runner.rulesDefaults();
             rules.rngImmobilise = new PmonRuleset.Rng(constant(!toFlinch? 1.: 0.));
@@ -305,7 +305,7 @@ public class Gen1Test {
             }
         }
         attrs.effects.status.statusConditionsInflict = strict(List(Chanced.certain(SleepStatus::new)));
-        attrs2.effects.damage.power = PmonMovePower.typed(20);
+        attrs2.effects.damage.power = PmonMove.Power.typed(20);
         var nrHits1 = new P<>(0);
         var nrHits2 = new P<>(0);
         new Runner().run1v1(
@@ -333,14 +333,14 @@ public class Gen1Test {
                 immobiliseChanceOnMove = constant(50);
                 onImmobilisedEffectsOnSelf = () -> {
                     var effects = new PmonEffects();
-                    effects.damage.power = PmonMovePower.typed(20);
+                    effects.damage.power = PmonMove.Power.typed(20);
                     effects.damage.pmonType = PMON_TYPE;
                     return effects;
                 };
             }
         }
         attrs.effects.status.statusConditionsInflict = strict(List(Chanced.certain(ConfusedStatus::new)));
-        attrs2.effects.damage.power = PmonMovePower.typed(50);
+        attrs2.effects.damage.power = PmonMove.Power.typed(50);
         for (var confused: I(false,true)) {
             var rules = Runner.rulesDefaults();
             rules.rngImmobilise = new PmonRuleset.Rng(constant(!confused? 1.0: 0.0));
