@@ -27,38 +27,48 @@ public class PmoRuleToDetermineAllowedToDecide {
         // If there are any fainted mons, only switch-ins are allowed and only for the fainted mons.
 
         StrictMap<PartyId, StrictSet<MonFieldPosition>> fainted = strict(Map());
+        StrictMap<PartyId, StrictSet<MonFieldPosition>> disallowed = strict(Map());
         for (var e: context.parties.entrySet()) {
-
             PartyId partyId = e.getKey();
             MonParty<Pmon> party = e.getValue();
             for (var e2: party.monsOnField.entrySet()) {
-
-                MonFieldPosition monFieldPosition = e2.getKey();
+                MonFieldPosition monId = e2.getKey();
                 Pmon mon = e2.getValue();
                 if (!ruleset.isAlive(mon)) {
-
                     StrictSet<MonFieldPosition> faintedOfParty;
                     if (!fainted.containsKey(partyId)) {
-
                         faintedOfParty = strict(Set());
                         fainted.put(partyId, faintedOfParty);
                     }
                     else {
-
                         faintedOfParty = fainted.get(partyId);
                     }
-                    faintedOfParty.add(monFieldPosition);
+                    faintedOfParty.add(monId);
+                }
+                else for (var statusCondition: mon.status.statusConditions.values()) {
+                    if (!statusCondition.allowDecide) {
+                        StrictSet<MonFieldPosition> disallowedMonsForParty;
+                        if (disallowed.containsKey(partyId)) {
+                            disallowedMonsForParty = disallowed.get(partyId);
+                        }
+                        else {
+                            disallowedMonsForParty = strict(Set());
+                            disallowed.put(partyId, disallowedMonsForParty);
+                        }
+                        disallowedMonsForParty.add(monId);
+                        break;
+                    }
                 }
             }
         }
         if (fainted.isEmpty()) {
-
-            return strict(I.of(context.parties.entrySet()).toMap(Map.Entry::getKey, e -> strict(e.getValue().monsOnField.keySet())));
-
-            //TODO: should be based also on move lock-in, charging / recharging, etc
+            return strict(I.of(context.parties.entrySet()).toMap(Map.Entry::getKey, e -> strict(I.of(e.getValue().monsOnField.keySet())
+                    .filter(monId -> !disallowed
+                            .getOrDefault(e.getKey(), strict(Set()))
+                            .contains(monId))
+                    .toSet())));
         }
         else {
-
             return fainted;
         }
     }

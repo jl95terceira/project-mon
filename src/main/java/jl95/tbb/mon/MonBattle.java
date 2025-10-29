@@ -84,9 +84,14 @@ public class MonBattle<
 
             var allowedToDecide = ruleset.allowedToDecide(globalContextRef.get());
             var partyDecisionsMap = decisionFunction.apply(allowedToDecide);
-            return strict(I.of(partyDecisionsMap.entrySet()).toMap(Map.Entry::getKey, e -> {
+            return strict(I.of(partyDecisionsMap.entrySet())
+                    .filter(e -> allowedToDecide.containsKey(e.getKey()))
+                    .toMap(Map.Entry::getKey, e -> {
                 var partyDecision = new MonPartyDecision<MonDecision>();
-                partyDecision.monDecisions.putAll(e.getValue());
+                partyDecision.monDecisions.putAll(strict(I
+                        .of(e.getValue().entrySet())
+                        .filter(f -> allowedToDecide.get(e.getKey()).contains(f.getKey()))
+                        .toMap(Map.Entry::getKey, Map.Entry::getValue)));
                 return partyDecision;
             }));
         }, extendedCallbacks, toInterrupt);

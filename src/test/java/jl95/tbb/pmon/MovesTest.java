@@ -10,6 +10,9 @@ import jl95.tbb.pmon.decision.PmonDecisionToUseMove;
 import jl95.tbb.pmon.status.PmonStatusCondition;
 import jl95.tbb.pmon.update.*;
 
+import java.util.Iterator;
+
+import static java.util.Optional.ofNullable;
 import static jl95.lang.SuperPowers.*;
 
 public class MovesTest {
@@ -100,16 +103,16 @@ public class MovesTest {
                         strict(Map(tuple(PARTY_1_ID, party1),
                                 tuple(PARTY_2_ID, party2))),
                         new PmonInitialConditions(),
-                        parties -> {
+                        partiesAllowedToDecide -> {
                             var decisionsForThisTurn = decisionsIterator.next();
-                            var mon1FieldPosition = parties.get(PARTY_1_ID).iterator().next();
-                            var mon2FieldPosition = parties.get(PARTY_2_ID).iterator().next();
+                            var mon1FieldPosition = gcRef.get().parties.get(PARTY_1_ID).monsOnField.keySet().iterator().next();
+                            var mon2FieldPosition = gcRef.get().parties.get(PARTY_2_ID).monsOnField.keySet().iterator().next();
                             return strict(Map(
                                     tuple(PARTY_1_ID, strict(Map(tuple(mon1FieldPosition, decisionsForThisTurn.a1.apply(tuple(PARTY_1_ID, mon1FieldPosition), tuple(PARTY_2_ID, mon2FieldPosition)))))),
                                     tuple(PARTY_2_ID, strict(Map(tuple(mon2FieldPosition, decisionsForThisTurn.a2.apply(tuple(PARTY_2_ID, mon2FieldPosition), tuple(PARTY_1_ID, mon1FieldPosition))))))
                             ));
                         },
-                        handler,
+                        parentHandler,
                         not(decisionsIterator::hasNext)
                 );
             }
