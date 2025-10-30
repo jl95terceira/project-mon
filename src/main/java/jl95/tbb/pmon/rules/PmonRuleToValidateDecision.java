@@ -29,7 +29,7 @@ public class PmonRuleToValidateDecision {
                 return false;
             }
             PmonDecision monDecision = e.getValue();
-            monDecision.call(new PmonDecision.Handler() {
+            monDecision.get(new PmonDecision.Handler() {
 
                 @Override
                 public void pass(PmonDecisionToPass decision) {

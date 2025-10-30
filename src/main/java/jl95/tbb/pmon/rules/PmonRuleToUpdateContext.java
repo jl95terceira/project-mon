@@ -1,12 +1,9 @@
 package jl95.tbb.pmon.rules;
 
-import jl95.lang.I;
 import jl95.tbb.pmon.PmonGlobalContext;
 import jl95.tbb.pmon.PmonRuleset;
-import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.status.PmonStatusCondition;
 import jl95.tbb.pmon.update.*;
-import jl95.util.StrictMap;
 
 import static jl95.lang.SuperPowers.*;
 
@@ -18,7 +15,7 @@ public class PmonRuleToUpdateContext {
 
     public void update(PmonGlobalContext context, PmonUpdate pmonUpdate) {
 
-        pmonUpdate.call(new PmonUpdate.Handler() {
+        pmonUpdate.get(new PmonUpdate.Handler() {
 
             @Override public void move(PmonUpdateByMove moveUpdate) {
 
@@ -31,7 +28,7 @@ public class PmonRuleToUpdateContext {
                     var targetMonId    = t.a2;
                     var targetMon      = targetParty.monsOnField.get(targetMonId);
                     var updateOnTarget = t.a3;
-                    updateOnTarget.call(new PmonUpdateByMove.UsageResult.Handler() {
+                    updateOnTarget.get(new PmonUpdateByMove.UsageResult.Handler() {
 
                         @Override public void hit(Iterable<PmonUpdateOnTarget> updates) {
                             new PmonRuleToUpdateContextByUpdateOnTarget(ruleset).update(context, updates, tuple(moveUpdate.partyId, moveUpdate.monId), tuple(targetPartyId, targetMonId));

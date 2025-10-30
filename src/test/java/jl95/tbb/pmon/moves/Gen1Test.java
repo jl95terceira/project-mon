@@ -2,9 +2,6 @@ package jl95.tbb.pmon.moves;
 
 import jl95.lang.I;
 import jl95.lang.P;
-import jl95.lang.variadic.Tuple2;
-import jl95.tbb.PartyId;
-import jl95.tbb.mon.MonFieldPosition;
 import jl95.tbb.pmon.Chanced;
 import jl95.tbb.pmon.PmonMove;
 import jl95.tbb.pmon.PmonRuleset;
@@ -27,9 +24,9 @@ public class Gen1Test {
     @Before
     public void setup() {
         attrs  = new PmonMove(new PmonMove.Id(), PMON_TYPE);
-        attrs.effects.damage.pmonType = PMON_TYPE;
+        attrs.effectsOnFoe.damage.pmonType = PMON_TYPE;
         attrs2 = new PmonMove(new PmonMove.Id(), PMON_TYPE);
-        attrs2.effects.damage.pmonType = PMON_TYPE;
+        attrs2.effectsOnFoe.damage.pmonType = PMON_TYPE;
     }
     @After
     public void teardown() {
@@ -39,7 +36,7 @@ public class Gen1Test {
 
     @Test
     public void testDamage() {
-        attrs.effects.damage.power = PmonMove.Power.typed(20);
+        attrs.effectsOnFoe.damage.power = PmonMove.Power.typed(20);
         new Runner().run1v1(
                 pmon1HasMove(attrs),
                 I(
@@ -52,8 +49,8 @@ public class Gen1Test {
     }
     @Test
     public void testDamageMoveFirst() {
-        attrs.effects.damage.power = PmonMove.Power.typed(20);
-        attrs2.effects.damage.power = PmonMove.Power.typed(20);
+        attrs.effectsOnFoe.damage.power = PmonMove.Power.typed(20);
+        attrs2.effectsOnFoe.damage.power = PmonMove.Power.typed(20);
         var pmon1WasHit = new P<>(false);
         new Runner().run1v1(
                 pmon1And2HaveMoves(attrs,attrs2),
@@ -70,8 +67,8 @@ public class Gen1Test {
     }
     @Test
     public void testDrain() {
-        attrs.effects.damage.power = PmonMove.Power.typed(20);
-        attrs.effects.damage.healbackFactor = .5;
+        attrs.effectsOnFoe.damage.power = PmonMove.Power.typed(20);
+        attrs.effectsOnFoe.damage.healbackFactor = .5;
         new Runner().run1v1(
                 pmon1HasMove(attrs),
                 I(
@@ -84,7 +81,7 @@ public class Gen1Test {
     }
     @Test
     public void testLowerStat() {
-        attrs.effects.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.DEFENSE, new Chanced<>(-1, 10))));
+        attrs.effectsOnFoe.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.DEFENSE, new Chanced<>(-1, 10))));
         new Runner().run1v1(
                 pmon1HasMove(attrs),
                 I(
@@ -97,8 +94,8 @@ public class Gen1Test {
     }
     @Test
     public void testDamageAndLowerStat() {
-        attrs.effects.damage.power = PmonMove.Power.typed(20);
-        attrs.effects.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.DEFENSE, new Chanced<>(-1, 10))));
+        attrs.effectsOnFoe.damage.power = PmonMove.Power.typed(20);
+        attrs.effectsOnFoe.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.DEFENSE, new Chanced<>(-1, 10))));
         new Runner().run1v1(
                 pmon1HasMove(attrs),
                 I(
@@ -111,7 +108,7 @@ public class Gen1Test {
     }
     @Test
     public void testRaiseStat() {
-        attrs.effects.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.ATTACK, Chanced.certain(2))));
+        attrs.effectsOnFoe.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.ATTACK, Chanced.certain(2))));
         new Runner().run1v1(
                 pmon1HasMove(attrs),
                 I(
@@ -123,7 +120,7 @@ public class Gen1Test {
     }
     @Test
     public void testRaiseStatTwice() {
-        attrs.effects.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.ATTACK, Chanced.certain(2))));
+        attrs.effectsOnFoe.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.ATTACK, Chanced.certain(2))));
         new Runner().run1v1(
                 pmon1HasMove(attrs),
                 I(
@@ -138,7 +135,7 @@ public class Gen1Test {
     private void testMultiHits(Double rng, Integer nrHitsExpected) {
         var rules = Runner.rulesDefaults();
         rules.rngHitNrTimes = new PmonRuleset.Rng(constant(rng));
-        attrs.effects.damage.power = PmonMove.Power.typed(15);
+        attrs.effectsOnFoe.damage.power = PmonMove.Power.typed(15);
         attrs.hitNrTimesRange = tuple(2,4);
         var nrHits = new P<>(0);
         new Runner(rules)
@@ -197,8 +194,8 @@ public class Gen1Test {
             public final P<Integer> turnNr = new P<>(0);
             public final P<Integer> damageAccum = new P<>(0);
         }
-        attrs.effects.status.statusConditionsInflict = strict(List(Chanced.certain(BideStatus::new)));
-        attrs2.effects.damage.power = PmonMove.Power.typed(20);
+        attrs.effectsOnFoe.status.statusConditionsInflict = strict(List(Chanced.certain(BideStatus::new)));
+        attrs2.effectsOnFoe.damage.power = PmonMove.Power.typed(20);
         var nrHitsOnPmon1 = new P<>(0);
         var nrHitsOnPmon2 = new P<>(0);
         new Runner().run1v1(
@@ -250,7 +247,7 @@ public class Gen1Test {
     }
     @Test
     public void testFlinch() {
-        attrs.effects.damage.power = PmonMove.Power.typed(10);
+        attrs.effectsOnFoe.damage.power = PmonMove.Power.typed(10);
         class FlinchableStatus extends PmonStatusCondition {
 
             public FlinchableStatus() {
@@ -263,8 +260,8 @@ public class Gen1Test {
                 };
             }
         }
-        attrs.effects.status.statusConditionsInflict = strict(List(Chanced.certain(FlinchableStatus::new)));
-        attrs2.effects.damage.power = PmonMove.Power.typed(50);
+        attrs.effectsOnFoe.status.statusConditionsInflict = strict(List(Chanced.certain(FlinchableStatus::new)));
+        attrs2.effectsOnFoe.damage.power = PmonMove.Power.typed(50);
         for (var toFlinch: I(false,true)) {
             var rules = Runner.rulesDefaults();
             rules.rngImmobilise = new PmonRuleset.Rng(constant(!toFlinch? 1.: 0.));
@@ -304,8 +301,8 @@ public class Gen1Test {
                 };
             }
         }
-        attrs.effects.status.statusConditionsInflict = strict(List(Chanced.certain(SleepStatus::new)));
-        attrs2.effects.damage.power = PmonMove.Power.typed(20);
+        attrs.effectsOnFoe.status.statusConditionsInflict = strict(List(Chanced.certain(SleepStatus::new)));
+        attrs2.effectsOnFoe.damage.power = PmonMove.Power.typed(20);
         var nrHits1 = new P<>(0);
         var nrHits2 = new P<>(0);
         new Runner().run1v1(
@@ -339,8 +336,8 @@ public class Gen1Test {
                 };
             }
         }
-        attrs.effects.status.statusConditionsInflict = strict(List(Chanced.certain(ConfusedStatus::new)));
-        attrs2.effects.damage.power = PmonMove.Power.typed(50);
+        attrs.effectsOnFoe.status.statusConditionsInflict = strict(List(Chanced.certain(ConfusedStatus::new)));
+        attrs2.effectsOnFoe.damage.power = PmonMove.Power.typed(50);
         for (var confused: I(false,true)) {
             var rules = Runner.rulesDefaults();
             rules.rngImmobilise = new PmonRuleset.Rng(constant(!confused? 1.0: 0.0));
@@ -364,8 +361,8 @@ public class Gen1Test {
     }
     @Test
     public void testCounter() {
-        attrs.effects.damage.power = PmonMove.Power.typed(20);
-        attrs2.effects.damage.power = PmonMove.Power.other(self -> 2*self.status.damageAccumulatedForTheTurn);
+        attrs.effectsOnFoe.damage.power = PmonMove.Power.typed(20);
+        attrs2.effectsOnFoe.damage.power = PmonMove.Power.other(self -> 2*self.status.damageAccumulatedForTheTurn);
         for (var attack: I(false,true)) {
             new Runner().run1v1(
                     pmon1And2HaveMoves(attrs, attrs2),
@@ -387,5 +384,47 @@ public class Gen1Test {
                         }
                     });
         }
+    }
+    @Test
+    public void testCharge() {
+        attrs.charge = PmonMove.Charge.nrTurns(1);
+        attrs2.effectsOnFoe.damage.power = PmonMove.Power.typed(20);
+        var nrHits1 = new P<>(0);
+        var nrHits2 = new P<>(0);
+        new Runner().run1v1(
+                pmon1And2HaveMoves(attrs, attrs2),
+                I(
+                        tuple(useMove(TARGET.FOE), useMove(TARGET.FOE)),
+                        tuple(useMove(TARGET.FOE), useMove(TARGET.FOE)),
+                        tuple(useMove(TARGET.FOE), useMove(TARGET.FOE)),
+                        tuple(useMove(TARGET.FOE), useMove(TARGET.FOE))),
+                multiple(I(
+                        checkHitsOnPmon1(() -> nrHits1.set(nrHits1.get()+1)),
+                        checkHitsOnPmon2(() -> nrHits2.set(nrHits2.get()+1)))),
+                c -> {
+                    assertEquals(Integer.valueOf(4), nrHits1.get());
+                    assertEquals(Integer.valueOf(2), nrHits2.get());
+                });
+    }
+    @Test
+    public void testChargeUntargetable() {
+        attrs.charge = PmonMove.Charge.nrTurns(1);
+        attrs2.effectsOnFoe.damage.power = PmonMove.Power.typed(20);
+        var nrHits1 = new P<>(0);
+        var nrHits2 = new P<>(0);
+        new Runner().run1v1(
+                pmon1And2HaveMoves(attrs, attrs2),
+                I(
+                        tuple(useMove(TARGET.FOE), useMove(TARGET.FOE)),
+                        tuple(useMove(TARGET.FOE), useMove(TARGET.FOE)),
+                        tuple(useMove(TARGET.FOE), useMove(TARGET.FOE)),
+                        tuple(useMove(TARGET.FOE), useMove(TARGET.FOE))),
+                multiple(I(
+                        checkHitsOnPmon1(() -> nrHits1.set(nrHits1.get()+1)),
+                        checkHitsOnPmon2(() -> nrHits2.set(nrHits2.get()+1)))),
+                c -> {
+                    assertEquals(Integer.valueOf(4), nrHits1.get());
+                    assertEquals(Integer.valueOf(2), nrHits2.get());
+                });
     }
 }

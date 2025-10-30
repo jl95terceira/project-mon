@@ -10,9 +10,6 @@ import jl95.tbb.pmon.decision.PmonDecisionToUseMove;
 import jl95.tbb.pmon.status.PmonStatusCondition;
 import jl95.tbb.pmon.update.*;
 
-import java.util.Iterator;
-
-import static java.util.Optional.ofNullable;
 import static jl95.lang.SuperPowers.*;
 
 public class MovesTest {
@@ -166,16 +163,16 @@ public class MovesTest {
         var handler = new PmonBattle.Handler.Extendable();
         handler.onLocalUpdate.add((partyId_, pmonUpdate) -> {
             if (partyId_ != PARTY_1_ID) return;
-            pmonUpdate.call(new PmonUpdate.Handler() {
+            pmonUpdate.get(new PmonUpdate.Handler() {
                 @Override public void pass(PmonUpdateByPass update) {}
                 @Override public void switchOut(PmonUpdateBySwitchOut update) {}
                 @Override public void move(PmonUpdateByMove update) {
                     for (var updateOnTarget: update.statuses) {
                         if (updateOnTarget.a1 != partyId) return;
-                        updateOnTarget.a3.call(new PmonUpdateByMove.UsageResult.Handler() {
+                        updateOnTarget.a3.get(new PmonUpdateByMove.UsageResult.Handler() {
                             @Override public void hit(Iterable<PmonUpdateOnTarget> atomicUpdates) {
                                 for (var atomicUpdate: atomicUpdates) {
-                                    atomicUpdate.call(new PmonUpdateOnTarget.Handler() {
+                                    atomicUpdate.get(new PmonUpdateOnTarget.Handler() {
                                         @Override public void damage(PmonUpdateOnTargetByDamage update) {
                                             onHit.accept();
                                         }

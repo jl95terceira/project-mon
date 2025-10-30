@@ -10,7 +10,7 @@ public interface PmonUpdateOnTarget {
         void switchOut      (PmonUpdateOnTargetBySwitchOut       update);
     }
 
-    void call(Handler handler);
+    void get(Handler handler);
 
     static PmonUpdateOnTarget by(PmonUpdateOnTargetByDamage          update) { return h -> h.damage         (update); }
     static PmonUpdateOnTarget by(PmonUpdateOnTargetByStatModifier    update) { return h -> h.statModify     (update); }

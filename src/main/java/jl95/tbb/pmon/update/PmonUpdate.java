@@ -2,7 +2,7 @@ package jl95.tbb.pmon.update;
 
 public interface PmonUpdate {
 
-    void call(Handler handler);
+    void get(Handler handler);
 
     interface Handler {
 

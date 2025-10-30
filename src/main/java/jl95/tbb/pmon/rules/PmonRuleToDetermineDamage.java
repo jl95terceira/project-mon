@@ -28,7 +28,7 @@ public class PmonRuleToDetermineDamage {
         var isDamagingR = new P<>(true);
         var damageR = new P<>(0);
         var effectivenessFactorR = new P<>(1.0);
-        effect.power.call(new PmonMove.Power.Handler() {
+        effect.power.get(new PmonMove.Power.Handler() {
             @Override
             public void none() {
                 isDamagingR.set(false);

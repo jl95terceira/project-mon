@@ -2,6 +2,7 @@ package jl95.tbb.pmon.rules;
 
 import jl95.lang.I;
 import jl95.lang.variadic.Method1;
+import jl95.tbb.pmon.Pmon;
 import jl95.tbb.pmon.update.*;
 import jl95.util.StrictList;
 import jl95.lang.variadic.Tuple2;
@@ -46,7 +47,7 @@ public class PmonRuleToDetermineUpdatesByDecisions {
 
                     var monId = f.getKey();
                     var monDecision = f.getValue();
-                    monDecision.call(new PmonDecision.Handler() {
+                    monDecision.get(new PmonDecision.Handler() {
 
                         @Override
                         public void pass(PmonDecisionToPass passDecision) {
@@ -126,7 +127,7 @@ public class PmonRuleToDetermineUpdatesByDecisions {
                 updateByMove.monId = moveInfo.monId;
                 updateByMove.moveIndex = moveInfo.moveIndex;
                 var monDecision = decisionsMap.get(moveInfo.partyId()).monDecisions.get(moveInfo.monId());
-                monDecision.call(new PmonDecision.Handler() {
+                monDecision.get(new PmonDecision.Handler() {
 
                     @Override
                     public void pass(PmonDecisionToPass passDecision) {throw new AssertionError();}
@@ -168,13 +169,13 @@ public class PmonRuleToDetermineUpdatesByDecisions {
 
                                     usageResult = PmonUpdateByMove.UsageResult.miss(PmonUpdateByMove.UsageResult.MissType.NO_TARGET);
                                 }
-                                else if (ruleset.rngAccuracy.roll(move.accuracy)) {
+                                else if (isTargetable(targetMon) && ruleset.rngAccuracy.roll(move.accuracy)) {
 
                                     StrictList<PmonUpdateOnTarget> atomicUpdates = strict(List());
                                     Integer nrHits = ruleset.rngHitNrTimes.betweenInclusive(move.hitNrTimesRange);
                                     for (var i: I.range(nrHits)) {
 
-                                        new PmonRuleToDetermineUpdateByEffects(ruleset).detUpdates(context, origin, tuple(targetPartyId, targetMonId), move.effects, nrTargets, true, atomicUpdates::add);
+                                        new PmonRuleToDetermineUpdateByEffects(ruleset).detUpdates(context, origin, tuple(targetPartyId, targetMonId), move.effectsOnFoe, nrTargets, true, atomicUpdates::add);
                                     }
                                     usageResult = PmonUpdateByMove.UsageResult.hit(atomicUpdates);
                                 }
@@ -254,7 +255,11 @@ public class PmonRuleToDetermineUpdatesByDecisions {
             }
         }
 
-    public Integer speedDiffWithRng(Integer speedDiff) {
+    private boolean isTargetable(Pmon mon) {
+
+        return I.of(mon.status.statusConditions.values()).all(sc -> !sc.untargetable);
+    }
+    private int speedDiffWithRng(Integer speedDiff) {
 
         return ((int)(ruleset.constants.SPEED_RNG_BREADTH * (ruleset.rngSpeed.get() - ruleset.rngSpeed.get()))) + speedDiff;
     }

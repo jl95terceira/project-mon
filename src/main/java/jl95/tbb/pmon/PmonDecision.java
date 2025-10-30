@@ -6,7 +6,7 @@ import jl95.tbb.pmon.decision.PmonDecisionToSwitchOut;
 
 public interface PmonDecision {
 
-    void call(Handler handler);
+    void get(Handler handler);
 
     interface Handler {
 

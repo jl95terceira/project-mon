@@ -25,7 +25,7 @@ public class PmonUpdateByMove {
             void immobilised(PmonStatusCondition.Id conditionId);
         }
 
-        void call(Handler handler);
+        void get(Handler handler);
 
         static UsageResult hit        (Iterable<PmonUpdateOnTarget> atomicUpdates) { return handler -> handler.hit(atomicUpdates); }
         static UsageResult miss       (MissType type)                              { return handler -> handler.miss(type); }

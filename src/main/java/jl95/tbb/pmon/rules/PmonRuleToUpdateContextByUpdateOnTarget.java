@@ -24,7 +24,7 @@ public class PmonRuleToUpdateContextByUpdateOnTarget {
         var targetMon = targetParty.monsOnField.get(target.a2);
         for (var update: updates) {
 
-            update.call(new PmonUpdateOnTarget.Handler() {
+            update.get(new PmonUpdateOnTarget.Handler() {
 
                 @Override
                 public void damage(PmonUpdateOnTargetByDamage damageUpdate) {
