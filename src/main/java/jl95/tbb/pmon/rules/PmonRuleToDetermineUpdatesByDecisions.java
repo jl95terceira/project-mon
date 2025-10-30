@@ -72,9 +72,9 @@ public class PmonRuleToDetermineUpdatesByDecisions {
                             }
                             for (var statusCondition: mon.status.statusConditions.values()) {
 
-                                if (statusCondition.statFactors.containsKey(PmonStatModifierType.SPEED)) {
+                                if (statusCondition.statFactorsOnSelf.containsKey(PmonStatModifierType.SPEED)) {
 
-                                    speedFactors.add(statusCondition.statFactors.get(PmonStatModifierType.SPEED));
+                                    speedFactors.add(statusCondition.statFactorsOnSelf.get(PmonStatModifierType.SPEED));
                                 }
                             }
                             for (var speedFactor: speedFactors) {
@@ -146,6 +146,7 @@ public class PmonRuleToDetermineUpdatesByDecisions {
                                 updateHandler.accept(PmonUpdate.by(updateByMove));
                                 var onImmobilisedEffectsOnSelf = statusCondition.onImmobilisedEffectsOnSelf.apply();
                                 if (onImmobilisedEffectsOnSelf != null) {
+                                    // immobilised
                                     var updateByEffectsOnSelf = new PmonUpdateByOther();
                                     updateByEffectsOnSelf.origin = origin;
                                     StrictList<PmonUpdateOnTarget> atomicUpdates = strict(List());
@@ -175,7 +176,7 @@ public class PmonRuleToDetermineUpdatesByDecisions {
                                     Integer nrHits = ruleset.rngHitNrTimes.betweenInclusive(move.hitNrTimesRange);
                                     for (var i: I.range(nrHits)) {
 
-                                        new PmonRuleToDetermineUpdateByEffects(ruleset).detUpdates(context, origin, tuple(targetPartyId, targetMonId), move.effectsOnFoe, nrTargets, true, atomicUpdates::add);
+                                        new PmonRuleToDetermineUpdateByEffects(ruleset).detUpdates(context, origin, tuple(targetPartyId, targetMonId), move.effectsOnTarget, nrTargets, true, atomicUpdates::add);
                                     }
                                     usageResult = PmonUpdateByMove.UsageResult.hit(atomicUpdates);
                                 }

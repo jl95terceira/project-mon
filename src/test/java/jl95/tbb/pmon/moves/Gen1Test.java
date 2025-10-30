@@ -2,12 +2,19 @@ package jl95.tbb.pmon.moves;
 
 import jl95.lang.I;
 import jl95.lang.P;
+import jl95.lang.variadic.Function0;
+import jl95.lang.variadic.Tuple2;
+import jl95.tbb.PartyId;
+import jl95.tbb.mon.MonFieldPosition;
 import jl95.tbb.pmon.Chanced;
+import jl95.tbb.pmon.PmonLocalContext;
 import jl95.tbb.pmon.PmonMove;
 import jl95.tbb.pmon.PmonRuleset;
 import jl95.tbb.pmon.effect.PmonEffects;
 import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.status.PmonStatusCondition;
+import jl95.util.StrictList;
+import jl95.util.StrictMap;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,15 +25,45 @@ import static org.junit.Assert.*;
 
 public class Gen1Test {
 
+    private static class AfterTurnStandardEffects implements PmonStatusCondition.AfterTurnEffects {
+        private StrictList<PmonStatusCondition.AfterTurnEffects> list = strict(List());
+        @Override public StrictMap<Tuple2<PartyId, MonFieldPosition>, PmonEffects> apply(PartyId partyId, MonFieldPosition monId, PmonLocalContext context) {
+            return list
+                    .map(a -> a.apply(partyId,monId,context))
+                    .reduce(strict(Map()), (map,a) -> {
+                        map.putAll(a);
+                        return map;
+                    });
+        }
+        AfterTurnStandardEffects other(PmonStatusCondition.AfterTurnEffects e) {
+            list.add(e);
+            return this;
+        }
+        AfterTurnStandardEffects cureSelfIf(PmonStatusCondition.Id statusConditionId, Function0<Boolean> predicate) {
+            list.add((partyId,monId,context) -> {
+                if (!predicate.apply()) {
+                    return strict(Map());
+                }
+                var effectsOnSelf = new PmonEffects();
+                effectsOnSelf.status.statusConditionsCure.add(Chanced.certain(statusConditionId));
+                return strict(Map(tuple(tuple(partyId,monId),effectsOnSelf)));
+            });
+            return this;
+        }
+        AfterTurnStandardEffects cureSelf(PmonStatusCondition.Id statusConditionId) {
+            return cureSelfIf(statusConditionId, constant(true));
+        }
+    }
+
     private PmonMove attrs;
     private PmonMove attrs2;
 
     @Before
     public void setup() {
         attrs  = new PmonMove(new PmonMove.Id(), PMON_TYPE);
-        attrs.effectsOnFoe.damage.pmonType = PMON_TYPE;
+        attrs.effectsOnTarget.damage.pmonType = PMON_TYPE;
         attrs2 = new PmonMove(new PmonMove.Id(), PMON_TYPE);
-        attrs2.effectsOnFoe.damage.pmonType = PMON_TYPE;
+        attrs2.effectsOnTarget.damage.pmonType = PMON_TYPE;
     }
     @After
     public void teardown() {
@@ -36,7 +73,7 @@ public class Gen1Test {
 
     @Test
     public void testDamage() {
-        attrs.effectsOnFoe.damage.power = PmonMove.Power.typed(20);
+        attrs.effectsOnTarget.damage.power = PmonMove.Power.typed(20);
         new Runner().run1v1(
                 pmon1HasMove(attrs),
                 I(
@@ -49,8 +86,8 @@ public class Gen1Test {
     }
     @Test
     public void testDamageMoveFirst() {
-        attrs.effectsOnFoe.damage.power = PmonMove.Power.typed(20);
-        attrs2.effectsOnFoe.damage.power = PmonMove.Power.typed(20);
+        attrs.effectsOnTarget.damage.power = PmonMove.Power.typed(20);
+        attrs2.effectsOnTarget.damage.power = PmonMove.Power.typed(20);
         var pmon1WasHit = new P<>(false);
         new Runner().run1v1(
                 pmon1And2HaveMoves(attrs,attrs2),
@@ -67,8 +104,8 @@ public class Gen1Test {
     }
     @Test
     public void testDrain() {
-        attrs.effectsOnFoe.damage.power = PmonMove.Power.typed(20);
-        attrs.effectsOnFoe.damage.healbackFactor = .5;
+        attrs.effectsOnTarget.damage.power = PmonMove.Power.typed(20);
+        attrs.effectsOnTarget.damage.healbackFactor = .5;
         new Runner().run1v1(
                 pmon1HasMove(attrs),
                 I(
@@ -81,7 +118,7 @@ public class Gen1Test {
     }
     @Test
     public void testLowerStat() {
-        attrs.effectsOnFoe.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.DEFENSE, new Chanced<>(-1, 10))));
+        attrs.effectsOnTarget.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.DEFENSE, new Chanced<>(-1, 10))));
         new Runner().run1v1(
                 pmon1HasMove(attrs),
                 I(
@@ -94,8 +131,8 @@ public class Gen1Test {
     }
     @Test
     public void testDamageAndLowerStat() {
-        attrs.effectsOnFoe.damage.power = PmonMove.Power.typed(20);
-        attrs.effectsOnFoe.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.DEFENSE, new Chanced<>(-1, 10))));
+        attrs.effectsOnTarget.damage.power = PmonMove.Power.typed(20);
+        attrs.effectsOnTarget.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.DEFENSE, new Chanced<>(-1, 10))));
         new Runner().run1v1(
                 pmon1HasMove(attrs),
                 I(
@@ -108,7 +145,7 @@ public class Gen1Test {
     }
     @Test
     public void testRaiseStat() {
-        attrs.effectsOnFoe.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.ATTACK, Chanced.certain(2))));
+        attrs.effectsOnTarget.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.ATTACK, Chanced.certain(2))));
         new Runner().run1v1(
                 pmon1HasMove(attrs),
                 I(
@@ -120,7 +157,7 @@ public class Gen1Test {
     }
     @Test
     public void testRaiseStatTwice() {
-        attrs.effectsOnFoe.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.ATTACK, Chanced.certain(2))));
+        attrs.effectsOnTarget.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.ATTACK, Chanced.certain(2))));
         new Runner().run1v1(
                 pmon1HasMove(attrs),
                 I(
@@ -135,7 +172,7 @@ public class Gen1Test {
     private void testMultiHits(Double rng, Integer nrHitsExpected) {
         var rules = Runner.rulesDefaults();
         rules.rngHitNrTimes = new PmonRuleset.Rng(constant(rng));
-        attrs.effectsOnFoe.damage.power = PmonMove.Power.typed(15);
+        attrs.effectsOnTarget.damage.power = PmonMove.Power.typed(15);
         attrs.hitNrTimesRange = tuple(2,4);
         var nrHits = new P<>(0);
         new Runner(rules)
@@ -174,28 +211,27 @@ public class Gen1Test {
                 onDamageToSelf = (partyId, monFieldPosition, damage) -> {
                     damageAccum.set(damageAccum.get() + damage);
                 };
-                afterTurnEffects = (partyId,monId,context) -> {
-                    var self = context.ownParty.monsOnField.get(monId);
-                    if (turnNr.get() < 3) {
-                        return strict(Map());
-                    }
-                    var effectsOnFoe = new PmonEffects();
-                    effectsOnFoe.damage.power = PmonMove.Power.constant(2 * damageAccum.get());
-                    var effectsOnSelf = new PmonEffects();
-                    effectsOnSelf.status.statusConditionsCure.add(Chanced.certain(id)); // cure self
-                    var foe = self.status.lastFoeByDamageOnSelf;
-                    return strict(I.flat(
-                            foe != null?
-                            I(tuple(tuple(foe.a1 , foe.a2),effectsOnFoe)): I(),
-                            I(tuple(tuple(partyId, monId ),effectsOnSelf))
-                    ).toMap(t -> t.a1, t -> t.a2));
-                };
+                afterTurnEffects = new AfterTurnStandardEffects()
+                        .other((partyId,monId,context) -> {
+                            if (turnNr.get() < 3) {
+                                return strict(Map());
+                            }
+                            var self = context.ownParty.monsOnField.get(monId);
+                            var effectsOnFoe = new PmonEffects();
+                            effectsOnFoe.damage.power = PmonMove.Power.constant(2 * damageAccum.get());
+                            var foe = self.status.lastFoeByDamageOnSelf;
+                            return strict(I.flat(
+                                    foe != null?
+                                            I(tuple(tuple(foe.a1 , foe.a2),effectsOnFoe)): I()
+                            ).toMap(t -> t.a1, t -> t.a2));
+                        })
+                        .cureSelfIf(id, () -> turnNr.get() >= 3);
             }
             public final P<Integer> turnNr = new P<>(0);
             public final P<Integer> damageAccum = new P<>(0);
         }
-        attrs.effectsOnFoe.status.statusConditionsInflict = strict(List(Chanced.certain(BideStatus::new)));
-        attrs2.effectsOnFoe.damage.power = PmonMove.Power.typed(20);
+        attrs.effectsOnTarget.status.statusConditionsInflict = strict(List(Chanced.certain(BideStatus::new)));
+        attrs2.effectsOnTarget.damage.power = PmonMove.Power.typed(20);
         var nrHitsOnPmon1 = new P<>(0);
         var nrHitsOnPmon2 = new P<>(0);
         new Runner().run1v1(
@@ -247,21 +283,18 @@ public class Gen1Test {
     }
     @Test
     public void testFlinch() {
-        attrs.effectsOnFoe.damage.power = PmonMove.Power.typed(10);
+        attrs.effectsOnTarget.damage.power = PmonMove.Power.typed(10);
         class FlinchableStatus extends PmonStatusCondition {
 
             public FlinchableStatus() {
                 super(new Id());
                 immobiliseChanceOnMove = constant(50);
-                afterTurnEffects = (partyId, monId, context) -> {
-                    var effectsOnSelf = new PmonEffects();
-                    effectsOnSelf.status.statusConditionsCure.add(Chanced.certain(id)); // cure self
-                    return strict(Map(tuple(tuple(partyId,monId),effectsOnSelf)));
-                };
+                afterTurnEffects = new AfterTurnStandardEffects()
+                        .cureSelf(id);
             }
         }
-        attrs.effectsOnFoe.status.statusConditionsInflict = strict(List(Chanced.certain(FlinchableStatus::new)));
-        attrs2.effectsOnFoe.damage.power = PmonMove.Power.typed(50);
+        attrs.effectsOnTarget.status.statusConditionsInflict = strict(List(Chanced.certain(FlinchableStatus::new)));
+        attrs2.effectsOnTarget.damage.power = PmonMove.Power.typed(50);
         for (var toFlinch: I(false,true)) {
             var rules = Runner.rulesDefaults();
             rules.rngImmobilise = new PmonRuleset.Rng(constant(!toFlinch? 1.: 0.));
@@ -291,18 +324,12 @@ public class Gen1Test {
                 super(new Id());
                 afterTurn = () -> nrTurns.set(nrTurns.get()+1);
                 immobiliseChanceOnMove = constant(100);
-                afterTurnEffects = (partyId,monId,context) -> {
-                    if (nrTurns.get() < 3) {
-                        return strict(Map());
-                    }
-                    var effectsOnSelf = new PmonEffects();
-                    effectsOnSelf.status.statusConditionsCure.add(Chanced.certain(id));
-                    return strict(Map(tuple(tuple(partyId,monId),effectsOnSelf)));
-                };
+                afterTurnEffects = new AfterTurnStandardEffects()
+                        .cureSelfIf(id, () -> nrTurns.get() >= 3);
             }
         }
-        attrs.effectsOnFoe.status.statusConditionsInflict = strict(List(Chanced.certain(SleepStatus::new)));
-        attrs2.effectsOnFoe.damage.power = PmonMove.Power.typed(20);
+        attrs.effectsOnTarget.status.statusConditionsInflict = strict(List(Chanced.certain(SleepStatus::new)));
+        attrs2.effectsOnTarget.damage.power = PmonMove.Power.typed(20);
         var nrHits1 = new P<>(0);
         var nrHits2 = new P<>(0);
         new Runner().run1v1(
@@ -336,8 +363,8 @@ public class Gen1Test {
                 };
             }
         }
-        attrs.effectsOnFoe.status.statusConditionsInflict = strict(List(Chanced.certain(ConfusedStatus::new)));
-        attrs2.effectsOnFoe.damage.power = PmonMove.Power.typed(50);
+        attrs.effectsOnTarget.status.statusConditionsInflict = strict(List(Chanced.certain(ConfusedStatus::new)));
+        attrs2.effectsOnTarget.damage.power = PmonMove.Power.typed(50);
         for (var confused: I(false,true)) {
             var rules = Runner.rulesDefaults();
             rules.rngImmobilise = new PmonRuleset.Rng(constant(!confused? 1.0: 0.0));
@@ -361,8 +388,8 @@ public class Gen1Test {
     }
     @Test
     public void testCounter() {
-        attrs.effectsOnFoe.damage.power = PmonMove.Power.typed(20);
-        attrs2.effectsOnFoe.damage.power = PmonMove.Power.other(self -> 2*self.status.damageAccumulatedForTheTurn);
+        attrs.effectsOnTarget.damage.power = PmonMove.Power.typed(20);
+        attrs2.effectsOnTarget.damage.power = PmonMove.Power.other(self -> 2*self.status.damageAccumulatedForTheTurn);
         for (var attack: I(false,true)) {
             new Runner().run1v1(
                     pmon1And2HaveMoves(attrs, attrs2),
@@ -387,8 +414,18 @@ public class Gen1Test {
     }
     @Test
     public void testCharge() {
-        attrs.charge = PmonMove.Charge.nrTurns(1);
-        attrs2.effectsOnFoe.damage.power = PmonMove.Power.typed(20);
+        class ChargeStatus extends PmonStatusCondition {
+            private P<Integer> turn = new P<>(0);
+            public ChargeStatus() {
+                super(new Id());
+                immobiliseChanceOnMove = constant(100);
+                afterTurn = () -> turn.set(turn.get()+1);
+                afterTurnEffects = new AfterTurnStandardEffects()
+                        .cureSelfIf(id, () -> turn.get() >= 2);
+            }
+        }
+        attrs.effectsOnSelf.status.statusConditionsInflict = strict(List(Chanced.certain(ChargeStatus::new)));
+        attrs2.effectsOnTarget.damage.power = PmonMove.Power.typed(20);
         var nrHits1 = new P<>(0);
         var nrHits2 = new P<>(0);
         new Runner().run1v1(
@@ -408,22 +445,34 @@ public class Gen1Test {
     }
     @Test
     public void testChargeUntargetable() {
-        attrs.charge = PmonMove.Charge.nrTurns(1);
-        attrs2.effectsOnFoe.damage.power = PmonMove.Power.typed(20);
+        class UntargetableStatus extends PmonStatusCondition {
+            private P<Integer> turn = new P<>(0);
+            public UntargetableStatus() {
+                super(new Id());
+                immobiliseChanceOnMove = constant(100);
+                untargetable = true;
+                afterTurn = () -> turn.set(turn.get()+1);
+                afterTurnEffects = new AfterTurnStandardEffects()
+                        .cureSelfIf(id, () -> turn.get() >= 2);
+            }
+        }
+        attrs.effectsOnSelf.status.statusConditionsInflict = strict(List(Chanced.certain(UntargetableStatus::new)));
+        attrs.effectsOnTarget.damage.power = PmonMove.Power.typed(40);
+        attrs2.effectsOnTarget.damage.power = PmonMove.Power.typed(20);
         var nrHits1 = new P<>(0);
         var nrHits2 = new P<>(0);
         new Runner().run1v1(
                 pmon1And2HaveMoves(attrs, attrs2),
                 I(
                         tuple(useMove(TARGET.FOE), useMove(TARGET.FOE)),
-                        tuple(useMove(TARGET.FOE), useMove(TARGET.FOE)),
+                        tuple(useMove(TARGET.FOE), pass()),
                         tuple(useMove(TARGET.FOE), useMove(TARGET.FOE)),
                         tuple(useMove(TARGET.FOE), useMove(TARGET.FOE))),
                 multiple(I(
                         checkHitsOnPmon1(() -> nrHits1.set(nrHits1.get()+1)),
                         checkHitsOnPmon2(() -> nrHits2.set(nrHits2.get()+1)))),
                 c -> {
-                    assertEquals(Integer.valueOf(4), nrHits1.get());
+                    assertEquals(Integer.valueOf(1), nrHits1.get());
                     assertEquals(Integer.valueOf(2), nrHits2.get());
                 });
     }

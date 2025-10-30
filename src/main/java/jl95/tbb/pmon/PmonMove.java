@@ -52,31 +52,13 @@ public class PmonMove {
         NOT_VERY_EFFECTIVE,
         DOES_NOT_AFFECT;
     }
-    public interface Charge {
-
-        interface Handler {
-            void nrTurns(int n);
-            void halfTurn();
-        }
-
-        void get(Handler handler);
-
-        static Charge nrTurns(int n) {
-            return h -> h.nrTurns(n);
-        }
-        static Charge halfTurn() {
-            return h -> h.halfTurn();
-        }
-    }
 
     public final Id id;
     public PmonMove.TargettingType targetType = PmonMove.TargettingType.FOE_SINGLE_MON; //TODO: validate move target(s) against targeting type, in PmonRuleToValidateDecision
     public Integer accuracy = 100;
     public Integer priorityModifier = 0;
-    public Charge charge = null; //TODO: use this
-    public PmonEffects onChargeEffectsOnSelf = new PmonEffects(); //TODO: use this
     public Boolean interceptsSwitch = false;
-    public PmonEffects effectsOnFoe = new PmonEffects();
+    public PmonEffects effectsOnTarget = new PmonEffects();
     public PmonEffects effectsOnSelf = new PmonEffects(); //TODO: use this
     public Tuple2<Integer, Integer> hitNrTimesRange = tuple(1,1);
     public PmonMoveStatus status = new PmonMoveStatus();
