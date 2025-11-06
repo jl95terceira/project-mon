@@ -2,9 +2,11 @@ package jl95.tbb.pmon;
 
 import jl95.lang.variadic.Function1;
 import jl95.lang.variadic.Tuple2;
+import jl95.tbb.pmon.decision.PmonDecisionToUseMove;
 import jl95.tbb.pmon.effect.PmonEffects;
 import jl95.tbb.pmon.status.PmonMoveStatus;
 
+import static jl95.lang.SuperPowers.constant;
 import static jl95.lang.SuperPowers.tuple;
 
 public class PmonMove {
@@ -59,7 +61,7 @@ public class PmonMove {
     public Integer priorityModifier = 0;
     public Boolean interceptsSwitch = false;
     public PmonEffects effectsOnTarget = new PmonEffects();
-    public PmonEffects effectsOnSelf = new PmonEffects(); //TODO: use this
+    public Function1<PmonEffects, PmonDecisionToUseMove.Target> effectsOnSelf = target -> new PmonEffects();
     public Tuple2<Integer, Integer> hitNrTimesRange = tuple(1,1);
     public PmonMoveStatus status = new PmonMoveStatus();
 

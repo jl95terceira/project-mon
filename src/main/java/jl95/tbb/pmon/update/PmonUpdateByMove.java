@@ -36,5 +36,5 @@ public class PmonUpdateByMove {
     public MonFieldPosition monId     = NO_FIELD_POSITION;
     public Integer          moveIndex = -1;
     public StrictList<Tuple3<PartyId, MonFieldPosition, UsageResult>>
-            statuses = strict(List());
+            usageResults = strict(List());
 }

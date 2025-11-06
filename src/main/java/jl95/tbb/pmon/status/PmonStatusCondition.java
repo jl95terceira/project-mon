@@ -13,11 +13,11 @@ public class PmonStatusCondition {
 
     public static class Id {}
     @FunctionalInterface public interface AfterTurnEffects {
-        StrictMap<Tuple2<PartyId, MonFieldPosition>, PmonEffects> apply(PartyId partyId, MonFieldPosition monId, PmonLocalContext context);
+        StrictMap<Tuple2<PartyId, MonFieldPosition>, Iterable<PmonEffects>> apply(PartyId partyId, MonFieldPosition monId, PmonLocalContext context);
     }
 
     public final Id id;
-    public Boolean allowDecide = true; //TODO: use this
+    public Boolean allowDecide = true;
     public Boolean allowSwitchOut = true;
     public StrictMap<PmonStatModifierType, Double> statFactorsOnSelf = strict(Map());
     public Function0<Integer> cureChanceBeforeMove = () -> 0; //TODO: use this

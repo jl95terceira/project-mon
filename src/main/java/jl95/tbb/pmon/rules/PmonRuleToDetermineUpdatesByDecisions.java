@@ -1,17 +1,15 @@
 package jl95.tbb.pmon.rules;
 
 import jl95.lang.I;
+import jl95.lang.variadic.Function1;
 import jl95.lang.variadic.Method1;
-import jl95.tbb.pmon.Pmon;
+import jl95.tbb.pmon.*;
 import jl95.tbb.pmon.update.*;
 import jl95.util.StrictList;
 import jl95.lang.variadic.Tuple2;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonPartyDecision;
 import jl95.tbb.mon.MonFieldPosition;
-import jl95.tbb.pmon.PmonDecision;
-import jl95.tbb.pmon.PmonGlobalContext;
-import jl95.tbb.pmon.PmonRuleset;
 import jl95.tbb.pmon.decision.PmonDecisionToPass;
 import jl95.tbb.pmon.decision.PmonDecisionToSwitchOut;
 import jl95.tbb.pmon.decision.PmonDecisionToUseMove;
@@ -85,7 +83,27 @@ public class PmonRuleToDetermineUpdatesByDecisions {
 
                                 monSpeed = (int) (monSpeed * ruleset.constants.STAT_MODIFIER_FACTOR.apply(PmonStatModifierType.SPEED, speedModifier));
                             }
-                            moveList.add(new DecisionSorting.MoveInfo(partyId, monId, useMoveDecision.moveIndex, monSpeed, move.priorityModifier, useMoveDecision.targets, move.interceptsSwitch));
+                            StrictMap<PartyId,StrictList<MonFieldPosition>> targetMap = strict(Map());
+                            useMoveDecision.target.get(new PmonDecisionToUseMove.Target.Handler() {
+                                @Override public void mon(PartyId partyId, MonFieldPosition monId) {
+                                    targetMap.put(partyId, strict(List(monId)));
+                                }
+                                @Override public void party(PartyId partyId) {
+                                    targetMap.put(partyId, strict(I
+                                            .of(context.parties.get(partyId).monsOnField.keySet())
+                                            .toList()));
+                                }
+                                @Override public void all() {
+                                    targetMap.putAll(strict(I
+                                            .of(context.parties.entrySet())
+                                            .toMap(e -> e.getKey(), e -> strict(I
+                                                    .of(e.getValue().monsOnField.keySet())
+                                                    .toList()))));
+                                }
+                                @Override public void none() {
+                                }
+                            });
+                            moveList.add(new DecisionSorting.MoveInfo(partyId, monId, useMoveDecision.moveIndex, monSpeed, move.priorityModifier, targetMap, move.interceptsSwitch));
                         }
                     });
                 }
@@ -142,7 +160,7 @@ public class PmonRuleToDetermineUpdatesByDecisions {
                         var nrTargets = I.of(moveInfo.targets.values()).flatmap(x -> x).reduce(0, (a,b) -> (a+1));
                         for (var statusCondition: mon.status.statusConditions.values()) {
                             if (ruleset.rngImmobilise.roll(statusCondition.immobiliseChanceOnMove.apply())) {
-                                updateByMove.statuses.add(tuple(moveInfo.partyId, moveInfo.monId, PmonUpdateByMove.UsageResult.immobilised(statusCondition.id)));
+                                updateByMove.usageResults.add(tuple(moveInfo.partyId, moveInfo.monId, PmonUpdateByMove.UsageResult.immobilised(statusCondition.id)));
                                 updateHandler.accept(PmonUpdate.by(updateByMove));
                                 var onImmobilisedEffectsOnSelf = statusCondition.onImmobilisedEffectsOnSelf.apply();
                                 if (onImmobilisedEffectsOnSelf != null) {
@@ -178,13 +196,14 @@ public class PmonRuleToDetermineUpdatesByDecisions {
 
                                         new PmonRuleToDetermineUpdateByEffects(ruleset).detUpdates(context, origin, tuple(targetPartyId, targetMonId), move.effectsOnTarget, nrTargets, true, atomicUpdates::add);
                                     }
+                                    new PmonRuleToDetermineUpdateByEffects(ruleset).detUpdates(context, origin, origin, move.effectsOnSelf.apply(useMoveDecision.target), 1, true, atomicUpdates::add);
                                     usageResult = PmonUpdateByMove.UsageResult.hit(atomicUpdates);
                                 }
                                 else {
 
                                     usageResult = PmonUpdateByMove.UsageResult.miss(PmonUpdateByMove.UsageResult.MissType.INACCURATE);
                                 }
-                                updateByMove.statuses.add(tuple(targetPartyId, targetMonId, usageResult));
+                                updateByMove.usageResults.add(tuple(targetPartyId, targetMonId, usageResult));
                             }
                         }
                         updateHandler.accept(PmonUpdate.by(updateByMove));
@@ -228,8 +247,8 @@ public class PmonRuleToDetermineUpdatesByDecisions {
                             var effects = e3.getValue();
                             StrictList<PmonUpdateOnTarget> atomicUpdates = strict(List());
                             afterTurnUpdate.atomicUpdates.put(target, atomicUpdates);
-                            new PmonRuleToDetermineUpdateByEffects(ruleset)
-                                    .detUpdates(context, tuple(partyId, monId), target, effects, 1, false, atomicUpdates::add);
+                            effects.forEach(e -> new PmonRuleToDetermineUpdateByEffects(ruleset)
+                                    .detUpdates(context, tuple(partyId, monId), target, e, 1, false, atomicUpdates::add));
                         }
                         if (!afterTurnUpdate.atomicUpdates.isEmpty()) {
                             updateHandler.accept(PmonUpdate.by(afterTurnUpdate));

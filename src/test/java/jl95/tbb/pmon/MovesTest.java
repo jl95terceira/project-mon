@@ -23,8 +23,12 @@ public class MovesTest {
     };
     public static final int HP_MAX = 95;
     public static final int HP0    = 50;
-    public static final PartyId PARTY_1_ID = new PartyId();
-    public static final PartyId PARTY_2_ID = new PartyId();
+    public static class TestPartyId extends PartyId {
+        public final String name;
+        public TestPartyId(String name) {this.name = name;}
+    }
+    public static final PartyId PARTY_1_ID = new TestPartyId("party 1");
+    public static final PartyId PARTY_2_ID = new TestPartyId("party 2");
 
     public record Context(PmonGlobalContext gc, Pmon pmon1, Pmon pmon2) {}
 
@@ -138,11 +142,9 @@ public class MovesTest {
                          Tuple2<PartyId, MonFieldPosition> foePosition) -> {
             var useMove = new PmonDecisionToUseMove();
             useMove.moveIndex = 0;
-            useMove.targets = strict(Map(
-                    t == TARGET.FOE?
-                            tuple(foePosition .a1, I(foePosition .a2)):
-                            tuple(selfPosition.a1, I(selfPosition.a2))
-            ));
+            useMove.target = t == TARGET.FOE?
+                    PmonDecisionToUseMove.Target.mon(foePosition.a1, foePosition.a2):
+                    PmonDecisionToUseMove.Target.mon(selfPosition.a1, selfPosition.a2);
             return PmonDecision.from(useMove);
         });
     }
@@ -167,7 +169,7 @@ public class MovesTest {
                 @Override public void pass(PmonUpdateByPass update) {}
                 @Override public void switchOut(PmonUpdateBySwitchOut update) {}
                 @Override public void move(PmonUpdateByMove update) {
-                    for (var updateOnTarget: update.statuses) {
+                    for (var updateOnTarget: update.usageResults) {
                         if (updateOnTarget.a1 != partyId) return;
                         updateOnTarget.a3.get(new PmonUpdateByMove.UsageResult.Handler() {
                             @Override public void hit(Iterable<PmonUpdateOnTarget> atomicUpdates) {

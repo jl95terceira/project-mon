@@ -21,7 +21,7 @@ public class PmonRuleToUpdateContext {
 
                 var party = context.parties.get(moveUpdate.partyId);
                 var mon   = party.monsOnField.get(moveUpdate.monId);
-                for (var t: moveUpdate.statuses) {
+                for (var t: moveUpdate.usageResults) {
 
                     var targetPartyId  = t.a1;
                     var targetParty    = context.parties.get(targetPartyId);
