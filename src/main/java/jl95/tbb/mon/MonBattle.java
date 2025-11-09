@@ -83,7 +83,21 @@ public class MonBattle<
         return this.upcastBattle.spawn(parties, initialConditions, () -> {
 
             var allowedToDecide = ruleset.allowedToDecide(globalContextRef.get());
-            var partyDecisionsMap = decisionFunction.apply(allowedToDecide);
+            var lockedDecisions = ruleset.lockedDecisions(globalContextRef.get());
+            var partyDecisionsMap = decisionFunction.apply(strict(I
+                    .of(allowedToDecide.entrySet())
+                    .toMap(
+                            e -> e.getKey(),
+                            e -> {
+                                var partyId = e.getKey();
+                                var monsAllowedToDecide = e.getValue();
+                                return strict(monsAllowedToDecide
+                                        .filter(monId -> !lockedDecisions.containsKey(partyId) || !lockedDecisions.get(partyId).containsKey(monId))
+                                        .toSet());
+                            })));
+            for (var e: lockedDecisions.entrySet()) {
+                partyDecisionsMap.get(e.getKey()).putAll(e.getValue());
+            }
             return strict(I.of(partyDecisionsMap.entrySet())
                     .filter(e -> allowedToDecide.containsKey(e.getKey()))
                     .toMap(Map.Entry::getKey, e -> {

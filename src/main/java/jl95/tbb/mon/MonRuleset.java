@@ -55,6 +55,9 @@ public interface MonRuleset<
     StrictMap<PartyId, StrictSet<MonFieldPosition>>
     allowedToDecide(GlobalContext context);
 
+    StrictMap<PartyId, StrictMap<MonFieldPosition, MonDecision>>
+    lockedDecisions(GlobalContext context);
+
     default jl95.tbb.Ruleset<
             PartyEntry,
             InitialConditions,

@@ -207,4 +207,19 @@ public class PmonRuleset implements MonRuleset<
     public StrictMap<PartyId, StrictSet<MonFieldPosition>> allowedToDecide(PmonGlobalContext context) {
         return new PmoRuleToDetermineAllowedToDecide(this).allowedToDecide(context);
     }
+
+    @Override
+    public StrictMap<PartyId, StrictMap<MonFieldPosition, PmonDecision>> lockedDecisions(PmonGlobalContext context) {
+        return strict(I
+                .of(context.parties.entrySet())
+                .toMap(
+                        e -> e.getKey(),
+                        e -> strict(I
+                                .of(e.getValue().monsOnField.entrySet())
+                                .filter(f -> f.getValue().status.moveLocked)
+                                .toMap(
+                                        f -> f.getKey(),
+                                        f -> PmonDecision.from(f.getValue().moveLastUsed)))
+        ));
+    }
 }

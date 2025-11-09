@@ -1,5 +1,6 @@
 package jl95.tbb.pmon.rules;
 
+import jl95.tbb.mon.MonId;
 import jl95.tbb.pmon.PmonGlobalContext;
 import jl95.tbb.pmon.PmonRuleset;
 import jl95.tbb.pmon.status.PmonStatusCondition;
@@ -19,8 +20,8 @@ public class PmonRuleToUpdateContext {
 
             @Override public void move(PmonUpdateByMove moveUpdate) {
 
-                var party = context.parties.get(moveUpdate.partyId);
-                var mon   = party.monsOnField.get(moveUpdate.monId);
+                var party = context.parties.get(moveUpdate.monId.partyId());
+                var mon   = party.monsOnField.get(moveUpdate.monId.position());
                 for (var t: moveUpdate.usageResults) {
 
                     var targetPartyId  = t.a1;
@@ -31,7 +32,7 @@ public class PmonRuleToUpdateContext {
                     updateOnTarget.get(new PmonUpdateByMove.UsageResult.Handler() {
 
                         @Override public void hit(Iterable<PmonUpdateOnTarget> updates) {
-                            new PmonRuleToUpdateContextByUpdateOnTarget(ruleset).update(context, updates, tuple(moveUpdate.partyId, moveUpdate.monId), tuple(targetPartyId, targetMonId));
+                            new PmonRuleToUpdateContextByUpdateOnTarget(ruleset).update(context, updates, moveUpdate.monId, new MonId(targetPartyId, targetMonId));
                         }
                         @Override public void miss(PmonUpdateByMove.UsageResult.MissType type) {
                             /* haw haw! */

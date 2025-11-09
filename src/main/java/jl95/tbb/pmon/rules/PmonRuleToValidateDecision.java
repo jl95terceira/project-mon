@@ -34,7 +34,7 @@ public class PmonRuleToValidateDecision {
                 @Override
                 public void pass(PmonDecisionToPass decision) {
                     if (!ruleset.isAlive(mon)) {
-                        ref.set(false); // mon fainted - must NOT pass
+                        ref.set(false); // originMon fainted - must NOT pass
                     }
                 }
                 @Override
@@ -56,7 +56,7 @@ public class PmonRuleToValidateDecision {
                 @Override
                 public void useMove(PmonDecisionToUseMove decision) {
                     if (!ruleset.isAlive(mon)) {
-                        ref.set(false); return; // mon fainted - must NOT use move
+                        ref.set(false); return; // originMon fainted - must NOT use move
                     }
                     if  (!I.range(mon.moves.size()).toSet().contains(decision.moveIndex)) {
                         ref.set(false); return;

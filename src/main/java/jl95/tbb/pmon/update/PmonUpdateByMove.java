@@ -1,5 +1,6 @@
 package jl95.tbb.pmon.update;
 
+import jl95.tbb.mon.MonId;
 import jl95.tbb.pmon.status.PmonStatusCondition;
 import jl95.util.StrictList;
 import jl95.lang.variadic.Tuple3;
@@ -8,8 +9,7 @@ import jl95.tbb.mon.MonFieldPosition;
 
 import static jl95.lang.SuperPowers.List;
 import static jl95.lang.SuperPowers.strict;
-import static jl95.tbb.pmon.PmonDefaults.NO_FIELD_POSITION;
-import static jl95.tbb.pmon.PmonDefaults.NO_PARTY;
+import static jl95.tbb.pmon.PmonDefaults.*;
 
 public class PmonUpdateByMove {
 
@@ -32,9 +32,8 @@ public class PmonUpdateByMove {
         static UsageResult immobilised(PmonStatusCondition.Id id)                  { return handler -> handler.immobilised(id); }
     }
 
-    public PartyId          partyId   = NO_PARTY;
-    public MonFieldPosition monId     = NO_FIELD_POSITION;
-    public Integer          moveIndex = -1;
+    public MonId monId = NO_MON;
+    public Integer moveIndex = -1;
     public StrictList<Tuple3<PartyId, MonFieldPosition, UsageResult>>
             usageResults = strict(List());
 }

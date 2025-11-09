@@ -3,11 +3,11 @@ package jl95.tbb.pmon.moves;
 import jl95.lang.I;
 import jl95.lang.P;
 import jl95.lang.variadic.Function0;
-import jl95.lang.variadic.Tuple2;
+import jl95.lang.variadic.Function1;
+import jl95.lang.variadic.Method1;
 import jl95.tbb.PartyId;
-import jl95.tbb.mon.MonFieldPosition;
+import jl95.tbb.mon.MonId;
 import jl95.tbb.pmon.*;
-import jl95.tbb.pmon.decision.PmonDecisionToUseMove;
 import jl95.tbb.pmon.effect.PmonEffects;
 import jl95.tbb.pmon.status.PmonStatModifierType;
 import jl95.tbb.pmon.status.PmonStatusCondition;
@@ -26,9 +26,9 @@ public class Gen1Test {
 
     private static class AfterTurnStandardEffects implements PmonStatusCondition.AfterTurnEffects {
         private StrictList<PmonStatusCondition.AfterTurnEffects> list = strict(List());
-        @Override public StrictMap<Tuple2<PartyId, MonFieldPosition>, Iterable<PmonEffects>> apply(PartyId partyId, MonFieldPosition monId, PmonLocalContext context) {
+        @Override public StrictMap<MonId, Iterable<PmonEffects>> apply(MonId monId, PmonLocalContext context) {
             return list
-                    .map(a -> a.apply(partyId,monId,context))
+                    .map(a -> a.apply(monId,context))
                     .reduce(strict(Map()), (map,a) -> {
                         for (var e: a.entrySet()) {
                             map.put(e.getKey(), !map.containsKey(e.getKey())
@@ -43,13 +43,13 @@ public class Gen1Test {
             return this;
         }
         AfterTurnStandardEffects cureSelfIf(PmonStatusCondition.Id statusConditionId, Function0<Boolean> predicate) {
-            list.add((partyId,monId,context) -> {
+            list.add((monId,context) -> {
                 if (!predicate.apply()) {
                     return strict(Map());
                 }
                 var effectsOnSelf = new PmonEffects();
                 effectsOnSelf.status.statusConditionsCure.add(ctx -> Chanced.certain(statusConditionId));
-                return strict(Map(tuple(tuple(partyId,monId),I(effectsOnSelf))));
+                return strict(Map(tuple(monId,I(effectsOnSelf))));
             });
             return this;
         }
@@ -58,25 +58,31 @@ public class Gen1Test {
         }
     }
 
+    private static Function1<PmonEffects, PmonMove.EffectsContext> effectConstant(Method1<PmonEffects> effectsBuilder) {
+        return ctx -> {
+            var effects = new PmonEffects();
+            effects.damage.pmonType = PMON_TYPE;
+            effectsBuilder.accept(effects);
+            return effects;
+        };
+    }
+
     private PmonMove attrs;
     private PmonMove attrs2;
 
-    @Before
-    public void setup() {
+    @Before public void setup() {
         attrs  = new PmonMove(new PmonMove.Id(), PMON_TYPE);
-        attrs.effectsOnTarget.damage.pmonType = PMON_TYPE;
         attrs2 = new PmonMove(new PmonMove.Id(), PMON_TYPE);
-        attrs2.effectsOnTarget.damage.pmonType = PMON_TYPE;
     }
-    @After
-    public void teardown() {
+    @After public void teardown() {
         attrs = null;
         attrs2 = null;
     }
 
-    @Test
-    public void testDamage() {
-        attrs.effectsOnTarget.damage.power = PmonMove.Power.typed(20);
+    @Test public void testDamage() {
+        attrs.effectsOnTarget = effectConstant(e -> {
+            e.damage.power = PmonMove.Power.typed(20);
+        });
         new Runner().run1v1(
                 pmon1HasMove(attrs),
                 I(
@@ -87,10 +93,13 @@ public class Gen1Test {
                     assertTrue(c.pmon2().status.hp < HP0);
                 });
     }
-    @Test
-    public void testDamageMoveFirst() {
-        attrs.effectsOnTarget.damage.power = PmonMove.Power.typed(20);
-        attrs2.effectsOnTarget.damage.power = PmonMove.Power.typed(20);
+    @Test public void testDamageMoveFirst() {
+        attrs.effectsOnTarget = effectConstant(e -> {
+            e.damage.power = PmonMove.Power.typed(20);
+        });
+        attrs2.effectsOnTarget = effectConstant(e -> {
+            e.damage.power = PmonMove.Power.typed(20);
+        });
         var pmon1WasHit = new P<>(false);
         new Runner().run1v1(
                 pmon1And2HaveMoves(attrs,attrs2),
@@ -105,10 +114,11 @@ public class Gen1Test {
                     assertTrue(c.pmon2().status.hp < HP0);
                 });
     }
-    @Test
-    public void testDrain() {
-        attrs.effectsOnTarget.damage.power = PmonMove.Power.typed(20);
-        attrs.effectsOnTarget.damage.healbackFactor = .5;
+    @Test public void testDrain() {
+        attrs.effectsOnTarget = effectConstant(e -> {
+            e.damage.power = PmonMove.Power.typed(20);
+            e.damage.healbackFactor = .5;
+        });
         new Runner().run1v1(
                 pmon1HasMove(attrs),
                 I(
@@ -119,9 +129,11 @@ public class Gen1Test {
                     assertTrue(c.pmon2().status.hp < HP0);
                 });
     }
-    @Test
-    public void testLowerStat() {
-        attrs.effectsOnTarget.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.DEFENSE, new Chanced<>(-1, 10))));
+    @Test public void testLowerStat() {
+        attrs.effectsOnTarget = effectConstant(e -> {
+            e.stats.statModifiers = strict(Map(
+                    tuple(PmonStatModifierType.DEFENSE, new Chanced<>(-1, 10))));
+        });
         new Runner().run1v1(
                 pmon1HasMove(attrs),
                 I(
@@ -132,10 +144,12 @@ public class Gen1Test {
                     assertEquals(Integer.valueOf(-1), c.pmon2().status.statModifiers.getOrDefault(PmonStatModifierType.DEFENSE, 0));
                 });
     }
-    @Test
-    public void testDamageAndLowerStat() {
-        attrs.effectsOnTarget.damage.power = PmonMove.Power.typed(20);
-        attrs.effectsOnTarget.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.DEFENSE, new Chanced<>(-1, 10))));
+    @Test public void testDamageAndLowerStat() {
+        attrs.effectsOnTarget = effectConstant(e -> {
+            e.damage.power = PmonMove.Power.typed(20);
+            e.stats.statModifiers = strict(Map(
+                    tuple(PmonStatModifierType.DEFENSE, new Chanced<>(-1, 10))));
+        });
         new Runner().run1v1(
                 pmon1HasMove(attrs),
                 I(
@@ -146,9 +160,10 @@ public class Gen1Test {
                     assertEquals(Integer.valueOf(-1), c.pmon2().status.statModifiers.getOrDefault(PmonStatModifierType.DEFENSE, 0));
                 });
     }
-    @Test
-    public void testRaiseStat() {
-        attrs.effectsOnTarget.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.ATTACK, Chanced.certain(2))));
+    @Test public void testRaiseStat() {
+        attrs.effectsOnTarget = effectConstant(e -> {
+            e.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.ATTACK, Chanced.certain(2))));
+        });
         new Runner().run1v1(
                 pmon1HasMove(attrs),
                 I(
@@ -158,9 +173,10 @@ public class Gen1Test {
                     assertEquals(Integer.valueOf(2), c.pmon1().status.statModifiers.getOrDefault(PmonStatModifierType.ATTACK, 0));
                 });
     }
-    @Test
-    public void testRaiseStatTwice() {
-        attrs.effectsOnTarget.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.ATTACK, Chanced.certain(2))));
+    @Test public void testRaiseStatTwice() {
+        attrs.effectsOnTarget = effectConstant(e -> {
+            e.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.ATTACK, Chanced.certain(2))));
+        });
         new Runner().run1v1(
                 pmon1HasMove(attrs),
                 I(
@@ -175,7 +191,9 @@ public class Gen1Test {
     private void testMultiHits(Double rng, Integer nrHitsExpected) {
         var rules = Runner.rulesDefaults();
         rules.rngHitNrTimes = new PmonRuleset.Rng(constant(rng));
-        attrs.effectsOnTarget.damage.power = PmonMove.Power.typed(15);
+        attrs.effectsOnTarget = effectConstant(e -> {
+            e.damage.power = PmonMove.Power.typed(15);
+        });
         attrs.hitNrTimesRange = tuple(2,4);
         var nrHits = new P<>(0);
         new Runner(rules)
@@ -189,16 +207,13 @@ public class Gen1Test {
                         });
         assertEquals(nrHitsExpected, nrHits.get());
     }
-    @Test
-    public void testMultiHitsMin() {
+    @Test public void testMultiHitsMin() {
         testMultiHits(0.0, 2);
     }
-    @Test
-    public void testMultiHitsMean() {
+    @Test public void testMultiHitsMean() {
         testMultiHits(0.5, 3);
     }
-    @Test
-    public void testMultiHitsMax() {
+    @Test public void testMultiHitsMax() {
         testMultiHits(1.0, 4);
     }
     enum BIDE_TEST_FLAG {
@@ -215,17 +230,17 @@ public class Gen1Test {
                     damageAccum.set(damageAccum.get() + damage);
                 };
                 afterTurnEffects = new AfterTurnStandardEffects()
-                        .other((partyId,monId,context) -> {
+                        .other((monId,context) -> {
                             if (turnNr.get() < 3) {
                                 return strict(Map());
                             }
-                            var self = context.ownParty.monsOnField.get(monId);
+                            var self = context.ownParty.monsOnField.get(monId.position());
                             var effectsOnFoe = new PmonEffects();
                             effectsOnFoe.damage.power = PmonMove.Power.constant(2 * damageAccum.get());
                             var foe = self.status.lastFoeByDamageOnSelf;
                             return strict(I.flat(
                                     foe != null?
-                                            I(tuple(tuple(foe.a1 , foe.a2),effectsOnFoe)): I()
+                                            I(tuple(foe,effectsOnFoe)): I()
                             ).toMap(t -> t.a1, t -> I(t.a2)));
                         })
                         .cureSelfIf(id, () -> turnNr.get() >= 3);
@@ -233,8 +248,12 @@ public class Gen1Test {
             public final P<Integer> turnNr = new P<>(0);
             public final P<Integer> damageAccum = new P<>(0);
         }
-        attrs.effectsOnTarget.status.statusConditionsInflict = strict(List(ctx -> Chanced.certain(BideStatus::new)));
-        attrs2.effectsOnTarget.damage.power = PmonMove.Power.typed(20);
+        attrs.effectsOnTarget = effectConstant(e -> {
+            e.status.statusConditionsInflict = strict(List(ctx -> Chanced.certain(BideStatus::new)));
+        });
+        attrs2.effectsOnTarget = effectConstant(e -> {
+            e.damage.power = PmonMove.Power.typed(20);
+        });
         var nrHitsOnPmon1 = new P<>(0);
         var nrHitsOnPmon2 = new P<>(0);
         new Runner().run1v1(
@@ -272,21 +291,16 @@ public class Gen1Test {
                     }
                 });
     }
-    @Test
-    public void testBide() {
+    @Test public void testBide() {
         _testBide(null);
     }
-    @Test
-    public void testBideStopEarly() {
+    @Test public void testBideStopEarly() {
         _testBide(BIDE_TEST_FLAG.STOP_EARLY);
     }
-    @Test
-    public void testBideStopLate() {
+    @Test public void testBideStopLate() {
         _testBide(BIDE_TEST_FLAG.STOP_LATE);
     }
-    @Test
-    public void testFlinch() {
-        attrs.effectsOnTarget.damage.power = PmonMove.Power.typed(10);
+    @Test public void testFlinch() {
         class FlinchableStatus extends PmonStatusCondition {
 
             public FlinchableStatus() {
@@ -296,8 +310,13 @@ public class Gen1Test {
                         .cureSelf(id);
             }
         }
-        attrs.effectsOnTarget.status.statusConditionsInflict = strict(List(ctx -> Chanced.certain(FlinchableStatus::new)));
-        attrs2.effectsOnTarget.damage.power = PmonMove.Power.typed(50);
+        attrs.effectsOnTarget = effectConstant(e -> {
+            e.damage.power = PmonMove.Power.typed(10);
+            e.status.statusConditionsInflict = strict(List(ctx -> Chanced.certain(FlinchableStatus::new)));
+        });
+        attrs2.effectsOnTarget = effectConstant(e -> {
+            e.damage.power = PmonMove.Power.typed(50);
+        });
         for (var toFlinch: I(false,true)) {
             var rules = Runner.rulesDefaults();
             rules.rngImmobilise = new PmonRuleset.Rng(constant(!toFlinch? 1.: 0.));
@@ -318,8 +337,7 @@ public class Gen1Test {
                     });
         }
     }
-    @Test
-    public void testSleep() {
+    @Test public void testSleep() {
         class SleepStatus extends PmonStatusCondition {
 
             private P<Integer> nrTurns = new P<>(0);
@@ -331,8 +349,12 @@ public class Gen1Test {
                         .cureSelfIf(id, () -> nrTurns.get() >= 3);
             }
         }
-        attrs.effectsOnTarget.status.statusConditionsInflict = strict(List(ctx -> Chanced.certain(SleepStatus::new)));
-        attrs2.effectsOnTarget.damage.power = PmonMove.Power.typed(20);
+        attrs.effectsOnTarget = effectConstant(e -> {
+            e.status.statusConditionsInflict = strict(List(ctx -> Chanced.certain(SleepStatus::new)));
+        });
+        attrs2.effectsOnTarget = effectConstant(e -> {
+            e.damage.power = PmonMove.Power.typed(20);
+        });
         var nrHits1 = new P<>(0);
         var nrHits2 = new P<>(0);
         new Runner().run1v1(
@@ -351,8 +373,7 @@ public class Gen1Test {
                     assertEquals(Integer.valueOf(0), nrHits2.get());
                 });
     }
-    @Test
-    public void testConfusion() {
+    @Test public void testConfusion() {
         class ConfusedStatus extends PmonStatusCondition {
 
             public ConfusedStatus() {
@@ -366,8 +387,12 @@ public class Gen1Test {
                 };
             }
         }
-        attrs.effectsOnTarget.status.statusConditionsInflict = strict(List(ctx -> Chanced.certain(ConfusedStatus::new)));
-        attrs2.effectsOnTarget.damage.power = PmonMove.Power.typed(50);
+        attrs.effectsOnTarget = effectConstant(e -> {
+            e.status.statusConditionsInflict = strict(List(ctx -> Chanced.certain(ConfusedStatus::new)));
+        });
+        attrs2.effectsOnTarget = effectConstant(e -> {
+            e.damage.power = PmonMove.Power.typed(50);
+        });
         for (var confused: I(false,true)) {
             var rules = Runner.rulesDefaults();
             rules.rngImmobilise = new PmonRuleset.Rng(constant(!confused? 1.0: 0.0));
@@ -389,10 +414,13 @@ public class Gen1Test {
                     });
         }
     }
-    @Test
-    public void testCounter() {
-        attrs.effectsOnTarget.damage.power = PmonMove.Power.typed(20);
-        attrs2.effectsOnTarget.damage.power = PmonMove.Power.other(self -> 2*self.status.damageAccumulatedForTheTurn);
+    @Test public void testCounter() {
+        attrs.effectsOnTarget = effectConstant(e -> {
+            e.damage.power = PmonMove.Power.typed(20);
+        });
+        attrs2.effectsOnTarget = effectConstant(e -> {
+            e.damage.power = PmonMove.Power.other(self -> 2*self.status.damageAccumulatedForTheTurn);
+        });
         for (var attack: I(false,true)) {
             new Runner().run1v1(
                     pmon1And2HaveMoves(attrs, attrs2),
@@ -415,117 +443,94 @@ public class Gen1Test {
                     });
         }
     }
-    @Test
-    public void testCharge() {
-        class ChargeStatus extends PmonStatusCondition {
-            private final P<Integer> turn = new P<>(0);
-            public ChargeStatus(PmonDecisionToUseMove.Target target) {
-                super(new Id());
-                allowDecide = true;
-                afterTurn = () -> turn.set(turn.get()+1);
-                afterTurnEffects = new AfterTurnStandardEffects()
-                        .other((partyId, monId, context) -> {
-                            if (turn.get() < 2) {
-                                return strict(Map());
-                            }
-                            var chargedEffect = new PmonEffects();
-                            chargedEffect.damage.power = PmonMove.Power.typed(25);
-                            chargedEffect.damage.pmonType = PMON_TYPE;
-                            P<Tuple2<PartyId,MonFieldPosition>> targetMonIdP = new P<>(null);
-                            target.get(new PmonDecisionToUseMove.Target.Handler() {
-                                @Override public void mon(PartyId partyId, MonFieldPosition monId) {
-                                    targetMonIdP.set(tuple(partyId,monId));
-                                }
-                                @Override public void party(PartyId partyId) {
-                                    throw new AssertionError();
-                                }
-                                @Override public void all() {
-                                    throw new AssertionError();
-                                }
-                                @Override public void none() {
-                                    throw new AssertionError();
-                                }
-                            });
-                            return strict(Map(tuple(targetMonIdP.get(),I(chargedEffect))));
-                        })
-                        .cureSelfIf(id, () -> turn.get() >= 2);
-            }
-        }
-        attrs.effectsOnSelf = target -> {
-            var effects = new PmonEffects();
-            effects.status.statusConditionsInflict = strict(List(ctx -> Chanced.certain(() -> new ChargeStatus(target))));
-            return effects;
-        };
-        attrs2.effectsOnTarget.damage.power = PmonMove.Power.typed(10);
-        var nrHits1 = new P<>(0);
-        var nrHits2 = new P<>(0);
-        new Runner().run1v1(
-                pmon1And2HaveMoves(attrs, attrs2),
-                I(
-//                        tuple(useMove(TARGET.FOE), useMove(TARGET.FOE)),
-//                        tuple(useMove(TARGET.FOE), useMove(TARGET.FOE)),
-//                        tuple(useMove(TARGET.FOE), useMove(TARGET.FOE)),
-//                        tuple(useMove(TARGET.FOE), useMove(TARGET.FOE))),
-                        tuple(useMove(TARGET.FOE), useMove(TARGET.FOE)),
-                        tuple(pass(), useMove(TARGET.FOE)),
-                        tuple(useMove(TARGET.FOE), useMove(TARGET.FOE)),
-                        tuple(pass(), useMove(TARGET.FOE))),
-                multiple(I(
-                        checkHitsOnPmon1(() -> nrHits1.set(nrHits1.get()+1)),
-                        checkHitsOnPmon2(() -> nrHits2.set(nrHits2.get()+1)),
-                        new PmonBattle.Handler() {
-                            @Override public void onGlobalContext(PmonGlobalContext pmonGlobalContext) {
-                                var mon1Hp = pmonGlobalContext.parties.get(PARTY_1_ID).monsOnField.values().iterator().next().status.hp;
-                                var mon2Hp = pmonGlobalContext.parties.get(PARTY_2_ID).monsOnField.values().iterator().next().status.hp;
-                                return;
-                            }
-                            @Override public void onLocalContext(PartyId id, PmonLocalContext pmonLocalContext) {
-                                return;
-                            }
-                            @Override public void onLocalUpdate(PartyId id, PmonUpdate pmonUpdate) {
-                                return;
-                            }
-                        })),
-                c -> {
-                    assertEquals(Integer.valueOf(4), nrHits1.get());
-                    assertEquals(Integer.valueOf(2), nrHits2.get());
-                });
+    enum CHARGE_TEST_FLAG {
+        STOP_EARLY;
     }
-    @Test
-    public void testChargeUntargetable() {
-        class UntargetableStatus extends PmonStatusCondition {
-            private P<Integer> turn = new P<>(0);
-            public UntargetableStatus() {
-                super(new Id());
-                allowDecide = false;
-                untargetable = true;
-                afterTurn = () -> turn.set(turn.get()+1);
-                afterTurnEffects = new AfterTurnStandardEffects()
-                        .cureSelfIf(id, () -> turn.get() >= 2);
+    private void _testCharge(Boolean isUntargetable, CHARGE_TEST_FLAG t) {
+        var CHARGE_STATUS_ID = new PmonStatusCondition.Id();
+        class ChargeStatus extends PmonStatusCondition {
+            public ChargeStatus() {
+                super(CHARGE_STATUS_ID);
+                this.untargetable = isUntargetable;
             }
         }
-        attrs.effectsOnSelf = target -> {
-            var effects = new PmonEffects();
-            effects.status.statusConditionsInflict = strict(List(ctx -> Chanced.certain(UntargetableStatus::new)));
-            return effects;
+        attrs.effectsOnSelf = ctx -> {
+            var e = new PmonEffects();
+            if (!ctx.originMon().status.statusConditions.containsKey(CHARGE_STATUS_ID)) {
+                e.status.statusConditionsInflict = strict(List(ctx_ -> Chanced.certain(ChargeStatus::new)));
+                e.lockDecision.lock = true;
+            }
+            else {
+                e.status.statusConditionsCure = strict(List(ctx_ -> Chanced.certain(CHARGE_STATUS_ID)));
+            }
+            return e;
         };
-        attrs.effectsOnTarget.damage.power = PmonMove.Power.typed(40);
-        attrs2.effectsOnTarget.damage.power = PmonMove.Power.typed(20);
-        var nrHits1 = new P<>(0);
-        var nrHits2 = new P<>(0);
-        new Runner().run1v1(
-                pmon1And2HaveMoves(attrs, attrs2),
-                I(
-                        tuple(useMove(TARGET.FOE), useMove(TARGET.FOE)),
-                        tuple(useMove(TARGET.FOE), pass()),
-                        tuple(useMove(TARGET.FOE), useMove(TARGET.FOE)),
-                        tuple(useMove(TARGET.FOE), useMove(TARGET.FOE))),
-                multiple(I(
-                        checkHitsOnPmon1(() -> nrHits1.set(nrHits1.get()+1)),
-                        checkHitsOnPmon2(() -> nrHits2.set(nrHits2.get()+1)))),
-                c -> {
-                    assertEquals(Integer.valueOf(1), nrHits1.get());
-                    assertEquals(Integer.valueOf(2), nrHits2.get());
-                });
+        attrs.effectsOnTarget = ctx -> {
+            if (!ctx.originMon().status.statusConditions.containsKey(CHARGE_STATUS_ID)) {
+                return new PmonEffects();
+            }
+            var chargedEffect = new PmonEffects();
+            chargedEffect.damage.power = PmonMove.Power.typed(30);
+            chargedEffect.damage.pmonType = PMON_TYPE;
+            return chargedEffect;
+        };
+        attrs2.effectsOnTarget = effectConstant(e -> {
+            e.damage.power = PmonMove.Power.typed(10);
+        });
+        for (var tryToForceDecision: I(true,false)) {
+            var nrHits1 = new P<>(0);
+            var nrHits2 = new P<>(0);
+            new Runner().run1v1(
+                    pmon1And2HaveMoves(attrs, attrs2),
+                    I.flat(
+                    I(
+                            tuple(useMove(TARGET.FOE), useMove(TARGET.FOE)),
+                            tuple(tryToForceDecision? useMove(TARGET.FOE): pass(), useMove(TARGET.FOE)),
+                            tuple(useMove(TARGET.FOE), useMove(TARGET.FOE))),
+                    t == CHARGE_TEST_FLAG.STOP_EARLY? 
+                            I(): 
+                            I(tuple(tryToForceDecision? useMove(TARGET.FOE): pass(), useMove(TARGET.FOE)))
+                    ),
+                    multiple(I(
+                            checkHitsOnPmon1(() -> nrHits1.set(nrHits1.get() + 1)),
+                            checkHitsOnPmon2(() -> nrHits2.set(nrHits2.get() + 1)),
+                            new PmonBattle.Handler() {
+                                @Override
+                                public void onGlobalContext(PmonGlobalContext pmonGlobalContext) {
+                                    var mon1Hp = pmonGlobalContext.parties.get(PARTY_1_ID).monsOnField.values().iterator().next().status.hp;
+                                    var mon2Hp = pmonGlobalContext.parties.get(PARTY_2_ID).monsOnField.values().iterator().next().status.hp;
+                                    return;
+                                }
+
+                                @Override
+                                public void onLocalContext(PartyId id, PmonLocalContext pmonLocalContext) {
+                                    return;
+                                }
+
+                                @Override
+                                public void onLocalUpdate(PartyId id, PmonUpdate pmonUpdate) {
+                                    return;
+                                }
+                            })),
+                    c -> {
+                        assertEquals(Integer.valueOf(!isUntargetable?
+                                t == CHARGE_TEST_FLAG.STOP_EARLY? 3: 4:
+                                t == CHARGE_TEST_FLAG.STOP_EARLY? 1: 2), nrHits1.get());
+                        assertEquals(Integer.valueOf(
+                                t == CHARGE_TEST_FLAG.STOP_EARLY? 1: 2), nrHits2.get());
+                    });
+        }
+    }
+    @Test public void testCharge() {
+        _testCharge(false, null);
+    }
+    @Test public void testChargeStopEarly() {
+        _testCharge(false, CHARGE_TEST_FLAG.STOP_EARLY);
+    }
+    @Test public void testChargeUntargetable()  {
+        _testCharge(true, null);
+    }
+    @Test public void testChargeUntargetableStopEarly() {
+        _testCharge(true, CHARGE_TEST_FLAG.STOP_EARLY);
     }
 }

@@ -1,5 +1,6 @@
 package jl95.tbb.pmon;
 
+import jl95.tbb.pmon.decision.PmonDecisionToUseMove;
 import jl95.util.StrictList;
 import jl95.tbb.pmon.status.PmonStatus;
 import jl95.util.StrictMap;
@@ -16,6 +17,7 @@ public class Pmon {
     public final StrictMap<PmonAbility.Id, PmonAbility> abilities = strict(Map());
     public final PmonStatus status = new PmonStatus();
     public final StrictList<PmonMove> moves = strict(List());
+    public PmonDecisionToUseMove moveLastUsed = null;
 
     public Pmon(Id id) {this.id = id;}
 

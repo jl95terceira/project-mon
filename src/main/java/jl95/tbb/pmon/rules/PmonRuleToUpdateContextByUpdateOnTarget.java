@@ -1,9 +1,7 @@
 package jl95.tbb.pmon.rules;
 
 import jl95.lang.I;
-import jl95.lang.variadic.Tuple2;
-import jl95.tbb.PartyId;
-import jl95.tbb.mon.MonFieldPosition;
+import jl95.tbb.mon.MonId;
 import jl95.tbb.pmon.PmonGlobalContext;
 import jl95.tbb.pmon.PmonRuleset;
 import jl95.tbb.pmon.status.PmonStatModifierType;
@@ -17,11 +15,11 @@ public class PmonRuleToUpdateContextByUpdateOnTarget {
 
     public PmonRuleToUpdateContextByUpdateOnTarget(PmonRuleset ruleset) {this.ruleset = ruleset;}
 
-    public void update(PmonGlobalContext context, Iterable<PmonUpdateOnTarget> updates, Tuple2<PartyId, MonFieldPosition> origin, Tuple2<PartyId, MonFieldPosition> target) {
+    public void update(PmonGlobalContext context, Iterable<PmonUpdateOnTarget> updates, MonId origin, MonId target) {
 
-        var mon = context.parties.get(origin.a1).monsOnField.get(origin.a2);
-        var targetParty = context.parties.get(target.a1);
-        var targetMon = targetParty.monsOnField.get(target.a2);
+        var mon = context.parties.get(origin.partyId()).monsOnField.get(origin.position());
+        var targetParty = context.parties.get(target.partyId());
+        var targetMon = targetParty.monsOnField.get(target.position());
         for (var update: updates) {
 
             update.get(new PmonUpdateOnTarget.Handler() {
@@ -87,7 +85,14 @@ public class PmonRuleToUpdateContextByUpdateOnTarget {
                 public void switchOut(PmonUpdateOnTargetBySwitchOut update) {
 
                     // switch-in
-                    targetParty.monsOnField.put(target.a2, targetParty.mons.get(update.monToSwitchInIndex));
+                    targetParty.monsOnField.put(target.position(), targetParty.mons.get(update.monToSwitchInIndex));
+                }
+
+                @Override
+                public void lockMove(PmonUpdateOnTargetByLockMove update) {
+
+                    // lock decision to last move used
+                    targetMon.status.moveLocked = true;
                 }
             });
         }

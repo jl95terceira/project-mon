@@ -2,6 +2,7 @@ package jl95.tbb.pmon;
 
 import jl95.lang.variadic.Function1;
 import jl95.lang.variadic.Tuple2;
+import jl95.tbb.mon.MonFieldPosition;
 import jl95.tbb.pmon.decision.PmonDecisionToUseMove;
 import jl95.tbb.pmon.effect.PmonEffects;
 import jl95.tbb.pmon.status.PmonMoveStatus;
@@ -54,14 +55,15 @@ public class PmonMove {
         NOT_VERY_EFFECTIVE,
         DOES_NOT_AFFECT;
     }
+    public record EffectsContext(PmonLocalContext localContext, MonFieldPosition originPosition, Pmon originMon, PmonDecisionToUseMove.Target target) {}
 
     public final Id id;
     public PmonMove.TargettingType targetType = PmonMove.TargettingType.FOE_SINGLE_MON; //TODO: validate move target(s) against targeting type, in PmonRuleToValidateDecision
     public Integer accuracy = 100;
     public Integer priorityModifier = 0;
     public Boolean interceptsSwitch = false;
-    public PmonEffects effectsOnTarget = new PmonEffects();
-    public Function1<PmonEffects, PmonDecisionToUseMove.Target> effectsOnSelf = target -> new PmonEffects();
+    public Function1<PmonEffects, EffectsContext> effectsOnTarget = ctx -> new PmonEffects();
+    public Function1<PmonEffects, EffectsContext> effectsOnSelf = ctx -> new PmonEffects();
     public Tuple2<Integer, Integer> hitNrTimesRange = tuple(1,1);
     public PmonMoveStatus status = new PmonMoveStatus();
 

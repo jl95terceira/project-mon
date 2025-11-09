@@ -2,13 +2,14 @@ package jl95.tbb.pmon.decision;
 
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonFieldPosition;
+import jl95.tbb.mon.MonId;
 
 public class PmonDecisionToUseMove {
 
     public interface Target {
 
         interface Handler {
-            void mon(PartyId partyId, MonFieldPosition monId);
+            void mon(MonId monId);
             void party(PartyId partyId);
             void all();
             void none();
@@ -16,8 +17,8 @@ public class PmonDecisionToUseMove {
 
         void get(Handler handler);
 
-        static Target mon(PartyId partyId, MonFieldPosition monId) {
-            return h -> h.mon(partyId, monId);
+        static Target mon(MonId monId) {
+            return h -> h.mon(monId);
         }
         static Target party(PartyId partyId) {
             return h -> h.party(partyId);

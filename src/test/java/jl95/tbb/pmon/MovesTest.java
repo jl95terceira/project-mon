@@ -5,6 +5,7 @@ import jl95.lang.variadic.*;
 import jl95.tbb.Battle;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonFieldPosition;
+import jl95.tbb.mon.MonId;
 import jl95.tbb.pmon.decision.PmonDecisionToPass;
 import jl95.tbb.pmon.decision.PmonDecisionToUseMove;
 import jl95.tbb.pmon.status.PmonStatusCondition;
@@ -85,8 +86,8 @@ public class MovesTest {
         public void run1v1(
                 Tuple2<Iterable<PmonMove>,Iterable<PmonMove>> moves,
                 Iterable<Tuple2<
-                        Function2<PmonDecision, Tuple2<PartyId, MonFieldPosition>, Tuple2<PartyId, MonFieldPosition>>,
-                        Function2<PmonDecision, Tuple2<PartyId, MonFieldPosition>, Tuple2<PartyId, MonFieldPosition>>>> decisions,
+                        Function2<PmonDecision, MonId, MonId>,
+                        Function2<PmonDecision, MonId, MonId>>> decisions,
                 PmonBattle.Handler handler,
                 Method1<Context> after) {
 
@@ -109,8 +110,8 @@ public class MovesTest {
                             var mon1FieldPosition = gcRef.get().parties.get(PARTY_1_ID).monsOnField.keySet().iterator().next();
                             var mon2FieldPosition = gcRef.get().parties.get(PARTY_2_ID).monsOnField.keySet().iterator().next();
                             return strict(Map(
-                                    tuple(PARTY_1_ID, strict(Map(tuple(mon1FieldPosition, decisionsForThisTurn.a1.apply(tuple(PARTY_1_ID, mon1FieldPosition), tuple(PARTY_2_ID, mon2FieldPosition)))))),
-                                    tuple(PARTY_2_ID, strict(Map(tuple(mon2FieldPosition, decisionsForThisTurn.a2.apply(tuple(PARTY_2_ID, mon2FieldPosition), tuple(PARTY_1_ID, mon1FieldPosition))))))
+                                    tuple(PARTY_1_ID, strict(Map(tuple(mon1FieldPosition, decisionsForThisTurn.a1.apply(new MonId(PARTY_1_ID, mon1FieldPosition), new MonId(PARTY_2_ID, mon2FieldPosition)))))),
+                                    tuple(PARTY_2_ID, strict(Map(tuple(mon2FieldPosition, decisionsForThisTurn.a2.apply(new MonId(PARTY_2_ID, mon2FieldPosition), new MonId(PARTY_1_ID, mon1FieldPosition))))))
                             ));
                         },
                         parentHandler,
@@ -137,20 +138,20 @@ public class MovesTest {
     public enum TARGET {
         SELF,FOE;
     }
-    public static Function2<PmonDecision, Tuple2<PartyId, MonFieldPosition>, Tuple2<PartyId, MonFieldPosition>> useMove(TARGET t) {
-        return function((Tuple2<PartyId, MonFieldPosition> selfPosition,
-                         Tuple2<PartyId, MonFieldPosition> foePosition) -> {
+    public static Function2<PmonDecision, MonId, MonId> useMove(TARGET t) {
+        return function((MonId selfPosition,
+                         MonId foePosition) -> {
             var useMove = new PmonDecisionToUseMove();
             useMove.moveIndex = 0;
             useMove.target = t == TARGET.FOE?
-                    PmonDecisionToUseMove.Target.mon(foePosition.a1, foePosition.a2):
-                    PmonDecisionToUseMove.Target.mon(selfPosition.a1, selfPosition.a2);
+                    PmonDecisionToUseMove.Target.mon(foePosition):
+                    PmonDecisionToUseMove.Target.mon(selfPosition);
             return PmonDecision.from(useMove);
         });
     }
-    public static Function2<PmonDecision, Tuple2<PartyId, MonFieldPosition>, Tuple2<PartyId, MonFieldPosition>> pass() {
-        return function((Tuple2<PartyId, MonFieldPosition> selfPosition,
-                         Tuple2<PartyId, MonFieldPosition> foePosition) -> PmonDecision.from(new PmonDecisionToPass()));
+    public static Function2<PmonDecision, MonId, MonId> pass() {
+        return function((MonId selfPosition,
+                         MonId foePosition) -> PmonDecision.from(new PmonDecisionToPass()));
     }
     // handlers
     public static PmonBattle.Handler multiple(Iterable<PmonBattle.Handler> handlers) {
@@ -180,6 +181,7 @@ public class MovesTest {
                                         }
                                         @Override public void statModify(PmonUpdateOnTargetByStatModifier update) {}
                                         @Override public void statusCondition(PmonUpdateOnTargetByStatusCondition update) {}
+                                        @Override public void lockMove(PmonUpdateOnTargetByLockMove update) {}
                                         @Override public void switchOut(PmonUpdateOnTargetBySwitchOut update) {}
                                     });
                                 }
