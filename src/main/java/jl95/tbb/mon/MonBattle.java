@@ -96,7 +96,9 @@ public class MonBattle<
                                         .toSet());
                             })));
             for (var e: lockedDecisions.entrySet()) {
-                partyDecisionsMap.get(e.getKey()).putAll(e.getValue());
+                if (partyDecisionsMap.containsKey(e.getKey())) {
+                    partyDecisionsMap.get(e.getKey()).putAll(e.getValue());
+                }
             }
             return strict(I.of(partyDecisionsMap.entrySet())
                     .filter(e -> allowedToDecide.containsKey(e.getKey()))
