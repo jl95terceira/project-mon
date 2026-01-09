@@ -66,7 +66,7 @@ public class Battle<
     public static class InterruptedException extends RuntimeException {}
     public static class BadDecisionException extends RuntimeException {}
 
-    public Optional<PartyId> spawn(StrictMap<PartyId, PartyEntry> parties,
+    public Optional<PartyId> start(StrictMap<PartyId, PartyEntry> parties,
                                    InitialConditions initialConditions,
                                    Function0<StrictMap<PartyId, Decision>> decisionFunction,
                                    Handler<LocalUpdate, LocalContext, GlobalContext> handler,

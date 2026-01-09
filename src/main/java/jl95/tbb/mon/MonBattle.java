@@ -53,7 +53,7 @@ public class MonBattle<
         this.upcastBattle = new jl95.tbb.Battle<>(ruleset.upcast());
     }
 
-    public Optional<PartyId> spawn(
+    public Optional<PartyId> start(
             StrictMap<PartyId, PartyEntry> parties,
             InitialConditions initialConditions,
             Function1<StrictMap<PartyId, StrictMap<MonFieldPosition, MonDecision>>,
@@ -80,7 +80,7 @@ public class MonBattle<
                 handler.onLocalUpdate(id, localUpdate);
             }
         };
-        return this.upcastBattle.spawn(parties, initialConditions, () -> {
+        return this.upcastBattle.start(parties, initialConditions, () -> {
 
             var allowedToDecide = ruleset.allowedToDecide(globalContextRef.get());
             var lockedDecisions = ruleset.lockedDecisions(globalContextRef.get());

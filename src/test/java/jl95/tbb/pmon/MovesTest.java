@@ -4,7 +4,6 @@ import jl95.lang.P;
 import jl95.lang.variadic.*;
 import jl95.tbb.Battle;
 import jl95.tbb.PartyId;
-import jl95.tbb.mon.MonFieldPosition;
 import jl95.tbb.mon.MonId;
 import jl95.tbb.pmon.decision.PmonDecisionToPass;
 import jl95.tbb.pmon.decision.PmonDecisionToUseMove;
@@ -101,7 +100,7 @@ public class MovesTest {
             parentHandler.add(handler);
             parentHandler.onGlobalContext.add(gcRef::set);
             try {
-                battle.spawn(
+                battle.start(
                         strict(Map(tuple(PARTY_1_ID, party1),
                                 tuple(PARTY_2_ID, party2))),
                         new PmonInitialConditions(),
