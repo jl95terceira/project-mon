@@ -85,7 +85,9 @@ public class PmonRuleToUpdateContextByUpdateOnTarget {
                 public void switchOut(PmonUpdateOnTargetBySwitchOut update) {
 
                     // switch-in
+                    var monSwitchingOut = targetParty.monsOnField.get(target.position());
                     targetParty.monsOnField.put(target.position(), targetParty.mons.get(update.monToSwitchInIndex));
+                    monSwitchingOut.status.statModifiers.clear(); // clear stat modifiers on switch-out
                 }
 
                 @Override
