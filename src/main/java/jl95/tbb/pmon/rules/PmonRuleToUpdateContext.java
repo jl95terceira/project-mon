@@ -49,8 +49,12 @@ public class PmonRuleToUpdateContext {
             }
             @Override public void switchOut(PmonUpdateBySwitchOut update) {
 
-                var party = context.parties.get(update.partyId);
-                party.monsOnField.put(update.monFieldPosition, party.mons.get(update.monToSwitchInPartyPosition));
+                var updateBySwitchOut = new PmonUpdateOnTargetBySwitchOut();
+                updateBySwitchOut.monToSwitchInIndex = update.monToSwitchInPartyPosition;
+                new PmonRuleToUpdateContextByUpdateOnTarget(ruleset).update(context,
+                        I(PmonUpdateOnTarget.by(updateBySwitchOut)),
+                        new MonId(update.partyId, update.monFieldPosition),
+                        new MonId(update.partyId, update.monFieldPosition));
             }
             @Override public void other(PmonUpdateByOther update) {
                 for (var e: update.atomicUpdates.entrySet()) {

@@ -6,9 +6,11 @@ import jl95.tbb.Battle;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonId;
 import jl95.tbb.pmon.decision.PmonDecisionToPass;
+import jl95.tbb.pmon.decision.PmonDecisionToSwitchOut;
 import jl95.tbb.pmon.decision.PmonDecisionToUseMove;
 import jl95.tbb.pmon.status.PmonStatusCondition;
 import jl95.tbb.pmon.update.*;
+import jl95.util.StrictList;
 
 import static jl95.lang.SuperPowers.*;
 
@@ -49,6 +51,17 @@ public class MovesTest {
         party.mons.add(pmon);
         return party;
     }
+    private static PmonPartyEntry makePartyEntryNPmon(StrictList<Iterable<PmonMove>> moveses) {
+        var party = new PmonPartyEntry();
+        for (var moves: moveses) {
+            var pmon = new Pmon(PMON_ID);
+            setBaseStats(pmon);
+            pmon.status.hp = HP0;
+            pmon.moves.addAll(moves);
+            party.mons.add(pmon);
+        }
+        return party;
+    }
     public static PmonMove makeMove(Method1<PmonMove> attrs) {
         var move = new PmonMove(new PmonMove.Id(), new PmonType(PMON_TYPE.id) {
 
@@ -82,8 +95,8 @@ public class MovesTest {
         }
         public Runner() {this(rulesDefaults());}
 
-        public void run1v1(
-                Tuple2<Iterable<PmonMove>,Iterable<PmonMove>> moves,
+        public void run1vN(
+                Tuple2<Iterable<PmonMove>, StrictList<Iterable<PmonMove>>> moves,
                 Iterable<Tuple2<
                         Function2<PmonDecision, MonId, MonId>,
                         Function2<PmonDecision, MonId, MonId>>> decisions,
@@ -92,7 +105,7 @@ public class MovesTest {
 
             var battle = new PmonBattle(_rules);
             var party1 = makePartyEntry(moves.a1);
-            var party2 = makePartyEntry(moves.a2);
+            var party2 = makePartyEntryNPmon(moves.a2);
             party1.mons.iterator().next().baseStats.speed += 1; // so that pmon 1 always moves first, to ensure reproducibility when testing
             var decisionsIterator = decisions.iterator();
             P<PmonGlobalContext> gcRef = new P<>(null);
@@ -120,15 +133,30 @@ public class MovesTest {
             catch (Battle.InterruptedException ex) {/* continue */}
             after.accept(new Context(gcRef.get(), party1.mons.get(0), party2.mons.get(0)));
         }
+        public void run1v1(
+                Tuple2<Iterable<PmonMove>,Iterable<PmonMove>> moves,
+                Iterable<Tuple2<
+                        Function2<PmonDecision, MonId, MonId>,
+                        Function2<PmonDecision, MonId, MonId>>> decisions,
+                PmonBattle.Handler handler,
+                Method1<Context> after) {
+
+            run1vN(tuple(moves.a1, strict(List(moves.a2))), decisions, handler, after);
+        }
     }
 
     // moves
-    public static Tuple2<Iterable<PmonMove>,Iterable<PmonMove>> pmon1HasMove(PmonMove move) {
+    public static Tuple2<Iterable<PmonMove>,Iterable<PmonMove>> pmon1HasMoveVs1NoMove(PmonMove move) {
         return tuple(
                 I(move),
                 I());
     }
-    public static Tuple2<Iterable<PmonMove>,Iterable<PmonMove>> pmon1And2HaveMoves(PmonMove move1, PmonMove move2) {
+    public static Tuple2<Iterable<PmonMove>,StrictList<Iterable<PmonMove>>> pmon1HasMoveVs2NoMove(PmonMove move) {
+        return tuple(
+                I(move),
+                strict(List(I(), I())));
+    }
+    public static Tuple2<Iterable<PmonMove>,Iterable<PmonMove>> pmon1HasMoveVs1HasMove(PmonMove move1, PmonMove move2) {
         return tuple(
                 I(move1),
                 I(move2));
@@ -151,6 +179,14 @@ public class MovesTest {
     public static Function2<PmonDecision, MonId, MonId> pass() {
         return function((MonId selfPosition,
                          MonId foePosition) -> PmonDecision.from(new PmonDecisionToPass()));
+    }
+    public static Function2<PmonDecision, MonId, MonId> switchOut(int index) {
+        return function((MonId selfPosition,
+                         MonId foePosition) -> {
+            var switchOut = new PmonDecisionToSwitchOut();
+            switchOut.monSwitchInIndex = index;
+            return PmonDecision.from(switchOut);
+        });
     }
     // handlers
     public static PmonBattle.Handler multiple(Iterable<PmonBattle.Handler> handlers) {

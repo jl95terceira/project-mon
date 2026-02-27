@@ -84,7 +84,7 @@ public class Gen1Test {
             e.damage.power = PmonMove.Power.typed(20);
         });
         new Runner().run1v1(
-                pmon1HasMove(attrs),
+                pmon1HasMoveVs1NoMove(attrs),
                 I(
                         tuple(useMove(TARGET.FOE), pass())),
                 ignoreUpdates(),
@@ -102,7 +102,7 @@ public class Gen1Test {
         });
         var pmon1WasHit = new P<>(false);
         new Runner().run1v1(
-                pmon1And2HaveMoves(attrs,attrs2),
+                pmon1HasMoveVs1HasMove(attrs,attrs2),
                 I(
                         tuple(useMove(TARGET.FOE), useMove(TARGET.FOE))),
                 multiple(I(
@@ -120,7 +120,7 @@ public class Gen1Test {
             e.damage.healbackFactor = .5;
         });
         new Runner().run1v1(
-                pmon1HasMove(attrs),
+                pmon1HasMoveVs1NoMove(attrs),
                 I(
                         tuple(useMove(TARGET.FOE), pass())),
                 ignoreUpdates(),
@@ -135,7 +135,7 @@ public class Gen1Test {
                     tuple(PmonStatModifierType.DEFENSE, new Chanced<>(-1, 10))));
         });
         new Runner().run1v1(
-                pmon1HasMove(attrs),
+                pmon1HasMoveVs1NoMove(attrs),
                 I(
                         tuple(useMove(TARGET.FOE), pass())),
                 ignoreUpdates(),
@@ -151,7 +151,7 @@ public class Gen1Test {
                     tuple(PmonStatModifierType.DEFENSE, new Chanced<>(-1, 10))));
         });
         new Runner().run1v1(
-                pmon1HasMove(attrs),
+                pmon1HasMoveVs1NoMove(attrs),
                 I(
                         tuple(useMove(TARGET.FOE), pass())),
                 ignoreUpdates(),
@@ -165,7 +165,7 @@ public class Gen1Test {
             e.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.ATTACK, Chanced.certain(2))));
         });
         new Runner().run1v1(
-                pmon1HasMove(attrs),
+                pmon1HasMoveVs1NoMove(attrs),
                 I(
                         tuple(useMove(TARGET.SELF), pass())),
                 ignoreUpdates(),
@@ -178,7 +178,7 @@ public class Gen1Test {
             e.stats.statModifiers = strict(Map(tuple(PmonStatModifierType.ATTACK, Chanced.certain(2))));
         });
         new Runner().run1v1(
-                pmon1HasMove(attrs),
+                pmon1HasMoveVs1NoMove(attrs),
                 I(
                         tuple(useMove(TARGET.SELF), pass()),
                         tuple(pass(), pass()),
@@ -198,7 +198,7 @@ public class Gen1Test {
         var nrHits = new P<>(0);
         new Runner(rules)
                 .run1v1(
-                        pmon1HasMove(attrs),
+                        pmon1HasMoveVs1NoMove(attrs),
                         I(
                                 tuple(useMove(TARGET.FOE), pass())),
                         checkHitsOnPmon2(() -> nrHits.set(nrHits.get() + 1)),
@@ -257,7 +257,7 @@ public class Gen1Test {
         var nrHitsOnPmon1 = new P<>(0);
         var nrHitsOnPmon2 = new P<>(0);
         new Runner().run1v1(
-                pmon1And2HaveMoves(attrs2, attrs),
+                pmon1HasMoveVs1HasMove(attrs2, attrs),
                 t == BIDE_TEST_FLAG.STOP_EARLY
                 ? I(
                         tuple(pass(), useMove(TARGET.SELF)),
@@ -321,7 +321,7 @@ public class Gen1Test {
             var rules = Runner.rulesDefaults();
             rules.rngImmobilise = new PmonRuleset.Rng(constant(!toFlinch? 1.: 0.));
             new Runner(rules).run1v1(
-                    pmon1And2HaveMoves(attrs, attrs2),
+                    pmon1HasMoveVs1HasMove(attrs, attrs2),
                     I(
                             tuple(useMove(TARGET.FOE), useMove(TARGET.FOE))),
                     ignoreUpdates(),
@@ -358,7 +358,7 @@ public class Gen1Test {
         var nrHits1 = new P<>(0);
         var nrHits2 = new P<>(0);
         new Runner().run1v1(
-                pmon1And2HaveMoves(attrs, attrs2),
+                pmon1HasMoveVs1HasMove(attrs, attrs2),
                 I(
                         tuple(useMove(TARGET.FOE), useMove(TARGET.FOE)),
                         tuple(pass(), useMove(TARGET.FOE)),
@@ -397,7 +397,7 @@ public class Gen1Test {
             var rules = Runner.rulesDefaults();
             rules.rngImmobilise = new PmonRuleset.Rng(constant(!confused? 1.0: 0.0));
             new Runner(rules).run1v1(
-                    pmon1And2HaveMoves(attrs, attrs2),
+                    pmon1HasMoveVs1HasMove(attrs, attrs2),
                     I(
                             tuple(useMove(TARGET.FOE), useMove(TARGET.FOE))
                     ),
@@ -423,7 +423,7 @@ public class Gen1Test {
         });
         for (var attack: I(false,true)) {
             new Runner().run1v1(
-                    pmon1And2HaveMoves(attrs, attrs2),
+                    pmon1HasMoveVs1HasMove(attrs, attrs2),
                     !attack? I(
                             tuple(pass(), useMove(TARGET.FOE))
                     ): I(
@@ -481,7 +481,7 @@ public class Gen1Test {
             var nrHits1 = new P<>(0);
             var nrHits2 = new P<>(0);
             new Runner().run1v1(
-                    pmon1And2HaveMoves(attrs, attrs2),
+                    pmon1HasMoveVs1HasMove(attrs, attrs2),
                     I.flat(
                     I(
                             tuple(useMove(TARGET.FOE), useMove(TARGET.FOE)),
