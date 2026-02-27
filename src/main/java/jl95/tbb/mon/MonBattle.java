@@ -25,14 +25,14 @@ public class MonBattle<
         GlobalUpdate, LocalUpdate
         > {
 
-    public final MonRuleset<
+    private final MonRuleset<
             Mon, PartyEntry, Party,
             InitialConditions,
             LocalContext, GlobalContext,
             MonDecision,
             GlobalUpdate, LocalUpdate
             > ruleset;
-    public final jl95.tbb.Battle<
+    private final Battle<
             PartyEntry,
             InitialConditions,
             LocalContext, GlobalContext,
