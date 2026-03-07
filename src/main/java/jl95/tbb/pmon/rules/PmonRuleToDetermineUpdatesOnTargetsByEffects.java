@@ -2,9 +2,6 @@ package jl95.tbb.pmon.rules;
 
 import jl95.lang.I;
 import jl95.lang.variadic.Method1;
-import jl95.lang.variadic.Tuple2;
-import jl95.tbb.PartyId;
-import jl95.tbb.mon.MonFieldPosition;
 import jl95.tbb.mon.MonId;
 import jl95.tbb.pmon.PmonGlobalContext;
 import jl95.tbb.pmon.Chanced;
@@ -19,11 +16,11 @@ import jl95.tbb.pmon.update.PmonUpdateOnTargetByStatusCondition;
 
 import static jl95.lang.SuperPowers.strict;
 
-public class PmonRuleToDetermineUpdateByEffects {
+public class PmonRuleToDetermineUpdatesOnTargetsByEffects {
 
     public final PmonRuleset ruleset;
 
-    public PmonRuleToDetermineUpdateByEffects(PmonRuleset ruleset) {this.ruleset = ruleset;}
+    public PmonRuleToDetermineUpdatesOnTargetsByEffects(PmonRuleset ruleset) {this.ruleset = ruleset;}
 
     public void detUpdates(PmonGlobalContext ctx, MonId origin, MonId target, PmonEffects effects, Integer nrTargets, Boolean followUp, Method1<PmonUpdateOnTarget> updateHandler) {
 

@@ -168,7 +168,7 @@ public class PmonRuleToDetermineUpdatesByDecisions {
                                     updateByEffectsOnSelf.origin = monId;
                                     StrictList<PmonUpdateOnTarget> atomicUpdates = strict(List());
                                     updateByEffectsOnSelf.atomicUpdates.put(monId, atomicUpdates);
-                                    new PmonRuleToDetermineUpdateByEffects(ruleset)
+                                    new PmonRuleToDetermineUpdatesOnTargetsByEffects(ruleset)
                                             .detUpdates(context, monId, monId, onImmobilisedEffectsOnSelf, 1, false, atomicUpdates::add);
                                     updateHandler.accept(PmonUpdate.by(updateByEffectsOnSelf));
                                 }
@@ -196,12 +196,12 @@ public class PmonRuleToDetermineUpdatesByDecisions {
                                     var effectsOnTarget = move.effectsOnTarget.apply(new PmonMove.EffectsContext(localContext, monId.position(), mon, useMoveDecision.target));
                                     if (effectsOnTarget != null) {
                                         for (var i : I.range(nrHits)) {
-                                            new PmonRuleToDetermineUpdateByEffects(ruleset).detUpdates(context, monId, new MonId(targetPartyId, targetMonId), effectsOnTarget, nrTargets, true, atomicUpdatesOnFoe::add);
+                                            new PmonRuleToDetermineUpdatesOnTargetsByEffects(ruleset).detUpdates(context, monId, new MonId(targetPartyId, targetMonId), effectsOnTarget, nrTargets, true, atomicUpdatesOnFoe::add);
                                         }
                                     }
                                     var effectsOnSelf = move.effectsOnSelf.apply(new PmonMove.EffectsContext(localContext, monId.position(), mon, useMoveDecision.target));
                                     if (effectsOnSelf != null) {
-                                        new PmonRuleToDetermineUpdateByEffects(ruleset).detUpdates(context, monId, monId, effectsOnSelf, 1, true, atomicUpdatesOnSelf::add);
+                                        new PmonRuleToDetermineUpdatesOnTargetsByEffects(ruleset).detUpdates(context, monId, monId, effectsOnSelf, 1, true, atomicUpdatesOnSelf::add);
                                     }
                                     updateByMove.usageResults.add(tuple(targetPartyId, targetMonId,
                                             PmonUpdateByMove.UsageResult.hit(atomicUpdatesOnFoe)));
@@ -257,7 +257,7 @@ public class PmonRuleToDetermineUpdatesByDecisions {
                             var effects = e3.getValue();
                             StrictList<PmonUpdateOnTarget> atomicUpdates = strict(List());
                             afterTurnUpdate.atomicUpdates.put(target, atomicUpdates);
-                            effects.forEach(e -> new PmonRuleToDetermineUpdateByEffects(ruleset)
+                            effects.forEach(e -> new PmonRuleToDetermineUpdatesOnTargetsByEffects(ruleset)
                                     .detUpdates(context, monId, target, e, 1, false, atomicUpdates::add));
                         }
                         if (!afterTurnUpdate.atomicUpdates.isEmpty()) {
