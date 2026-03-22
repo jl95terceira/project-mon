@@ -9,6 +9,7 @@ import jl95.tbb.pmon.PmonRuleset;
 
 import java.util.Map;
 
+import static jl95.lang.SuperPowers.function;
 import static jl95.lang.SuperPowers.strict;
 
 public class PmonRuleToDetermineLocalContext {
@@ -19,9 +20,9 @@ public class PmonRuleToDetermineLocalContext {
 
     public PmonLocalContext detLocalContext(PmonGlobalContext context, PartyId ownPartyId) {
 
-        var partyViews = strict(I
+        var partyViews = function((Boolean includeSelf) -> strict(I
                 .of(context.parties.keySet())
-//                .filter(id -> !id.equals(ownPartyId))
+                .filter(id -> !id.equals(ownPartyId) || includeSelf)
                 .toMap(id -> id, id -> strict(I
                         .of(context.parties.get(id).monsOnField.entrySet())
                         .toMap(Map.Entry::getKey, e -> {
@@ -30,7 +31,9 @@ public class PmonRuleToDetermineLocalContext {
                             monView.types = mon.types;
                             monView.status = mon.status;
                             return monView;
-                        }))));
-        return new PmonLocalContext(context.parties.get(ownPartyId), partyViews);
+                        })))));
+        return new PmonLocalContext(context.parties.get(ownPartyId),
+                partyViews.apply(false),
+                partyViews.apply(true));
     }
 }
