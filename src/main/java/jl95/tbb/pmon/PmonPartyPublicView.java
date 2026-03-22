@@ -7,11 +7,11 @@ import jl95.util.StrictMap;
 
 import static jl95.lang.SuperPowers.strict;
 
-public class PmonFoeView {
+public class PmonPartyPublicView {
 
     public final Pmon.Id id;
     public StrictMap<PmonType.Id, PmonType> types = strict(Map());
     public PmonStatus status = new PmonStatus();
 
-    public PmonFoeView(Pmon.Id id) {this.id = id;}
+    public PmonPartyPublicView(Pmon.Id id) {this.id = id;}
 }
