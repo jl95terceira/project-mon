@@ -1,6 +1,7 @@
 package jl95.tbb.pmon.update;
 
 import jl95.tbb.mon.MonId;
+import jl95.tbb.pmon.PmonMove;
 import jl95.tbb.pmon.status.PmonStatusCondition;
 import jl95.util.StrictList;
 import jl95.lang.variadic.Tuple3;
@@ -34,6 +35,7 @@ public class PmonUpdateByMove {
 
     public MonId monId = NO_MON;
     public Integer moveIndex = -1;
+    public PmonMove.Id moveId = NO_MOVE;
     public StrictList<Tuple3<PartyId, MonFieldPosition, UsageResult>>
             usageResults = strict(List());
 }

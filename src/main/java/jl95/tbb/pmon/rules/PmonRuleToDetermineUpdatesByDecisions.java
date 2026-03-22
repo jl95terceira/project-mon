@@ -143,6 +143,9 @@ public class PmonRuleToDetermineUpdatesByDecisions {
                 var monId = moveInfo.monId();
                 updateByMove.monId = monId;
                 updateByMove.moveIndex = moveInfo.moveIndex;
+                updateByMove.moveId = context.parties.get(monId.partyId()).monsOnField
+                        .get(monId.position()).moves
+                        .get(moveInfo.moveIndex).id;
                 var monDecision = decisionsMap.get(monId.partyId()).monDecisions.get(monId.position());
                 monDecision.get(new PmonDecision.Handler() {
 
