@@ -4,10 +4,7 @@ import static jl95.lang.SuperPowers.List;
 import static jl95.lang.SuperPowers.strict;
 
 import jl95.lang.variadic.Function1;
-import jl95.lang.variadic.Tuple2;
-import jl95.tbb.PartyId;
-import jl95.tbb.mon.MonFieldPosition;
-import jl95.tbb.mon.MonId;
+import jl95.tbb.mon.MonPartyFieldPosition;
 import jl95.tbb.pmon.PmonGlobalContext;
 import jl95.util.StrictList;
 import jl95.lang.variadic.Function0;
@@ -18,8 +15,8 @@ public class PmonEffectByStatusCondition {
 
     public record Context(
             PmonGlobalContext globalContext,
-            MonId origin,
-            MonId target) {}
+            MonPartyFieldPosition origin,
+            MonPartyFieldPosition target) {}
 
     public StrictList<Function1<Chanced<Function0<PmonStatusCondition>>,Context>>
             statusConditionsInflict = strict(List());

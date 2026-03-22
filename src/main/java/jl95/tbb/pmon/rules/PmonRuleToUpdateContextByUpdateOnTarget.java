@@ -1,7 +1,7 @@
 package jl95.tbb.pmon.rules;
 
 import jl95.lang.I;
-import jl95.tbb.mon.MonId;
+import jl95.tbb.mon.MonPartyFieldPosition;
 import jl95.tbb.pmon.PmonGlobalContext;
 import jl95.tbb.pmon.PmonRuleset;
 import jl95.tbb.pmon.status.PmonStatModifierType;
@@ -15,7 +15,7 @@ public class PmonRuleToUpdateContextByUpdateOnTarget {
 
     public PmonRuleToUpdateContextByUpdateOnTarget(PmonRuleset ruleset) {this.ruleset = ruleset;}
 
-    public void update(PmonGlobalContext context, Iterable<PmonUpdateOnTarget> updates, MonId origin, MonId target) {
+    public void update(PmonGlobalContext context, Iterable<PmonUpdateOnTarget> updates, MonPartyFieldPosition origin, MonPartyFieldPosition target) {
 
         var mon = context.parties.get(origin.partyId()).monsOnField.get(origin.position());
         var targetParty = context.parties.get(target.partyId());

@@ -2,7 +2,7 @@ package jl95.tbb.pmon.rules;
 
 import jl95.lang.I;
 import jl95.lang.variadic.Method1;
-import jl95.tbb.mon.MonId;
+import jl95.tbb.mon.MonPartyFieldPosition;
 import jl95.tbb.pmon.PmonGlobalContext;
 import jl95.tbb.pmon.Chanced;
 import jl95.tbb.pmon.PmonRuleset;
@@ -22,7 +22,7 @@ public class PmonRuleToDetermineUpdatesOnTargetsByEffects {
 
     public PmonRuleToDetermineUpdatesOnTargetsByEffects(PmonRuleset ruleset) {this.ruleset = ruleset;}
 
-    public void detUpdates(PmonGlobalContext ctx, MonId origin, MonId target, PmonEffects effects, Integer nrTargets, Boolean followUp, Method1<PmonUpdateOnTarget> updateHandler) {
+    public void detUpdates(PmonGlobalContext ctx, MonPartyFieldPosition origin, MonPartyFieldPosition target, PmonEffects effects, Integer nrTargets, Boolean followUp, Method1<PmonUpdateOnTarget> updateHandler) {
 
         var mon       = ctx.parties.get(origin.partyId()).monsOnField.get(origin.position());
         var targetMon = ctx.parties.get(target.partyId()).monsOnField.get(target.position());

@@ -2,7 +2,7 @@ package jl95.tbb.pmon.rules;
 
 import jl95.lang.I;
 import jl95.lang.variadic.Method1;
-import jl95.tbb.mon.MonId;
+import jl95.tbb.mon.MonPartyFieldPosition;
 import jl95.tbb.pmon.*;
 import jl95.tbb.pmon.update.*;
 import jl95.util.StrictList;
@@ -20,12 +20,12 @@ import static jl95.lang.SuperPowers.*;
 public class PmonRuleToDetermineUpdatesByDecisions {
 
     public static class DecisionSorting {
-        public record MoveInfo(MonId monId, Integer moveIndex, Integer speed, Integer priorityModifier, StrictMap<PartyId, ? extends Iterable<MonFieldPosition>> targets, Boolean interceptsSwitch) {}
-        public record SwitchInfo(MonId monId, Integer monSwitchInIndex) {}
+        public record MoveInfo(MonPartyFieldPosition monPartyFieldPosition, Integer moveIndex, Integer speed, Integer priorityModifier, StrictMap<PartyId, ? extends Iterable<MonFieldPosition>> targets, Boolean interceptsSwitch) {}
+        public record SwitchInfo(MonPartyFieldPosition monPartyFieldPosition, Integer monSwitchInIndex) {}
         public StrictList<SwitchInfo> switchList = strict(List());
         public StrictList<DecisionSorting.MoveInfo> moveNormalList    = strict(List());
         public StrictList<DecisionSorting.MoveInfo> moveInterceptList = strict(List());
-        public StrictMap<MonId,Integer> switchMap = strict(Map());
+        public StrictMap<MonPartyFieldPosition,Integer> switchMap = strict(Map());
     }
 
     public final PmonRuleset ruleset;
@@ -53,7 +53,7 @@ public class PmonRuleToDetermineUpdatesByDecisions {
                         @Override
                         public void switchOut(PmonDecisionToSwitchOut switchInDecision) {
 
-                            s.switchList.add(new DecisionSorting.SwitchInfo(new MonId(partyId, monId), switchInDecision.monSwitchInIndex));
+                            s.switchList.add(new DecisionSorting.SwitchInfo(new MonPartyFieldPosition(partyId, monId), switchInDecision.monSwitchInIndex));
                         }
                         @Override
                         public void useMove(PmonDecisionToUseMove useMoveDecision) {
@@ -84,8 +84,8 @@ public class PmonRuleToDetermineUpdatesByDecisions {
                             }
                             StrictMap<PartyId,StrictList<MonFieldPosition>> targetMap = strict(Map());
                             useMoveDecision.target.get(new PmonDecisionToUseMove.Target.Handler() {
-                                @Override public void mon(MonId monId) {
-                                    targetMap.put(monId.partyId(), strict(List(monId.position())));
+                                @Override public void mon(MonPartyFieldPosition monPartyFieldPosition) {
+                                    targetMap.put(monPartyFieldPosition.partyId(), strict(List(monPartyFieldPosition.position())));
                                 }
                                 @Override public void party(PartyId partyId) {
                                     targetMap.put(partyId, strict(I
@@ -102,12 +102,12 @@ public class PmonRuleToDetermineUpdatesByDecisions {
                                 @Override public void none() {
                                 }
                             });
-                            moveList.add(new DecisionSorting.MoveInfo(new MonId(partyId, monId), useMoveDecision.moveIndex, monSpeed, move.priorityModifier, targetMap, move.interceptsSwitch));
+                            moveList.add(new DecisionSorting.MoveInfo(new MonPartyFieldPosition(partyId, monId), useMoveDecision.moveIndex, monSpeed, move.priorityModifier, targetMap, move.interceptsSwitch));
                         }
                     });
                 }
             }
-            s.switchMap = strict(I.of(s.switchList).enumer(0).toMap(t -> t.a2.monId(), t -> t.a1));
+            s.switchMap = strict(I.of(s.switchList).enumer(0).toMap(t -> t.a2.monPartyFieldPosition(), t -> t.a1));
             var sortMove = method((DecisionSorting.MoveInfo move) -> {
 
                 for (var targetMons: move.targets.entrySet()) {
@@ -115,7 +115,7 @@ public class PmonRuleToDetermineUpdatesByDecisions {
                     var targetPartyId = targetMons.getKey();
                     for (var targetMonId: targetMons.getValue()) {
 
-                        var targetMonAbsId = new MonId(targetPartyId, targetMonId);
+                        var targetMonAbsId = new MonPartyFieldPosition(targetPartyId, targetMonId);
                         if (move.interceptsSwitch && s.switchMap.containsKey(targetMonAbsId)) {
 
                             s.moveInterceptList.add(move);
@@ -140,8 +140,8 @@ public class PmonRuleToDetermineUpdatesByDecisions {
             var moveInfoToUpdate = method((DecisionSorting.MoveInfo moveInfo) -> {
 
                 var updateByMove = new PmonUpdateByMove();
-                var monId = moveInfo.monId();
-                updateByMove.monId = monId;
+                var monId = moveInfo.monPartyFieldPosition();
+                updateByMove.monPartyFieldPosition = monId;
                 updateByMove.moveIndex = moveInfo.moveIndex;
                 updateByMove.moveId = context.parties.get(monId.partyId()).monsOnField
                         .get(monId.position()).moves
@@ -193,13 +193,13 @@ public class PmonRuleToDetermineUpdatesByDecisions {
                                 else if (isTargetable(targetMon) && ruleset.rngAccuracy.roll(move.accuracy)) {
                                     StrictList<PmonUpdateOnTarget> atomicUpdatesOnFoe = strict(List());
                                     StrictList<PmonUpdateOnTarget> atomicUpdatesOnSelf = strict(List());
-                                    var localContext = new PmonRuleToDetermineLocalContext(ruleset).detLocalContext(context, moveInfo.monId().partyId());
-                                    var monId = moveInfo.monId();
+                                    var localContext = new PmonRuleToDetermineLocalContext(ruleset).detLocalContext(context, moveInfo.monPartyFieldPosition().partyId());
+                                    var monId = moveInfo.monPartyFieldPosition();
                                     Integer nrHits = ruleset.rngHitNrTimes.betweenInclusive(move.hitNrTimesRange);
                                     var effectsOnTarget = move.effectsOnTarget.apply(new PmonMove.EffectsContext(localContext, monId.position(), mon, useMoveDecision.target));
                                     if (effectsOnTarget != null) {
                                         for (var i : I.range(nrHits)) {
-                                            new PmonRuleToDetermineUpdatesOnTargetsByEffects(ruleset).detUpdates(context, monId, new MonId(targetPartyId, targetMonId), effectsOnTarget, nrTargets, true, atomicUpdatesOnFoe::add);
+                                            new PmonRuleToDetermineUpdatesOnTargetsByEffects(ruleset).detUpdates(context, monId, new MonPartyFieldPosition(targetPartyId, targetMonId), effectsOnTarget, nrTargets, true, atomicUpdatesOnFoe::add);
                                         }
                                     }
                                     var effectsOnSelf = move.effectsOnSelf.apply(new PmonMove.EffectsContext(localContext, monId.position(), mon, useMoveDecision.target));
@@ -231,9 +231,10 @@ public class PmonRuleToDetermineUpdatesByDecisions {
             // switch-in moves
             for (var switchInInfo: s.switchList) {
                 var switchInUpdate = new PmonUpdateBySwitchOut();
-                switchInUpdate.partyId = switchInInfo.monId().partyId();
-                switchInUpdate.monFieldPosition = switchInInfo.monId().position();
+                switchInUpdate.partyId = switchInInfo.monPartyFieldPosition().partyId();
+                switchInUpdate.monFieldPosition = switchInInfo.monPartyFieldPosition().position();
                 switchInUpdate.monToSwitchInPartyPosition = switchInInfo.monSwitchInIndex();
+                switchInUpdate.monToSwitchInId = context.parties.get(switchInInfo.monPartyFieldPosition.partyId()).mons.get(switchInInfo.monSwitchInIndex()).id;
                 updateHandler.accept(PmonUpdate.by(switchInUpdate));
             }
 
@@ -253,7 +254,7 @@ public class PmonRuleToDetermineUpdatesByDecisions {
                     for (var statusCondition: mon.status.statusConditions.values()) {
                         statusCondition.afterTurn.accept();
                         var afterTurnUpdate = new PmonUpdateByOther();
-                        var monId = new MonId(partyId, position);
+                        var monId = new MonPartyFieldPosition(partyId, position);
                         afterTurnUpdate.origin = monId;
                         for (var e3: statusCondition.afterTurnEffects.apply(monId,localContext).entrySet()) {
                             var target = e3.getKey();

@@ -3,7 +3,7 @@ package jl95.tbb.pmon.status;
 import jl95.lang.variadic.*;
 import jl95.tbb.PartyId;
 import jl95.tbb.mon.MonFieldPosition;
-import jl95.tbb.mon.MonId;
+import jl95.tbb.mon.MonPartyFieldPosition;
 import jl95.tbb.pmon.PmonLocalContext;
 import jl95.tbb.pmon.effect.PmonEffects;
 import jl95.util.StrictMap;
@@ -14,7 +14,7 @@ public class PmonStatusCondition {
 
     public static class Id {}
     @FunctionalInterface public interface AfterTurnEffects {
-        StrictMap<MonId, Iterable<PmonEffects>> apply(MonId monId, PmonLocalContext context);
+        StrictMap<MonPartyFieldPosition, Iterable<PmonEffects>> apply(MonPartyFieldPosition monPartyFieldPosition, PmonLocalContext context);
     }
 
     public final Id id;

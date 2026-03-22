@@ -1,6 +1,6 @@
 package jl95.tbb.pmon.update;
 
-import jl95.tbb.mon.MonId;
+import jl95.tbb.mon.MonPartyFieldPosition;
 import jl95.tbb.pmon.PmonMove;
 import jl95.tbb.pmon.status.PmonStatusCondition;
 import jl95.util.StrictList;
@@ -33,7 +33,7 @@ public class PmonUpdateByMove {
         static UsageResult immobilised(PmonStatusCondition.Id id)                  { return handler -> handler.immobilised(id); }
     }
 
-    public MonId monId = NO_MON;
+    public MonPartyFieldPosition monPartyFieldPosition = NO_PARTY_FIELD_POSITION;
     public Integer moveIndex = -1;
     public PmonMove.Id moveId = NO_MOVE;
     public StrictList<Tuple3<PartyId, MonFieldPosition, UsageResult>>

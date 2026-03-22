@@ -6,7 +6,7 @@ import jl95.lang.variadic.Function0;
 import jl95.lang.variadic.Function1;
 import jl95.lang.variadic.Method1;
 import jl95.tbb.PartyId;
-import jl95.tbb.mon.MonId;
+import jl95.tbb.mon.MonPartyFieldPosition;
 import jl95.tbb.pmon.*;
 import jl95.tbb.pmon.effect.PmonEffects;
 import jl95.tbb.pmon.status.PmonStatModifierType;
@@ -26,9 +26,9 @@ public class Gen1Test {
 
     private static class AfterTurnStandardEffects implements PmonStatusCondition.AfterTurnEffects {
         private StrictList<PmonStatusCondition.AfterTurnEffects> list = strict(List());
-        @Override public StrictMap<MonId, Iterable<PmonEffects>> apply(MonId monId, PmonLocalContext context) {
+        @Override public StrictMap<MonPartyFieldPosition, Iterable<PmonEffects>> apply(MonPartyFieldPosition monPartyFieldPosition, PmonLocalContext context) {
             return list
-                    .map(a -> a.apply(monId,context))
+                    .map(a -> a.apply(monPartyFieldPosition,context))
                     .reduce(strict(Map()), (map,a) -> {
                         for (var e: a.entrySet()) {
                             map.put(e.getKey(), !map.containsKey(e.getKey())
